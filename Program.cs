@@ -20,7 +20,7 @@ var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? "ABCD67890_secure_key_32_characters";
 var key = Encoding.ASCII.GetBytes(token);
 
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString)); 
 
 var misReglasCORS = "ReglasCORS";
 builder.Services.AddCors(opt =>
