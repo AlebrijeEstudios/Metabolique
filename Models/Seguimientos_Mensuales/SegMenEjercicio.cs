@@ -1,0 +1,61 @@
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace AppVidaSana.Models.Seguimientos_Mensuales
+{
+    [PrimaryKey(nameof(id))]
+    public class SegMenEjercicio
+    {
+        [ForeignKey("Cuenta")]
+        public Guid id { get; set; }
+
+        [Required(ErrorMessage = "El campo mes es obligatorio")]
+        public string mes { get; set; } = null!;
+
+        [Required(ErrorMessage = "El campo año es obligatorio")]
+        public int año { get; set; }
+
+        [Required(ErrorMessage = "El campo pregunta1 es obligatorio")]
+        public int pregunta1 { get; set; }
+
+        [Required(ErrorMessage = "El campo pregunta2 es obligatorio")]
+        public int pregunta2 { get; set; }
+
+        [Required(ErrorMessage = "El campo pregunta3 es obligatorio")]
+        public int pregunta3 { get; set; }
+
+        [Required(ErrorMessage = "El campo pregunta4 es obligatorio")]
+        public int pregunta4 { get; set; }
+
+        [Required(ErrorMessage = "El campo pregunta5 es obligatorio")]
+        public int pregunta5 { get; set; }
+
+        [Required(ErrorMessage = "El campo pregunta6 es obligatorio")]
+        public int pregunta6 { get; set; }
+
+        [Required(ErrorMessage = "El campo pregunta7 es obligatorio")]
+        public int pregunta7 { get; set; }
+
+        [Required(ErrorMessage = "El campo actcaminata es obligatorio")]
+        public float actcaminata { get; set; }
+
+        [Required(ErrorMessage = "El campo afmoderada es obligatorio")]
+        public float afmoderada { get; set; }
+
+        [Required(ErrorMessage = "El campo afvigorosa es obligatorio")]
+        public float afvigorosa { get; set; }
+
+        [Required(ErrorMessage = "El campo totalMET es obligatorio")]
+        public float totalMET { get; set; }
+
+        [Required(ErrorMessage = "El campo conductasend es obligatorio")]
+        public string conductasend { get; set; } = null!;
+
+        [Required(ErrorMessage = "El campo nivelAF es obligatorio")]
+        public string nivelAF { get; set; } = null!;
+
+        public Cuenta? cuenta { get; set; }
+
+    }
+}
