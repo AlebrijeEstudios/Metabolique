@@ -4,9 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Seguimientos_Mensuales
 {
-    [PrimaryKey(nameof(id))]
+   
     public class SegMenEjercicio
     {
+        [Key]
+        public Guid idsegmen { get; set; } = Guid.NewGuid();
+
         [ForeignKey("Cuenta")]
         public Guid id { get; set; }
 

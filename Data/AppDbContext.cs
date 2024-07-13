@@ -30,9 +30,9 @@ namespace AppVidaSana.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Cuenta>()
-                .HasOne(c => c.seg_men_ej)
+                .HasMany(c => c.seg_men_ej)
                 .WithOne(smej => smej.cuenta)
-                .HasForeignKey<SegMenEjercicio>(smej => smej.id)
+                .HasForeignKey(smej => smej.id)
                 .OnDelete(DeleteBehavior.Restrict);
 
         }

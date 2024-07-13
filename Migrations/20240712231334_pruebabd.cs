@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AppVidaSana.Migrations
 {
     /// <inheritdoc />
-    public partial class Azurebd : Migration
+    public partial class pruebabd : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -74,6 +74,7 @@ namespace AppVidaSana.Migrations
                 name: "SegMenEjercicios",
                 columns: table => new
                 {
+                    idsegmen = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     mes = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     año = table.Column<int>(type: "int", nullable: false),
@@ -93,7 +94,7 @@ namespace AppVidaSana.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SegMenEjercicios", x => x.id);
+                    table.PrimaryKey("PK_SegMenEjercicios", x => x.idsegmen);
                     table.ForeignKey(
                         name: "FK_SegMenEjercicios_Cuentas_id",
                         column: x => x.id,
@@ -105,6 +106,11 @@ namespace AppVidaSana.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Ejercicios_id",
                 table: "Ejercicios",
+                column: "id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SegMenEjercicios_id",
+                table: "SegMenEjercicios",
                 column: "id");
         }
 

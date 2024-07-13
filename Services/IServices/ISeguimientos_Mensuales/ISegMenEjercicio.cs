@@ -8,5 +8,6 @@ namespace AppVidaSana.Services.IServices.ISeguimientos_Mensuales
 
         RecuperarRespuestasDto RecuperarRespuestas(Guid id, string mes, int año);
 
+        bool Guardar();
     }
 }

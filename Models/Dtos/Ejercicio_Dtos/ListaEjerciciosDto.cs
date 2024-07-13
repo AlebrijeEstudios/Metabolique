@@ -2,7 +2,7 @@
 {
     public class ListaEjerciciosDto
     {
-        public Guid idejercicio { get; set; } = Guid.NewGuid();
+        public Guid idejercicio { get; set; } 
 
         public string tipo { get; set; } = null!;
 

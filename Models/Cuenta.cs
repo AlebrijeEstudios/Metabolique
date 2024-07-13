@@ -24,7 +24,7 @@ namespace AppVidaSana.Models
 
         public ICollection<Ejercicio> ejercicios { get; set; } = new List<Ejercicio>();
 
-        public SegMenEjercicio? seg_men_ej { get; set; }
+        public ICollection<SegMenEjercicio> seg_men_ej { get; set; } = new List<SegMenEjercicio>();
 
     }
 }

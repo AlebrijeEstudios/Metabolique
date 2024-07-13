@@ -2,7 +2,6 @@
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Models;
-using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
@@ -22,11 +21,16 @@ namespace AppVidaSana.Services
 
         }
 
-        public List<ListaEjerciciosDto> ObtenerEjercicios(ObtenerListaEjerciciosDto datos)
+        public List<ListaEjerciciosDto> ObtenerEjercicios(Guid id, DateOnly fecha)
         {
             var ejercicios = _bd.Ejercicios
-            .Where(e => e.id == datos.id && e.fecha == datos.fecha)
+            .Where(e => e.id == id && e.fecha == fecha)
             .ToList();
+
+            if(ejercicios.Count == 0)
+            {
+                throw new EjercicioNotFoundException();
+            }
 
             var ejerciciosDto = _mapper.Map<List<ListaEjerciciosDto>>(ejercicios);
 
@@ -64,7 +68,9 @@ namespace AppVidaSana.Services
 
         public string AñadirEjercicio(AñadirEjercicioDto ejercicio)
         {
-            if (ejercicio == null)
+            var eje = _bd.Cuentas.Find(ejercicio.id);
+
+            if (eje == null)
             {
                 return "No se guardaron los datos, intentelo de nuevo";
             }

@@ -45,7 +45,9 @@ namespace AppVidaSana.Services
                 username = user.username,
                 email = user.email,
                 password = BCrypt.Net.BCrypt.HashPassword(user.password),
-                perfil = null
+                perfil = null,
+                ejercicios = { },
+                seg_men_ej = null
             };
 
             var validationResults = new List<ValidationResult>();

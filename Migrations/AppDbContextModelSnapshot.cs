@@ -108,7 +108,8 @@ namespace AppVidaSana.Migrations
 
             modelBuilder.Entity("AppVidaSana.Models.Seguimientos_Mensuales.SegMenEjercicio", b =>
                 {
-                    b.Property<Guid>("id")
+                    b.Property<Guid>("idsegmen")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<float>("actcaminata")
@@ -126,6 +127,9 @@ namespace AppVidaSana.Migrations
                     b.Property<string>("conductasend")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("id")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("mes")
                         .IsRequired()
@@ -159,7 +163,9 @@ namespace AppVidaSana.Migrations
                     b.Property<float>("totalMET")
                         .HasColumnType("real");
 
-                    b.HasKey("id");
+                    b.HasKey("idsegmen");
+
+                    b.HasIndex("id");
 
                     b.ToTable("SegMenEjercicios");
                 });
@@ -189,8 +195,8 @@ namespace AppVidaSana.Migrations
             modelBuilder.Entity("AppVidaSana.Models.Seguimientos_Mensuales.SegMenEjercicio", b =>
                 {
                     b.HasOne("AppVidaSana.Models.Cuenta", "cuenta")
-                        .WithOne("seg_men_ej")
-                        .HasForeignKey("AppVidaSana.Models.Seguimientos_Mensuales.SegMenEjercicio", "id")
+                        .WithMany("seg_men_ej")
+                        .HasForeignKey("id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

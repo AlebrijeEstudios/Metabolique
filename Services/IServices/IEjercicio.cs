@@ -6,7 +6,7 @@ namespace AppVidaSana.Services.IServices
 {
     public interface IEjercicio
     {
-        List<ListaEjerciciosDto> ObtenerEjercicios(ObtenerListaEjerciciosDto datos);
+        List<ListaEjerciciosDto> ObtenerEjercicios(Guid id, DateOnly fecha);
 
         string AñadirEjercicio(AñadirEjercicioDto ejercicio);
 
