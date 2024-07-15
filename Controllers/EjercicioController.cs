@@ -12,7 +12,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("ReglasCORS")]
     [ApiController]
     [Route("api/users-ejercicios")]
-    public class EjercicioController : Controller
+    public class EjercicioController : ControllerBase
     {
         private readonly IEjercicio _ejRepo;
 

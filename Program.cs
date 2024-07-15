@@ -28,6 +28,11 @@ builder.Services.AddCors(opt =>
     opt.AddPolicy(name: misReglasCORS, builder =>
     {
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+
+        /*
+         builder.WithOrigins("https://dominio1.com", "https://dominio2.com")
+               .AllowAnyMethod()
+               .AllowAnyHeader();*/
     });
 });
 

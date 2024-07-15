@@ -50,20 +50,20 @@ namespace AppVidaSana.Data
             modelBuilder.Entity<Cuenta>()
                 .HasOne(cuenta => cuenta.perfil)
                 .WithOne(perfil => perfil.cuenta)
-                .HasForeignKey<Perfil>(perfil => perfil.id)
+                .HasForeignKey<Perfil>(perfil => perfil.cuentaID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             //Ejercicio y SegMenEjercicio
             modelBuilder.Entity<Cuenta>()
                 .HasMany(cuenta => cuenta.ejercicios)
                 .WithOne(ejercicios => ejercicios.cuenta)
-                .HasForeignKey(ejercicios => ejercicios.id)
+                .HasForeignKey(ejercicios => ejercicios.cuentaID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Cuenta>()
                 .HasMany(cuenta => cuenta.segMenEjercicio)
                 .WithOne(segMenEjercicio => segMenEjercicio.cuenta)
-                .HasForeignKey(segMenEjercicio => segMenEjercicio.id)
+                .HasForeignKey(segMenEjercicio => segMenEjercicio.cuentaID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             //Alimentacion(Desayuno, ..., Cena)

@@ -6,10 +6,10 @@ namespace AppVidaSana.Models
     public class Ejercicio
     {
         [Key]
-        public Guid idejercicio { get; set; } = Guid.NewGuid();
+        public Guid ejercicioID { get; set; } = Guid.NewGuid();
 
         [ForeignKey("Cuenta")]
-        public Guid id { get; set; }
+        public Guid cuentaID { get; set; }
 
         [Required(ErrorMessage = "El campo fecha es obligatoria")]
         [DataType(DataType.Date)]

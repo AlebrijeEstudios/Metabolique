@@ -66,7 +66,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
             SegMenEjercicio sme = new SegMenEjercicio
             {
-                id = res.id,
+                cuentaID = res.id,
                 mes = res.mes,
                 año = res.año,
                 pregunta1 = res.pregunta1,
@@ -76,11 +76,11 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 pregunta5 = res.pregunta5,
                 pregunta6 = res.pregunta6,
                 pregunta7 = res.pregunta7,
-                actcaminata = METactcam,
-                afmoderada = METactmod,
-                afvigorosa = METactvi,
+                actCaminata = METactcam,
+                actfModerada = METactmod,
+                actfVigorosa = METactvi,
                 totalMET = TotalMET,
-                conductasend = conducSend,
+                conductaSend = conducSend,
                 nivelAF = NivelAF,
                 cuenta = null
             };
@@ -91,7 +91,11 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             if (!Validator.TryValidateObject(sme, validationContext, validationResults, true))
             {
                 var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-                throw new ErrorDatabaseException(errors);
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
             }
 
             _bd.SegMenEjercicios.Add(sme);
@@ -101,7 +105,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         public RecuperarRespuestasDto RecuperarRespuestas(Guid id, string mes, int año)
         {
-            var reg = _bd.SegMenEjercicios.FirstOrDefault(c => c.id == id && c.mes == mes && c.año == año);
+            var reg = _bd.SegMenEjercicios.FirstOrDefault(c => c.cuentaID == id && c.mes == mes && c.año == año);
 
             if (reg == null)
             {
@@ -126,27 +130,27 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             }
         }
 
-        private float actvigorosa(int res1, int res2)
+        private static float actvigorosa(int res1, int res2)
         {
             return (float) 8.0 * res2 * res1;
         }
 
-        private float actmoderada(int res3, int res4)
+        private static float actmoderada(int res3, int res4)
         {
             return (float) 4.0 * res4 * res3;
         }
         
-        private float actcaminata(int res5, int res6)
+        private static float actcaminata(int res5, int res6)
         {
             return (float) 3.3 * res6 * res5;
         }
         
-        private float totalMET(float met1, float met2, float met3)
+        private static float totalMET(float met1, float met2, float met3)
         {
             return (float) met1 + met2 + met3;
         }
 
-        private string conductasendentaria(int res7)
+        private static string conductasendentaria(int res7)
         {
             string resultado = "AUSENTE";
 
@@ -158,7 +162,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             return resultado;
         }
 
-        private bool nivelAFAlto(int res1, float MET_AFvigorosa, float MET_AFmoderada, float MET_AFcaminata)
+        private static bool nivelAFAlto(int res1, float MET_AFvigorosa, float MET_AFmoderada, float MET_AFcaminata)
         {
             bool criterio1 = false;
             bool criterio2 = false;
@@ -181,7 +185,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             return criterio1 || criterio2;
         }
 
-        private bool nivelAFModerado(RecuperarRespuestasDto res, float MET_AFvigorosa, float MET_AFmoderada, float MET_AFcaminata)
+        private static bool nivelAFModerado(RecuperarRespuestasDto res, float MET_AFvigorosa, float MET_AFmoderada, float MET_AFcaminata)
         {
             bool criterio1 = false;
             bool criterio2 = false;

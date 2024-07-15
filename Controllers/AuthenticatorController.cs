@@ -92,9 +92,9 @@ namespace AppVidaSana.Controllers
                     return StatusCode(StatusCodes.Status400BadRequest, new { mensaje = "Error", response = ex.Message});
 
                 }
-            }catch(PasswordInvalidException ex)
+            }catch(ValuesInvalidException ex)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, new { mensaje = "Error", response = ex.Message });
+                return StatusCode(StatusCodes.Status400BadRequest, new { mensaje = "Error", response = ex.Errors });
             }
 
             

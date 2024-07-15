@@ -1,20 +1,19 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
 
 namespace AppVidaSana.Models.Dtos.Ejercicio_Dtos
 {
     public class AñadirEjercicioDto
-    { 
+    {
 
-        public Guid id { get; set; }
+        [JsonRequired] public Guid id { get; set; }
 
-        public DateOnly fecha { get; set; }
+        [JsonRequired] public DateOnly fecha { get; set; }
 
-        public string tipo { get; set; } = null!;
+        [JsonRequired] public string tipo { get; set; } = null!;
 
-        public string intensidad { get; set; } = null!;
+        [JsonRequired] public string intensidad { get; set; } = null!;
 
-        public int tiempo { get; set; }
+        [JsonRequired] public int tiempo { get; set; }
 
     }
 }

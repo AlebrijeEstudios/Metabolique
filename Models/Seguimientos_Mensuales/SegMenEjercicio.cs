@@ -8,10 +8,10 @@ namespace AppVidaSana.Models.Seguimientos_Mensuales
     public class SegMenEjercicio
     {
         [Key]
-        public Guid idsegmen { get; set; } = Guid.NewGuid();
+        public Guid seguimientoMensualID { get; set; } = Guid.NewGuid();
 
         [ForeignKey("Cuenta")]
-        public Guid id { get; set; }
+        public Guid cuentaID { get; set; }
 
         [Required(ErrorMessage = "El campo mes es obligatorio")]
         public string mes { get; set; } = null!;
@@ -41,19 +41,19 @@ namespace AppVidaSana.Models.Seguimientos_Mensuales
         public int pregunta7 { get; set; }
 
         [Required(ErrorMessage = "El campo actcaminata es obligatorio")]
-        public float actcaminata { get; set; }
+        public float actCaminata { get; set; }
 
         [Required(ErrorMessage = "El campo afmoderada es obligatorio")]
-        public float afmoderada { get; set; }
+        public float actfModerada { get; set; }
 
         [Required(ErrorMessage = "El campo afvigorosa es obligatorio")]
-        public float afvigorosa { get; set; }
+        public float actfVigorosa { get; set; }
 
         [Required(ErrorMessage = "El campo totalMET es obligatorio")]
         public float totalMET { get; set; }
 
         [Required(ErrorMessage = "El campo conductasend es obligatorio")]
-        public string conductasend { get; set; } = null!;
+        public string conductaSend { get; set; } = null!;
 
         [Required(ErrorMessage = "El campo nivelAF es obligatorio")]
         public string nivelAF { get; set; } = null!;

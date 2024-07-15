@@ -32,8 +32,8 @@ namespace AppVidaSana.Services
 
             Perfil us = new Perfil
             {
-                id = id,
-                fechanacimiento = profile.fechaNacimiento,
+                cuentaID = id,
+                fechaNacimiento = profile.fechaNacimiento,
                 sexo = profile.sexo,
                 estatura = profile.estatura,
                 peso = profile.peso,
@@ -47,7 +47,11 @@ namespace AppVidaSana.Services
             if (!Validator.TryValidateObject(us, validationContext, validationResults, true))
             {
                 var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-                throw new ErrorDatabaseException(errors);
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
             }
 
             _bd.Perfiles.Add(us);
@@ -81,7 +85,7 @@ namespace AppVidaSana.Services
             }
 
             up.sexo = profiledto.sexo;
-            up.fechanacimiento = profiledto.fechaNacimiento;
+            up.fechaNacimiento = profiledto.fechaNacimiento;
             up.estatura = profiledto.estatura;
             up.peso = profiledto.peso;
             up.protocolo = profiledto.protocolo;
@@ -92,7 +96,11 @@ namespace AppVidaSana.Services
             if (!Validator.TryValidateObject(up, validationContext, validationResults, true))
             {
                 var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-                throw new ErrorDatabaseException(errors);
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
             }
 
             _bd.Perfiles.Update(up);

@@ -12,7 +12,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("ReglasCORS")]
     [ApiController]
     [Route("api/users/profile")]
-    public class PerfilController : Controller
+    public class PerfilController : ControllerBase
     {
         private readonly IPerfil _upRepo;
 

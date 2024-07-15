@@ -4,8 +4,8 @@ namespace AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos
 {
     public class TokenUserDto
     {
-        public string Token { get; set; } = null!;
+        [JsonRequired]  public string Token { get; set; } = null!;
 
-        public Guid id { get; set; }
+        [JsonRequired]  public Guid id { get; set; }
     }
 }

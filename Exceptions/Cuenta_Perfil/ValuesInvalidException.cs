@@ -1,10 +1,10 @@
 ﻿namespace AppVidaSana.Exceptions.Cuenta_Perfil
 {
-    public class ErrorDatabaseException : Exception
+    public class ValuesInvalidException : Exception
     {
         public List<string?> Errors { get; }
 
-        public ErrorDatabaseException(List<string?> errors)
+        public ValuesInvalidException(List<string?> errors) 
         {
             Errors = errors;
         }

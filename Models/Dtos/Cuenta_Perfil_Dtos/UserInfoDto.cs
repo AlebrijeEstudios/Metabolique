@@ -4,11 +4,11 @@ namespace AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos
 {
     public class UserInfoDto
     {
-        public Guid id { get; set; }
+        [JsonRequired] public Guid id { get; set; }
 
-        public string username { get; set; } = null!;
+        [JsonRequired] public string username { get; set; } = null!;
 
-        public string email { get; set; } = null!;
+        [JsonRequired] public string email { get; set; } = null!;
 
     }
 }

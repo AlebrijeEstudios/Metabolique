@@ -9,9 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using AppVidaSana.Models;
 using System.ComponentModel.DataAnnotations;
-using AppVidaSana.Exceptions;
 using System.Text.RegularExpressions;
-using System.Reflection.Metadata;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 
 namespace AppVidaSana.Services
@@ -35,17 +33,37 @@ namespace AppVidaSana.Services
                 return "No se guardaron los datos, intentelo de nuevo";
             }
 
-            if (!verificar(user.password))
+            string vUsername = verificarUsername(user.username);
+            string vCorreo = verificarCorreo(user.email);
+            string vPassword = verificarPassword(user.password);
+
+            List<string?> er = new List<string?>();
+
+            if(vUsername != "")
             {
-                throw new PasswordInvalidException();
+                er.Add(vUsername);
             }
 
+            if(vCorreo != "")
+            {
+                er.Add(vCorreo);
+            }
+
+            if(vPassword != "")
+            {
+                er.Add(vPassword);
+            }
+
+            if(er.Count > 0) 
+            {
+                throw new ValuesInvalidException(er);
+            }
+            
             Cuenta us = new Cuenta
             {
                 username = user.username,
                 email = user.email,
                 password = BCrypt.Net.BCrypt.HashPassword(user.password),
-                
             };
 
             var validationResults = new List<ValidationResult>();
@@ -54,7 +72,11 @@ namespace AppVidaSana.Services
             if (!Validator.TryValidateObject(us, validationContext, validationResults, true))
             {
                 var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-                throw new ErrorDatabaseException(errors);
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
             }
 
             _bd.Cuentas.Add(us);
@@ -112,7 +134,7 @@ namespace AppVidaSana.Services
             TokenUserDto ut = new TokenUserDto()
             {
                 Token = tok.WriteToken(token),
-                id = uid.id
+                id = uid.cuentaID
             };
 
             return ut;
@@ -127,6 +149,27 @@ namespace AppVidaSana.Services
                 throw new UserNotFoundException();
             }
 
+            string vUsername = verificarUsername(userdto.username);
+            string vCorreo = verificarCorreo(userdto.email);
+
+            List<string?> er = new List<string?>();
+
+            if (vUsername != "")
+            {
+                er.Add(vUsername);
+            }
+
+            if (vCorreo != "")
+            {
+                er.Add(vCorreo);
+            }
+
+
+            if (er.Count > 0)
+            {
+                throw new ValuesInvalidException(er);
+            }
+
             user.username = userdto.username;
             user.email = userdto.email;
 
@@ -136,7 +179,11 @@ namespace AppVidaSana.Services
             if (!Validator.TryValidateObject(user, validationContext, validationResults, true))
             {
                 var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-                throw new ErrorDatabaseException(errors);
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
             }
 
             _bd.Cuentas.Update(user);
@@ -200,7 +247,7 @@ namespace AppVidaSana.Services
             TokenUserDto ut = new TokenUserDto()
             {
                 Token = tok.WriteToken(token),
-                id = user.id
+                id = user.cuentaID
 
             };
 
@@ -226,11 +273,20 @@ namespace AppVidaSana.Services
             if(!(model.password == model.confirmpassword))
             {
                 throw new ComparedPasswordException();
-            } 
-            
-            if (!verificar(model.confirmpassword))
+            }
+
+            string? vPassword = verificarPassword(model.confirmpassword);
+
+            List<string?> er = new List<string?>();
+
+            if(vPassword != "")
             {
-                throw new PasswordInvalidException();
+                er.Add(vPassword);
+            }
+
+            if (er.Count > 0)
+            {
+                throw new ValuesInvalidException(er);
             }
 
             var principal = GetPrincipalFromExpiredToken(model.token);
@@ -282,28 +338,45 @@ namespace AppVidaSana.Services
             return principal;
         }
 
-        private Boolean verificar(String contraseñaSinVerificar)
+        private string verificarUsername(string usernameSinVerificar)
         {
-            Regex letras = new Regex(@"[a-zA-z]");
-            Regex numeros = new Regex(@"[0-9]");
-            Regex caracEsp = new Regex("[!\"#\\$%&'()*+,-./:;=?@\\[\\]^_`{|}~]");
-
-            if (!letras.IsMatch(contraseñaSinVerificar))
+            var cuentaExistente = _bd.Cuentas.FirstOrDefault(c => c.username == usernameSinVerificar);
+            if (cuentaExistente != null)
             {
-                return false;
+                return "Este nombre de usuario ya está en uso";
             }
 
-            if (!numeros.IsMatch(contraseñaSinVerificar))
+            return "";
+        }
+
+        private string verificarCorreo(string correoSinVerificar)
+        {
+            Regex regex = new Regex(@"[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}");
+
+            if (!regex.IsMatch(correoSinVerificar))
             {
-                return false;
+                return "El correo electrónico no tiene un formato válido";
             }
 
-            if (!caracEsp.IsMatch(contraseñaSinVerificar))
+            var correoExistente = _bd.Cuentas.FirstOrDefault(c => c.email == correoSinVerificar);
+            if (correoExistente != null)
             {
-                return false;
+                return "Este correo electrónico está ligado a una cuenta existente";
             }
 
-            return true;
-}
+            return "";
+        }
+
+        private string verificarPassword(string contraseñaSinVerificar)
+        {
+            Regex patronGeneral = new Regex(@"(?=.*[a-zA-Z])(?=.*\d)(?=.*[!""#$%&'()*+,-./:;=?@[\]^_`{|}~])[\w!""#$%&'()*+,-./:;=?@[\]^_`{|}~]");
+
+            if (!patronGeneral.IsMatch(contraseñaSinVerificar))
+            {
+                return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico";
+            }
+
+            return "";
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
     [ApiController]
     [Route("api/seguimiento-mensual-ejercicio")]
 
-    public class SegMenEjercicioController : Controller
+    public class SegMenEjercicioController : ControllerBase
     {
         private readonly ISegMenEjercicio _smejRepo;
 

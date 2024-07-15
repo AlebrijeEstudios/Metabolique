@@ -24,7 +24,7 @@ namespace AppVidaSana.Services
         public List<ListaEjerciciosDto> ObtenerEjercicios(Guid id, DateOnly fecha)
         {
             var ejercicios = _bd.Ejercicios
-            .Where(e => e.id == id && e.fecha == fecha)
+            .Where(e => e.cuentaID == id && e.fecha == fecha)
             .ToList();
 
             if(ejercicios.Count == 0)
@@ -57,7 +57,11 @@ namespace AppVidaSana.Services
             if (!Validator.TryValidateObject(eje, validationContext, validationResults, true))
             {
                 var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-                throw new ErrorDatabaseException(errors);
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
             }
 
             _bd.Ejercicios.Update(eje);
@@ -77,7 +81,7 @@ namespace AppVidaSana.Services
 
             Ejercicio ej = new Ejercicio
             {
-                id = ejercicio.id,
+                cuentaID = ejercicio.id,
                 fecha = ejercicio.fecha,
                 tipo = ejercicio.tipo,
                 intensidad = ejercicio.intensidad,
@@ -91,7 +95,11 @@ namespace AppVidaSana.Services
             if (!Validator.TryValidateObject(ej, validationContext, validationResults, true))
             {
                 var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-                throw new ErrorDatabaseException(errors);
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
             }
 
             _bd.Ejercicios.Add(ej);

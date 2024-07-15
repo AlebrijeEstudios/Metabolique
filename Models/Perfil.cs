@@ -4,15 +4,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Models
 {
-    [PrimaryKey(nameof(id))]
+    [PrimaryKey(nameof(cuentaID))]
     public class Perfil
     {
         [ForeignKey("Cuenta")]
-        public Guid id { get; set; }
+        public Guid cuentaID { get; set; }
 
         [Required(ErrorMessage = "El campo fecha de nacimiento es obligatoria")]
         [DataType(DataType.Date)]
-        public DateOnly fechanacimiento { get; set; }
+        public DateOnly fechaNacimiento { get; set; }
 
         [Required(ErrorMessage = "El campo sexo es obligatorio")]
         public string sexo { get; set; } = null!;

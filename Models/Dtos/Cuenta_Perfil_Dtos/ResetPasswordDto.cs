@@ -1,16 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
 
 namespace AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos
 {
     public class ResetPasswordDto
     {
-        public string email { get; set; } = null!;
+        [JsonRequired] public string email { get; set; } = null!;
 
-        public string token { get; set; } = null!;
+        [JsonRequired] public string token { get; set; } = null!;
 
-        public string password { get; set; } = null!;
+        [JsonRequired] public string password { get; set; } = null!;
 
-        public string confirmpassword { get; set; } = null!;
+        [JsonRequired] public string confirmpassword { get; set; } = null!;
 
     }
 }

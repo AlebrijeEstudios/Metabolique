@@ -8,7 +8,7 @@ namespace AppVidaSana.Models
     public class Cuenta
     {
         [Key]
-        public Guid id { get; set; } = Guid.NewGuid();
+        public Guid cuentaID { get; set; } = Guid.NewGuid();
 
         [Required(ErrorMessage = "El campo username es obligatorio")]
         public string username { get; set; } = null!;

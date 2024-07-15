@@ -13,7 +13,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("ReglasCORS")]
     [ApiController]
     [Route("api/users")]
-    public class CuentaController : Controller
+    public class CuentaController : ControllerBase
     {
         private readonly ICuenta _uRepo;
         private readonly IMapper _mapper;
@@ -54,9 +54,9 @@ namespace AppVidaSana.Controllers
                     var res = _uRepo.CreateUser(user);
                     return StatusCode(StatusCodes.Status201Created, new { mensaje = "ok", response = res });
 
-               }catch(PasswordInvalidException ex)
+               }catch(ValuesInvalidException ex)
                {
-                    return StatusCode(StatusCodes.Status400BadRequest, new { mensaje = "Hubo un error, intentelo de nuevo", response = ex.Message });
+                    return StatusCode(StatusCodes.Status400BadRequest, new { mensaje = "Hubo un error, intentelo de nuevo", response = ex.Errors });
                }
             }
             catch (ErrorDatabaseException ex)
@@ -73,12 +73,21 @@ namespace AppVidaSana.Controllers
             {
                 try
                 {
-                    var res = _uRepo.UpdateUser(id, userdto);
-                    return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = res });
+                    try
+                    {
+                        var res = _uRepo.UpdateUser(id, userdto);
+                        return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = res });
 
-                }catch(UserNotFoundException ex)
+                    }catch(UserNotFoundException ex)
+                    {
+                        return StatusCode(StatusCodes.Status404NotFound, new { mensaje = "Hubo un error, intentelo de nuevo", response = ex.Message });
+
+                    }
+
+                }
+                catch (ValuesInvalidException ex)
                 {
-                    return StatusCode(StatusCodes.Status404NotFound, new { mensaje = "Hubo un error, intentelo de nuevo", response = ex.Message });
+                    return StatusCode(StatusCodes.Status404NotFound, new { mensaje = "Hubo un error, intentelo de nuevo", response = ex.Errors });
 
                 }
             }
