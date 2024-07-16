@@ -51,96 +51,96 @@ namespace AppVidaSana.Data
                 .HasOne(account => account.profile)
                 .WithOne(profile => profile.account)
                 .HasForeignKey<Profiles>(profile => profile.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             //Ejercicio y SegMenEjercicio
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.exercises)
                 .WithOne(exercises => exercises.account)
                 .HasForeignKey(exercises => exercises.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.MFUsExercise)
                 .WithOne(MFUsExercise => MFUsExercise.account)
                 .HasForeignKey(MFUsExercise => MFUsExercise.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             //Alimentacion(Desayuno, ..., Cena)
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.breakfasts)
                 .WithOne(breakfasts => breakfasts.account)
                 .HasForeignKey(breakfasts => breakfasts.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.lunches)
                 .WithOne(lunches => lunches.account)
                 .HasForeignKey(lunches => lunches.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.meals)
                 .WithOne(meals => meals.account)
                 .HasForeignKey(meals => meals.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.snacks)
                 .WithOne(snacks => snacks.account)
                 .HasForeignKey(snacks => snacks.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.dinners)
                 .WithOne(dinners => dinners.account)
                 .HasForeignKey(dinners => dinners.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             //Alimentos (Desayuno, ..., Cena)
             modelBuilder.Entity<Breakfast>()
                 .HasMany(breakfast => breakfast.foodsBreakfast)
                 .WithOne(foods => foods.breakfast)
                 .HasForeignKey(foods => foods.breakfastID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Lunch>()
                 .HasMany(lunch => lunch.foodsLunch)
                 .WithOne(foods => foods.lunch)
                 .HasForeignKey(foods => foods.lunchID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Meal>()
                 .HasMany(meal => meal.foodsMeal)
                 .WithOne(foods => foods.meal)
                 .HasForeignKey(foods => foods.mealID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Snack>()
                 .HasMany(snack => snack.foodsSnack)
                 .WithOne(foods => foods.snack)
                 .HasForeignKey(foods => foods.snackID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Dinner>()
                 .HasMany(dinner => dinner.foodsDinner)
                 .WithOne(foods => foods.dinner)
                 .HasForeignKey(foods => foods.dinnerID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
 
-            //SegMenAlimentos
+            //SegMenAlimentos   
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.MFUsNutrition)
                 .WithOne(MFUsNutrition => MFUsNutrition.account)
                 .HasForeignKey(MFUsNutrition => MFUsNutrition.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<MFUsNutrition>()
                 .HasOne(MFUsNutrition => MFUsNutrition.results)
                 .WithOne(results => results.MFUsNutrition)
                 .HasForeignKey<NutritionResults>(results => results.monthlyFollowUpID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
 
             //Medicamentos 
@@ -148,40 +148,40 @@ namespace AppVidaSana.Data
                 .HasMany(account => account.medications)
                 .WithOne(medications => medications.account)
                 .HasForeignKey(medications => medications.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             //SegMenMedicamentos
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.MFUsMedications)
                 .WithOne(MFUsMedications => MFUsMedications.account)
                 .HasForeignKey(MFUsMedications => MFUsMedications.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             //Efectos secundarios
             modelBuilder.Entity<Account>()
                .HasMany(account => account.sideEffects)
                .WithOne(sideEf => sideEf.account)
                .HasForeignKey(sideEf => sideEf.accountID)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.Cascade);
 
             //Habitos(Sueño, Bebidas, Drogas)
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.habitsSleep)
                 .WithOne(habits => habits.account)
                 .HasForeignKey(habits => habits.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.habitsDrink)
                 .WithOne(habits => habits.account)
                 .HasForeignKey(habits => habits.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.habitsDrugs)
                 .WithOne(habits => habits.account)
                 .HasForeignKey(habits => habits.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
 
 
@@ -190,13 +190,13 @@ namespace AppVidaSana.Data
                 .HasMany(account => account.MFUsHabits)
                 .WithOne(MFUsHabits => MFUsHabits.account)
                 .HasForeignKey(MFUsHabits => MFUsHabits.accountID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<MFUsHabits>()
                 .HasOne(MFUsHabits => MFUsHabits.results)
                 .WithOne(results => results.MFUsHabits)
                 .HasForeignKey<HabitsResults>(results => results.monthlyFollowUpID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
     }

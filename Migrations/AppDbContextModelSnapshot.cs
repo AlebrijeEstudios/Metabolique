@@ -882,7 +882,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Alimentación.Breakfast", "breakfast")
                         .WithMany("foodsBreakfast")
                         .HasForeignKey("breakfastID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("breakfast");
@@ -893,7 +893,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Alimentación.Dinner", "dinner")
                         .WithMany("foodsDinner")
                         .HasForeignKey("dinnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("dinner");
@@ -904,7 +904,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Alimentación.Lunch", "lunch")
                         .WithMany("foodsLunch")
                         .HasForeignKey("lunchID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("lunch");
@@ -915,7 +915,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Alimentación.Meal", "meal")
                         .WithMany("foodsMeal")
                         .HasForeignKey("mealID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("meal");
@@ -926,7 +926,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Alimentación.Snack", "snack")
                         .WithMany("foodsSnack")
                         .HasForeignKey("snackID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("snack");
@@ -937,7 +937,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("breakfasts")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -948,7 +948,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("dinners")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -959,7 +959,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("lunches")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -970,7 +970,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("meals")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -981,7 +981,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("snacks")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -992,7 +992,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("exercises")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -1003,7 +1003,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("habitsDrink")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -1014,7 +1014,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("habitsDrugs")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -1025,7 +1025,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("habitsSleep")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -1036,7 +1036,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("medications")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -1047,7 +1047,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithOne("profile")
                         .HasForeignKey("AppVidaSana.Models.Profiles", "accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -1058,7 +1058,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("MFUsExercise")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -1069,7 +1069,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("MFUsHabits")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -1080,7 +1080,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("MFUsMedications")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -1091,7 +1091,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("MFUsNutrition")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
@@ -1102,7 +1102,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Seguimientos_Mensuales.MFUsNutrition", "MFUsNutrition")
                         .WithOne("results")
                         .HasForeignKey("AppVidaSana.Models.Seguimientos_Mensuales.Respuestas.NutritionResults", "monthlyFollowUpID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("MFUsNutrition");
@@ -1113,7 +1113,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Seguimientos_Mensuales.MFUsHabits", "MFUsHabits")
                         .WithOne("results")
                         .HasForeignKey("AppVidaSana.Models.Seguimientos_Mensuales.Resultados.HabitsResults", "monthlyFollowUpID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("MFUsHabits");
@@ -1124,7 +1124,7 @@ namespace AppVidaSana.Migrations
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("sideEffects")
                         .HasForeignKey("accountID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("account");
