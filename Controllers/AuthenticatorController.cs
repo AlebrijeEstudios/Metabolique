@@ -2,6 +2,7 @@
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -11,26 +12,26 @@ namespace AppVidaSana.Controllers
     [Route("api/auth")]
     public class AuthenticatorController : Controller
     {
-        private readonly ICuenta _uRepo;
+        private readonly IAccount _AccountService;
+        private string mensaje = "Hubo un error, intentelo de nuevo.";
 
-        public AuthenticatorController(ICuenta uRepo)
+        public AuthenticatorController(IAccount AccountService)
         {
-            _uRepo = uRepo;
+            _AccountService = AccountService;
         }
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public IActionResult LoginUser([FromBody] LoginUserDto login)
+        public IActionResult LoginAccount([FromBody] LoginAccountDto login)
         {
             try
             {
-                TokenUserDto tk = _uRepo.LoginUser(login);
-                return StatusCode(StatusCodes.Status202Accepted, new { mensaje = "ok", response = tk });
+                TokenUserDto token = _AccountService.LoginAccount(login);
+                return StatusCode(StatusCodes.Status202Accepted, new { message = "ok", response = token });
             }
             catch (LoginException ex)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new { mensaje = "Hubo un error, intentelo de nuevo", response = ex.Message });
-
+                return StatusCode(StatusCodes.Status404NotFound, new { message = mensaje, response = ex.Message });
             }
         }
 
@@ -39,23 +40,28 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var token = _uRepo.RequestPasswordResetToken(req);
-                var resetLink = Url.Action("ResetPassword", "Authenticator", new { token = token.Token, email = req.email }, Request.Scheme);
+                var tk = _AccountService.RequestPasswordResetToken(req);
+                var resetLink = Url.Action("ResetPassword", "Authenticator", new { token = tk.token, email = req.email }, Request.Scheme);
 
                 if (resetLink != null)
                 {
-                    _uRepo.SendPasswordResetEmail(req.email, resetLink);
+                    _AccountService.SendPasswordResetEmail(req.email, resetLink);
+                }
+                else
+                {
+                    throw new EmailNotSendException();
                 }
 
-                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = "Se le envio un correo a su bandeja principal" });
+                return StatusCode(StatusCodes.Status200OK, new { message = "ok", response = "Se le envio un correo a su bandeja principal" });
             }
             catch (EmailNotSendException ex)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, new { mensaje = "Hubo un error, intentelo de nuevo", response = ex.Message });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = ex.Message });
 
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("ResetPassword")]
         public IActionResult ResetPassword(string token, string email)
         {
@@ -64,9 +70,9 @@ namespace AppVidaSana.Controllers
                 var model = new ResetPasswordDto { token = token, email = email };
                 return View(model);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, new { mensaje = ex.Message, response = "No se cargo completamente" });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = "No se cargo completamente" });
 
             }
 
@@ -77,27 +83,23 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                try
-                { 
-                    var result = _uRepo.ResetPassword(model);
-                    if (!result)
-                    {
-                        return StatusCode(StatusCodes.Status400BadRequest, new { mensaje = "Error", response = "Hubo un error, intentelo de nuevo" });
-                    }
-
-                    return StatusCode(StatusCodes.Status200OK, new { mensaje = "Ok", response = "La contraseña se actualizo correctamente" });
-                }
-                catch (ComparedPasswordException ex)
+                var res = _AccountService.ResetPassword(model);
+                if (!res)
                 {
-                    return StatusCode(StatusCodes.Status400BadRequest, new { mensaje = "Error", response = ex.Message});
-
+                    return StatusCode(StatusCodes.Status400BadRequest, new { message = "Error", response = "Hubo un error, intentelo de nuevo" });
                 }
-            }catch(ValuesInvalidException ex)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, new { mensaje = "Error", response = ex.Errors });
-            }
 
-            
+                return StatusCode(StatusCodes.Status200OK, new { message = "ok", response = "La contraseña se actualizo correctamente" });
+            }
+            catch (ComparedPasswordException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = ex.Message});
+
+            }
+            catch(ValuesInvalidException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje , response = ex.Errors });
+            }
         }
 
     }

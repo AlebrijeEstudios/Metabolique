@@ -22,10 +22,10 @@ var key = Encoding.ASCII.GetBytes(token);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString)); 
 
-var misReglasCORS = "ReglasCORS";
+var myrulesCORS = "RulesCORS";
 builder.Services.AddCors(opt =>
 {
-    opt.AddPolicy(name: misReglasCORS, builder =>
+    opt.AddPolicy(name: myrulesCORS, builder =>
     {
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
 
@@ -41,14 +41,14 @@ builder.Services.AddControllers().AddJsonOptions(opt =>
     opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 
-builder.Services.AddScoped<ICuenta, CuentaService>();
-builder.Services.AddScoped<IPerfil, PerfilService>();
-builder.Services.AddScoped<IEjercicio, EjercicioService>();
-builder.Services.AddScoped<ISegMenEjercicio, SegMenEjercicioService>();
+builder.Services.AddScoped<IAccount, AccountService>();
+builder.Services.AddScoped<IProfile, ProfileService>();
+builder.Services.AddScoped<IExercise, ExerciseService>();
+builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
 
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddAutoMapper(typeof(UserMapper));
+builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -108,7 +108,7 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors(misReglasCORS);
+app.UseCors(myrulesCORS);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

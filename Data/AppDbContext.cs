@@ -14,189 +14,190 @@ namespace AppVidaSana.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         { }
 
-        public DbSet<Cuenta> Cuentas { get; set; }
-        public DbSet<Perfil> Perfiles { get; set; }
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<Profiles> Profiles { get; set; }
 
-        public DbSet<Ejercicio> Ejercicios { get; set; }
-        public DbSet<SegMenEjercicio> SegMenEjercicios { get; set; }
+        public DbSet<Exercise> Exercises { get; set; }
+        public DbSet<MFUsExcercise> MFUsExcercise { get; set; }
 
-        public DbSet<Desayuno> Desayunos { get; set; }
-        public DbSet<Almuerzo> Almuerzos { get; set; }
-        public DbSet<Comida> Comidas { get; set; }
-        public DbSet<Colacion> Colaciones { get; set; }
-        public DbSet<Cena> Cenas { get; set; }
-        public DbSet<Alimentos_Almuerzo> alimentosAlmuerzo { get; set; }
-        public DbSet<Alimentos_Desayuno> alimentosDesayuno { get; set; }
-        public DbSet<Alimentos_Comida> alimentosComida { get; set; }
-        public DbSet<Alimentos_Colacion> alimentosColacion { get; set; }
-        public DbSet<Alimentos_Cena> alimentosCena { get; set; }
-        public DbSet<SegMenAlimentacion> SegMenAlimentacion { get; set; }
-        public DbSet<RAlimentacion> resultadosAlimentacion { get; set; }
+        public DbSet<Breakfast> Breakfasts { get; set; }
+        public DbSet<Lunch> Lunchs { get; set; }
+        public DbSet<Meal> Meals { get; set; }
+        public DbSet<Snack> Snacks { get; set; }
+        public DbSet<Dinner> Dinners { get; set; }
+        public DbSet<FoodsLunch> foodsLunch { get; set; }
+        public DbSet<FoodsBreakfast> foodsBreakfast { get; set; }
+        public DbSet<FoodsMeal> foodsMeal { get; set; }
+        public DbSet<FoodsSnack> foodsSnack { get; set; }
+        public DbSet<FoodsDinner> foodsDinner { get; set; }
+        public DbSet<MFUsNutrition> MFUsNutrition { get; set; }
+        public DbSet<NutritionResults> resultsNutrition { get; set; }
 
-        public DbSet<Medicamento> Medicamentos { get; set; }
-        public DbSet<EfectoSecundario> efectoSecundarios { get; set; }
-        public DbSet<SegMenMedicamentos> SegMenMedicamentos { get; set; }
+        public DbSet<Medicamento> Medications { get; set; }
+        public DbSet<SideEffect> sideEffects { get; set; }
+        public DbSet<MFUsMedications> MFUsMedications { get; set; }
 
-        public DbSet<HBebida> habitosBebida { get; set; }
-        public DbSet<HDrogas> habitosDroga { get; set; }
-        public DbSet<HSueño> habitosSueño { get; set; }
-        public DbSet<SegMenHabitos> SegMenHabitos { get; set; }
-        public DbSet<RHabitos> resultadosHabitos { get; set; }
+        public DbSet<DrinkHabit> habitsDrink { get; set; }
+        public DbSet<DrugsHabit> habitsDrugs { get; set; }
+        public DbSet<SleepHabit> habitsSleep { get; set; }
+        public DbSet<MFUsHabits> MFUsHabits { get; set; }
+        public DbSet<HabitsResults> resultsHabits { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //Cuenta_Perfil
-            modelBuilder.Entity<Cuenta>()
-                .HasOne(cuenta => cuenta.perfil)
-                .WithOne(perfil => perfil.cuenta)
-                .HasForeignKey<Perfil>(perfil => perfil.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasOne(account => account.profile)
+                .WithOne(profile => profile.account)
+                .HasForeignKey<Profiles>(profile => profile.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             //Ejercicio y SegMenEjercicio
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.ejercicios)
-                .WithOne(ejercicios => ejercicios.cuenta)
-                .HasForeignKey(ejercicios => ejercicios.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.exercises)
+                .WithOne(exercises => exercises.account)
+                .HasForeignKey(exercises => exercises.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.segMenEjercicio)
-                .WithOne(segMenEjercicio => segMenEjercicio.cuenta)
-                .HasForeignKey(segMenEjercicio => segMenEjercicio.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.MFUsExercise)
+                .WithOne(MFUsExercise => MFUsExercise.account)
+                .HasForeignKey(MFUsExercise => MFUsExercise.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             //Alimentacion(Desayuno, ..., Cena)
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.desayunos)
-                .WithOne(desayunos => desayunos.cuenta)
-                .HasForeignKey(desayunos => desayunos.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.breakfasts)
+                .WithOne(breakfasts => breakfasts.account)
+                .HasForeignKey(breakfasts => breakfasts.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.almuerzos)
-                .WithOne(almuerzos => almuerzos.cuenta)
-                .HasForeignKey(almuerzos => almuerzos.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.lunches)
+                .WithOne(lunches => lunches.account)
+                .HasForeignKey(lunches => lunches.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.comidas)
-                .WithOne(comidas => comidas.cuenta)
-                .HasForeignKey(comidas => comidas.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.meals)
+                .WithOne(meals => meals.account)
+                .HasForeignKey(meals => meals.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.colaciones)
-                .WithOne(colaciones => colaciones.cuenta)
-                .HasForeignKey(colaciones => colaciones.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.snacks)
+                .WithOne(snacks => snacks.account)
+                .HasForeignKey(snacks => snacks.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.cenas)
-                .WithOne(cenas => cenas.cuenta)
-                .HasForeignKey(cenas => cenas.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.dinners)
+                .WithOne(dinners => dinners.account)
+                .HasForeignKey(dinners => dinners.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             //Alimentos (Desayuno, ..., Cena)
-            modelBuilder.Entity<Desayuno>()
-                .HasMany(desayuno => desayuno.alimentosDesayuno)
-                .WithOne(alimentosDesayuno => alimentosDesayuno.desayuno)
-                .HasForeignKey(alimentosDesayuno => alimentosDesayuno.desayunoID)
+            modelBuilder.Entity<Breakfast>()
+                .HasMany(breakfast => breakfast.foodsBreakfast)
+                .WithOne(foods => foods.breakfast)
+                .HasForeignKey(foods => foods.breakfastID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Almuerzo>()
-                .HasMany(almuerzo => almuerzo.alimentosAlmuerzo)
-                .WithOne(alimentosAlmuerzo => alimentosAlmuerzo.almuerzo)
-                .HasForeignKey(alimentosAlmuerzo => alimentosAlmuerzo.almuerzoID)
+            modelBuilder.Entity<Lunch>()
+                .HasMany(lunch => lunch.foodsLunch)
+                .WithOne(foods => foods.lunch)
+                .HasForeignKey(foods => foods.lunchID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Comida>()
-                .HasMany(comida => comida.alimentosComida)
-                .WithOne(alimentosComida => alimentosComida.comida)
-                .HasForeignKey(alimentosComida => alimentosComida.comidaID)
+            modelBuilder.Entity<Meal>()
+                .HasMany(meal => meal.foodsMeal)
+                .WithOne(foods => foods.meal)
+                .HasForeignKey(foods => foods.mealID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Colacion>()
-                .HasMany(colacion => colacion.alimentosColacion)
-                .WithOne(alimentosCol => alimentosCol.colacion)
-                .HasForeignKey(alimentosCol => alimentosCol.colacionID)
+            modelBuilder.Entity<Snack>()
+                .HasMany(snack => snack.foodsSnack)
+                .WithOne(foods => foods.snack)
+                .HasForeignKey(foods => foods.snackID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Cena>()
-                .HasMany(cena => cena.alimentosCena)
-                .WithOne(alimentosCena => alimentosCena.cena)
-                .HasForeignKey(alimentosCena => alimentosCena.cenaID)
+            modelBuilder.Entity<Dinner>()
+                .HasMany(dinner => dinner.foodsDinner)
+                .WithOne(foods => foods.dinner)
+                .HasForeignKey(foods => foods.dinnerID)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
             //SegMenAlimentos
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.segMenAlimentacion)
-                .WithOne(segMenAlimentacion => segMenAlimentacion.cuenta)
-                .HasForeignKey(segMenAlimentacion => segMenAlimentacion.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.MFUsNutrition)
+                .WithOne(MFUsNutrition => MFUsNutrition.account)
+                .HasForeignKey(MFUsNutrition => MFUsNutrition.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<SegMenAlimentacion>()
-                .HasOne(segMenAlimentacion => segMenAlimentacion.resultados)
-                .WithOne(resultados => resultados.seguimientoMensualAlimentos)
-                .HasForeignKey<RAlimentacion>(resultados => resultados.seguimientoMensualID)
+            modelBuilder.Entity<MFUsNutrition>()
+                .HasOne(MFUsNutrition => MFUsNutrition.results)
+                .WithOne(results => results.MFUsNutrition)
+                .HasForeignKey<NutritionResults>(results => results.monthlyFollowUpID)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
             //Medicamentos 
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.medicamentos)
-                .WithOne(medicamentos => medicamentos.cuenta)
-                .HasForeignKey(medicamentos => medicamentos.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.medications)
+                .WithOne(medications => medications.account)
+                .HasForeignKey(medications => medications.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             //SegMenMedicamentos
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.segMenMedicamentos)
-                .WithOne(segMenMedicamentos => segMenMedicamentos.cuenta)
-                .HasForeignKey(segMenMedicamentos => segMenMedicamentos.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.MFUsMedications)
+                .WithOne(MFUsMedications => MFUsMedications.account)
+                .HasForeignKey(MFUsMedications => MFUsMedications.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             //Efectos secundarios
-            modelBuilder.Entity<Cuenta>()
-               .HasMany(cuenta => cuenta.efectoSecundarios)
-               .WithOne(efs => efs.cuenta)
-               .HasForeignKey(efs => efs.cuentaID)
+            modelBuilder.Entity<Account>()
+               .HasMany(account => account.sideEffects)
+               .WithOne(sideEf => sideEf.account)
+               .HasForeignKey(sideEf => sideEf.accountID)
                .OnDelete(DeleteBehavior.Restrict);
 
             //Habitos(Sueño, Bebidas, Drogas)
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.habitosSueño)
-                .WithOne(habitosSueño => habitosSueño.cuenta)
-                .HasForeignKey(habitosSueño => habitosSueño.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.habitsSleep)
+                .WithOne(habits => habits.account)
+                .HasForeignKey(habits => habits.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.habitosBebida)
-                .WithOne(habitosBebida => habitosBebida.cuenta)
-                .HasForeignKey(habitosBebida => habitosBebida.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.habitsDrink)
+                .WithOne(habits => habits.account)
+                .HasForeignKey(habits => habits.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.habitosDroga)
-                .WithOne(habitosDroga => habitosDroga.cuenta)
-                .HasForeignKey(habitosDroga => habitosDroga.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.habitsDrugs)
+                .WithOne(habits => habits.account)
+                .HasForeignKey(habits => habits.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
+
+
 
             //Seguimiento Mensual Habitos
-            modelBuilder.Entity<Cuenta>()
-                .HasMany(cuenta => cuenta.segMenHabitos)
-                .WithOne(segMenHabitos => segMenHabitos.cuenta)
-                .HasForeignKey(segMenHabitos => segMenHabitos.cuentaID)
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.MFUsHabits)
+                .WithOne(MFUsHabits => MFUsHabits.account)
+                .HasForeignKey(MFUsHabits => MFUsHabits.accountID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<SegMenHabitos>()
-                .HasOne(segMenHabitos => segMenHabitos.resultados)
-                .WithOne(resultados => resultados.seguimientoMensualHabitos)
-                .HasForeignKey<RHabitos>(resultados => resultados.seguimientoMensualID)
+            modelBuilder.Entity<MFUsHabits>()
+                .HasOne(MFUsHabits => MFUsHabits.results)
+                .WithOne(results => results.MFUsHabits)
+                .HasForeignKey<HabitsResults>(results => results.monthlyFollowUpID)
                 .OnDelete(DeleteBehavior.Restrict);
 
         }
-
     }
 }
