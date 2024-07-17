@@ -18,7 +18,7 @@ namespace AppVidaSana.Data
         public DbSet<Profiles> Profiles { get; set; }
 
         public DbSet<Exercise> Exercises { get; set; }
-        public DbSet<MFUsExcercise> MFUsExcercise { get; set; }
+        public DbSet<MFUsExercise> MFUsExcercise { get; set; }
 
         public DbSet<Breakfast> Breakfasts { get; set; }
         public DbSet<Lunch> Lunchs { get; set; }
@@ -33,7 +33,7 @@ namespace AppVidaSana.Data
         public DbSet<MFUsNutrition> MFUsNutrition { get; set; }
         public DbSet<NutritionResults> resultsNutrition { get; set; }
 
-        public DbSet<Medicamento> Medications { get; set; }
+        public DbSet<Medication> Medications { get; set; }
         public DbSet<SideEffect> sideEffects { get; set; }
         public DbSet<MFUsMedications> MFUsMedications { get; set; }
 

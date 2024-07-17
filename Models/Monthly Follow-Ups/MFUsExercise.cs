@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace AppVidaSana.Models.Seguimientos_Mensuales
 {
    
-    public class MFUsExcercise
+    public class MFUsExercise
     {
         [Key]
         public Guid monthlyFollowUpID { get; set; } = Guid.NewGuid();

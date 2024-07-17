@@ -63,7 +63,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 }
             }
 
-            MFUsExcercise mfus = new MFUsExcercise
+            MFUsExercise mfus = new MFUsExercise
             {
                 accountID = res.accountID,
                 month = res.month,

@@ -15,7 +15,7 @@ namespace AppVidaSana.Mappers
             CreateMap<Account, AccountInfoDto>().ReverseMap();
             CreateMap<Profiles, ProfileUserDto>().ReverseMap();
             CreateMap<Exercise, ExerciseListDto>().ReverseMap();
-            CreateMap<MFUsExcercise, RetrieveResponsesDto>().ReverseMap();
+            CreateMap<MFUsExercise, RetrieveResponsesDto>().ReverseMap();
         }
     }
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Models
 {
-    public class Medicamento
+    public class Medication
     {
         [Key]
         public Guid medicationID { get; set; } = Guid.NewGuid();
