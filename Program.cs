@@ -10,12 +10,15 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
 using AppVidaSana.Services.Seguimientos_Mensuales;
+using AppVidaSana.Api.Key;
+using AppVidaSana.Api;
+using Microsoft.AspNetCore.Builder;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRINGL");
 
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? "ABCD67890_secure_key_32_characters";
 var key = Encoding.ASCII.GetBytes(token);
@@ -52,6 +55,10 @@ builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddDbContext<ApiDbContext>(options =>
+    options.UseInMemoryDatabase(nameof(ApiDbContext)));
+
+builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -70,6 +77,16 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(key)
     };
 });
+
+builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
+    .AddScheme<ApiKeySchemeOptions, ApiKeySchemeHandler>(
+        ApiKeySchemeOptions.Scheme, options =>
+        {
+            options.HeaderName = "Metabolique_API_KEY";
+        });
+
+
+builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -111,11 +128,28 @@ app.UseRouting();
 app.UseCors(myrulesCORS);
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+await Seed();
+
 await app.RunAsync();
+
+async Task Seed()
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetService<ApiDbContext>();
+
+    if (!await context.ApiKeys.AnyAsync())
+    {
+        context.ApiKeys.Add(new ApiKey
+        {
+            Key = Guid.Parse(Environment.GetEnvironmentVariable("API_KEY")),
+            Name = "Metabolique"
+        });
+
+        await context.SaveChangesAsync();
+    }
+}
 

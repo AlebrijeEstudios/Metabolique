@@ -1,4 +1,5 @@
-﻿using AppVidaSana.Exceptions.Cuenta_Perfil;
+﻿using AppVidaSana.Api;
+using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
@@ -24,6 +25,7 @@ namespace AppVidaSana.Controllers
             _mapper = mapper;
         }
 
+        [ApiKeyAuthorizationFilter]
         [HttpGet("{id:guid}")]
         public IActionResult GetAccount(Guid id)
         {
@@ -38,7 +40,7 @@ namespace AppVidaSana.Controllers
             }
         }
 
-        [AllowAnonymous]
+        [ApiKeyAuthorizationFilter]
         [HttpPost]
         public IActionResult CreateAccount([FromBody] RegisterUserDto account)
         {
@@ -57,6 +59,7 @@ namespace AppVidaSana.Controllers
             }
         }
 
+        [ApiKeyAuthorizationFilter]
         [HttpPut("{id:guid}")]
         public IActionResult UpdateAccount(Guid id, [FromBody] AccountInfoDto infoAccount)
         {
@@ -79,6 +82,7 @@ namespace AppVidaSana.Controllers
             }
         }
 
+        [ApiKeyAuthorizationFilter]
         [HttpDelete("{id:guid}")]
         public IActionResult DeleteAccount(Guid id)
         {

@@ -1,6 +1,8 @@
-﻿using AppVidaSana.Exceptions.Cuenta_Perfil;
+﻿using AppVidaSana.Api;
+using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Services.IServices;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Controllers
 {
+    [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/auth")]
     public class AuthenticatorController : Controller
@@ -20,7 +23,7 @@ namespace AppVidaSana.Controllers
             _AccountService = AccountService;
         }
 
-        [AllowAnonymous]
+        [ApiKeyAuthorizationFilter]
         [HttpPost("login")]
         public IActionResult LoginAccount([FromBody] LoginAccountDto login)
         {
@@ -35,6 +38,7 @@ namespace AppVidaSana.Controllers
             }
         }
 
+        [ApiKeyAuthorizationFilter]
         [HttpPost("forgot-password")]
         public IActionResult ForgotPassword([FromBody] ForgotPasswordDto req)
         {
@@ -56,7 +60,7 @@ namespace AppVidaSana.Controllers
             }
             catch (EmailNotSendException ex)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = ex.Message });
+                return StatusCode(StatusCodes.Status200OK, new { message = mensaje, response = ex.Message });
 
             }
         }
@@ -75,9 +79,9 @@ namespace AppVidaSana.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = "No se cargo completamente" });
 
             }
-
         }
 
+        [ApiKeyAuthorizationFilter]
         [HttpPost("reset-password")]
         public IActionResult ResetPassword([FromBody] ResetPasswordDto model)
         {
@@ -101,6 +105,5 @@ namespace AppVidaSana.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje , response = ex.Errors });
             }
         }
-
     }
 }

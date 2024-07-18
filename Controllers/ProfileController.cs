@@ -1,4 +1,5 @@
-﻿using AppVidaSana.Exceptions.Cuenta_Perfil;
+﻿using AppVidaSana.Api;
+using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +22,7 @@ namespace AppVidaSana.Controllers
             _ProfileService = ProfileService;
         }
 
+        [ApiKeyAuthorizationFilter]
         [HttpPost("{id:guid}")]
         public IActionResult CreateProfile(Guid id, [FromBody] ProfileUserDto profile)
         {
@@ -40,6 +42,7 @@ namespace AppVidaSana.Controllers
             }
         }
 
+        [ApiKeyAuthorizationFilter]
         [HttpGet("{id:guid}")]
         public IActionResult GetProfile(Guid id)
         {
@@ -54,6 +57,7 @@ namespace AppVidaSana.Controllers
             }
         }
 
+        [ApiKeyAuthorizationFilter]
         [HttpPut("{id:guid}")]
         public IActionResult UpdateProfile(Guid id, [FromBody] ProfileUserDto profile)
         {

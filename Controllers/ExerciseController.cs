@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Exceptions.Ejercicio;
+using AppVidaSana.Api;
 
 namespace AppVidaSana.Controllers
 {
@@ -20,8 +21,9 @@ namespace AppVidaSana.Controllers
         public ExerciseController(IExercise ExerciseService)
         {
             _ExerciseService = ExerciseService;
+        
         }
-
+        [ApiKeyAuthorizationFilter]
         [HttpGet]
         public IActionResult GetExercises([FromQuery] Guid id, [FromQuery] DateOnly date)
         {
@@ -36,6 +38,7 @@ namespace AppVidaSana.Controllers
             }
         }
 
+        [ApiKeyAuthorizationFilter]
         [HttpPost]
         public IActionResult AddExercises([FromBody] AddExerciseDto exercise)
         {
@@ -51,6 +54,8 @@ namespace AppVidaSana.Controllers
             }
         }
 
+        
+        [ApiKeyAuthorizationFilter]
         [HttpPut("{id:guid}")]
         public IActionResult UpdateExercises(Guid id, [FromBody] ExerciseListDto listExercises)
         {
@@ -69,7 +74,8 @@ namespace AppVidaSana.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = ex.Errors });
             }
         }
-
+        
+        [ApiKeyAuthorizationFilter]
         [HttpDelete("{id:guid}")]
         public IActionResult DeleteExercise(Guid id)
         {
