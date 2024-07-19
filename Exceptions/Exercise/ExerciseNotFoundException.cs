@@ -2,7 +2,7 @@
 {
     public class ExerciseNotFoundException : Exception
     {
-        public ExerciseNotFoundException() : base("Elemento(s) no encontrado.")
+        public ExerciseNotFoundException() : base("Elemento(s) no encontrado(s).")
         {
         }
     }

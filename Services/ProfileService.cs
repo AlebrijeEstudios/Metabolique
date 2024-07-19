@@ -6,6 +6,8 @@ using AutoMapper;
 using AppVidaSana.Exceptions;
 using System.ComponentModel.DataAnnotations;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
+using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.Exceptions.Account_Profile;
 
 namespace AppVidaSana.Services
 {
@@ -20,7 +22,7 @@ namespace AppVidaSana.Services
             _mapper = mapper;
         }
 
-        public string CreateProfile(Guid id, ProfileUserDto profile)
+        public bool CreateProfile(Guid id, CreateAccountProfileDto profile)
         {
             var account = _bd.Accounts.Find(id);
 
@@ -55,24 +57,14 @@ namespace AppVidaSana.Services
 
             _bd.Profiles.Add(prf);
 
-            Save();
-            return "Cambios guardados";
-
-        }
-
-        public ProfileUserDto GetProfile(Guid userid)
-        {
-            var user = _bd.Profiles.Find(userid);
-            if (user == null)
+            if (!Save())
             {
-                throw new UserNotFoundException();
+                throw new ValuesVoidException();
             }
 
-            ProfileUserDto profile = _mapper.Map<ProfileUserDto>(user);
+            return Save();
 
-            return profile;
         }
-
 
         public string UpdateProfile(Guid id, ProfileUserDto profile)
         {
@@ -103,7 +95,12 @@ namespace AppVidaSana.Services
             }
 
             _bd.Profiles.Update(prf);
-            Save();
+
+            if (!Save())
+            {
+                throw new ValuesVoidException();
+            }
+
             return "Actualización completada";
         }
 
@@ -111,7 +108,9 @@ namespace AppVidaSana.Services
         {
             try
             {
+
                 return _bd.SaveChanges() >= 0;
+
             }catch(Exception)
             {
                 return false;

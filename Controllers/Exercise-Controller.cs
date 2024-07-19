@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Api;
+using AppVidaSana.Models;
+using AppVidaSana.Exceptions.Account_Profile;
 
 namespace AppVidaSana.Controllers
 {
@@ -23,6 +25,7 @@ namespace AppVidaSana.Controllers
             _ExerciseService = ExerciseService;
         
         }
+
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         public IActionResult GetExercises([FromQuery] Guid id, [FromQuery] DateOnly date)
@@ -39,6 +42,22 @@ namespace AppVidaSana.Controllers
         }
 
         [ApiKeyAuthorizationFilter]
+        [HttpGet("minutes-consumed")]
+        public IActionResult getValuesGraphic([FromQuery] Guid id, [FromQuery] DateOnly date)
+        {
+            try
+            {
+                var res = _ExerciseService.ValuesGraphicExercises(id,date);
+
+                return StatusCode(StatusCodes.Status200OK, new { message = "ok", response =  res });
+            }
+            catch (ExerciseNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new { message = mensaje, response = ex.Message });
+            }
+        }
+
+        [ApiKeyAuthorizationFilter]
         [HttpPost]
         public IActionResult AddExercises([FromBody] AddExerciseDto exercise)
         {
@@ -46,6 +65,10 @@ namespace AppVidaSana.Controllers
             {
                 var res = _ExerciseService.AddExercises(exercise);
                 return StatusCode(StatusCodes.Status201Created, new { message = "ok", response = res });
+            }
+            catch (ValuesVoidException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = ex.Message });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -69,6 +92,10 @@ namespace AppVidaSana.Controllers
             {
                 return StatusCode(StatusCodes.Status404NotFound, new { message = mensaje, response = ex.Message });
             }
+            catch (ValuesVoidException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = ex.Message });
+            }
             catch (ErrorDatabaseException ex)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = ex.Errors });
@@ -87,6 +114,10 @@ namespace AppVidaSana.Controllers
             catch (ExerciseNotFoundException ex)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new { message = mensaje, response = ex.Message });
+            }
+            catch (ValuesVoidException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = ex.Message });
             }
         }
     }

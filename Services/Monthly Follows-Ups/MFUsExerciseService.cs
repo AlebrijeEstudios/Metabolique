@@ -1,4 +1,5 @@
 ﻿using AppVidaSana.Data;
+using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
 using AppVidaSana.Models.Seguimientos_Mensuales;
@@ -98,7 +99,12 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             }
 
             _bd.MFUsExcercise.Add(mfus);
-            Save();
+
+            if (!Save())
+            {
+                throw new ValuesVoidException();
+            }
+
             return "Sus respuestas han sido guardadas correctamente";
         }
 

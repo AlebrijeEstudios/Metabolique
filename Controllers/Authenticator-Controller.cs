@@ -1,4 +1,5 @@
 ﻿using AppVidaSana.Api;
+using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Services.IServices;
@@ -34,7 +35,7 @@ namespace AppVidaSana.Controllers
             }
             catch (LoginException ex)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new { message = mensaje, response = ex.Message });
+                return StatusCode(StatusCodes.Status401Unauthorized, new { message = mensaje, response = ex.Message });
             }
         }
 
@@ -103,6 +104,10 @@ namespace AppVidaSana.Controllers
             catch(ValuesInvalidException ex)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje , response = ex.Errors });
+            }
+            catch (ValuesVoidException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = mensaje, response = ex.Message });
             }
         }
     }

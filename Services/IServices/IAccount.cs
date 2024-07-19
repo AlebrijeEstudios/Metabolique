@@ -1,15 +1,16 @@
 ﻿using AppVidaSana.Models;
+using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 
 namespace AppVidaSana.Services.IServices
 {
     public interface IAccount
     {
-        AccountInfoDto GetAccount(Guid accountid);
+        ReturnAccountDto GetAccount(Guid accountid);
 
-        string CreateAccount(RegisterUserDto account);
+        CreateAccountReturn CreateAccount(CreateAccountProfileDto account);
 
-        string UpdateAccount(Guid id, AccountInfoDto infoAccount);
+        ProfileUserDto UpdateAccount(Guid id, CreateAccountProfileDto infoAccount);
 
         string DeleteAccount(Guid userid);
 

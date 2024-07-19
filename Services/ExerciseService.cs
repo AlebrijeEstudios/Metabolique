@@ -1,11 +1,16 @@
 ﻿using AppVidaSana.Data;
+using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
+using AppVidaSana.Models.Dtos.Graphics_Dtos;
+using AppVidaSana.Models.Graphics;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
+using Microsoft.Identity.Client;
 using System.ComponentModel.DataAnnotations;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AppVidaSana.Services
 {
@@ -64,7 +69,12 @@ namespace AppVidaSana.Services
             }
 
             _bd.Exercises.Update(ex);
-            Save();
+
+            if (!Save())
+            {
+                throw new ValuesVoidException();
+            }
+
             return "Actualización completada";
 
         }
@@ -102,7 +112,14 @@ namespace AppVidaSana.Services
             }
 
             _bd.Exercises.Add(ex);
-            Save();
+
+            if (!Save())
+            {
+                throw new ValuesVoidException();
+            }
+
+            totalTimeSpentforDay(exercise.accountID, exercise.dateExercise, exercise.timeSpent);
+            
             return "Los datos han sido guardados correctamente";
         }
 
@@ -115,10 +132,60 @@ namespace AppVidaSana.Services
             }
 
             _bd.Exercises.Remove(ex);
-            Save();
+
+            if (!Save())
+            {
+                throw new ValuesVoidException();
+            }
+
             return "Se ha eliminado correctamente.";
         }
 
+        public List<GExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date)
+        {
+            DateOnly dateFinal = date.AddDays(-6);
+
+            var events = _bd.graphicsExercise
+                .Where(e => e.dateExercise >= dateFinal && e.dateExercise <= date && e.accountID == id)
+                .ToList();
+
+            if (events.Count == 0)
+            {
+                throw new ExerciseNotFoundException();
+            }
+
+            var gExercises = _mapper.Map<List<GExerciseDto>>(events);
+
+            return gExercises;
+        }
+
+
+        public void totalTimeSpentforDay(Guid id, DateOnly dateInitial, int timeSpent)
+        {
+            var infoGraphics = _bd.graphicsExercise.FirstOrDefault(c => c.accountID == id && c.dateExercise == dateInitial);
+
+            if(infoGraphics != null)
+            {            
+                var value = infoGraphics.totalTimeSpent;
+
+                infoGraphics.totalTimeSpent = value + timeSpent;
+
+                _bd.graphicsExercise.Update(infoGraphics);
+                Save();
+            }
+            else
+            {
+                GExercise dates = new GExercise
+                {
+                    accountID = id,
+                    dateExercise = dateInitial,
+                    totalTimeSpent = timeSpent
+                };
+
+                _bd.graphicsExercise.Add(dates);
+                Save();
+            }
+        } 
         public bool Save()
         {
             try
@@ -130,6 +197,6 @@ namespace AppVidaSana.Services
                 return false;
 
             }
-        } 
+        }
     }
 }

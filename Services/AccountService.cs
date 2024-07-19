@@ -12,6 +12,9 @@ using System.ComponentModel.DataAnnotations;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.RegexPatterns;
 using AutoMapper;
+using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.Exceptions.Account_Profile;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace AppVidaSana.Services
 {
@@ -29,14 +32,16 @@ namespace AppVidaSana.Services
 
         }
 
-        public string CreateAccount(RegisterUserDto account)
+        public CreateAccountReturn CreateAccount(CreateAccountProfileDto account)
         {
             if (account == null)
             {
-                return "No se guardaron los datos, intentelo de nuevo";
+                throw new ValuesVoidException();
             }
 
             List<string?> er = new List<string?>();
+
+            string message = "";
 
             string vUsername = verifyUsername(account.username); 
             
@@ -56,7 +61,7 @@ namespace AppVidaSana.Services
 
             }catch(EmailValidationTimeoutException ex)
             {
-                return ex.Message;
+                message =  ex.Message;
             }
 
             try
@@ -70,7 +75,7 @@ namespace AppVidaSana.Services
 
             }catch(PasswordValidationTimeoutException ex)
             {
-                return ex.Message;
+                message =  ex.Message;
             }
 
             if(er.Count > 0) 
@@ -99,21 +104,51 @@ namespace AppVidaSana.Services
             }
 
             _bd.Accounts.Add(us);
-            Save();
-            return "Los datos han sido guardados correctamente";
 
-        }
+            if (!Save())
+            {
+                throw new ValuesVoidException();
+            }
 
-        public AccountInfoDto GetAccount(Guid accountid)
-        {
-            var user = _bd.Accounts.Find(accountid);
+            var user = _bd.Accounts.AsEnumerable()
+            .FirstOrDefault(u => string.Equals(u.email, account.email, StringComparison.OrdinalIgnoreCase));
 
             if (user == null)
             {
                 throw new UserNotFoundException();
             }
 
-            AccountInfoDto infoAccount = _mapper.Map<AccountInfoDto>(user);
+            CreateAccountReturn result = new CreateAccountReturn
+            {
+                accountID = user.accountID,
+                messageException = message
+            };
+
+            return result;
+
+        }
+
+        public ReturnAccountDto GetAccount(Guid accountid)
+        {
+            var account = _bd.Accounts.Find(accountid);
+            var profile = _bd.Profiles.Find(accountid);
+
+            if (account == null || profile == null)
+            {
+                throw new UserNotFoundException();
+            }
+
+            ReturnAccountDto infoAccount = new ReturnAccountDto
+            {
+                accountID = account.accountID,
+                username = account.username,
+                email = account.email,
+                birthDate = profile.birthDate,
+                sex = profile.sex,
+                stature = profile.stature,
+                weigth = profile.weigth,
+                protocolToFollow = profile.protocolToFollow
+            };
 
             return infoAccount;
         }
@@ -161,9 +196,9 @@ namespace AppVidaSana.Services
             };
 
             return ut;
-
         }
-        public string UpdateAccount(Guid id, AccountInfoDto infoAccount)
+
+        public ProfileUserDto UpdateAccount(Guid id, CreateAccountProfileDto infoAccount)
         {
             var user = _bd.Accounts.Find(id);
 
@@ -172,29 +207,15 @@ namespace AppVidaSana.Services
                 throw new UserNotFoundException();
             }
 
-            string vUsername = verifyUsername(infoAccount.username);
-            string vEmail = verifyEmail(infoAccount.email);
-
-            List<string?> er = new List<string?>();
-
-            if (vUsername != "")
+            if(user.username != infoAccount.username)
             {
-                er.Add(vUsername);
+               user.username = infoAccount.username;
             }
 
-            if (vEmail != "")
+            if (user.email != infoAccount.email)
             {
-                er.Add(vEmail);
+                user.email = infoAccount.email;
             }
-
-
-            if (er.Count > 0)
-            {
-                throw new ValuesInvalidException(er);
-            }
-
-            user.username = infoAccount.username;
-            user.email = infoAccount.email;
 
             var validationResults = new List<ValidationResult>();
             var validationContext = new ValidationContext(user, null, null);
@@ -210,8 +231,71 @@ namespace AppVidaSana.Services
             }
 
             _bd.Accounts.Update(user);
-            Save();
-            return "Actualización completada";
+
+            if (!Save())
+            {
+                throw new ValuesVoidException();
+            }
+
+            ProfileUserDto result = new ProfileUserDto
+            {
+                accountID = id,
+                birthDate = infoAccount.birthDate,
+                sex = infoAccount.sex,
+                stature = infoAccount.stature,
+                weigth = infoAccount.weigth,
+                protocolToFollow = infoAccount.protocolToFollow
+            };
+
+            return result;
+        }
+
+        public bool ResetPassword(ResetPasswordDto model)
+        {
+
+            if (model.password != model.confirmPassword)
+            {
+                throw new ComparedPasswordException();
+            }
+
+            string vPassword = verifyPassword(model.confirmPassword);
+
+            List<string?> er = new List<string?>();
+
+            if (vPassword != "")
+            {
+                er.Add(vPassword);
+            }
+
+            if (er.Count > 0)
+            {
+                throw new ValuesInvalidException(er);
+            }
+
+            var principal = GetPrincipalFromExpiredToken(model.token);
+
+            if (principal == null)
+            {
+                return false;
+            }
+
+            var user = _bd.Accounts.FirstOrDefault(u => u.email == model.email);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.password = BCrypt.Net.BCrypt.HashPassword(model.confirmPassword);
+
+            _bd.Accounts.Update(user);
+
+            if (!Save())
+            {
+                throw new ValuesVoidException();
+            }
+
+            return true;
         }
 
         public string DeleteAccount(Guid userid)
@@ -223,7 +307,12 @@ namespace AppVidaSana.Services
             }
 
             _bd.Accounts.Remove(user);
-            Save();
+
+            if (!Save())
+            {
+                throw new ValuesVoidException();
+            }
+
             return "El usuario a sido eliminado correctamente.";
         }
 
@@ -290,49 +379,6 @@ namespace AppVidaSana.Services
 
         }
 
-        public bool ResetPassword(ResetPasswordDto model)
-        {
-            
-            if(model.password != model.confirmPassword)
-            {
-                throw new ComparedPasswordException();
-            }
-
-            string vPassword = verifyPassword(model.confirmPassword);
-
-            List<string?> er = new List<string?>();
-
-            if(vPassword != "")
-            {
-                er.Add(vPassword);
-            }
-
-            if (er.Count > 0)
-            {
-                throw new ValuesInvalidException(er);
-            }
-
-            var principal = GetPrincipalFromExpiredToken(model.token);
-
-            if (principal == null)
-            {
-                return false;
-            }
-
-            var user = _bd.Accounts.FirstOrDefault(u => u.email == model.email);
-
-            if (user == null)
-            {
-                return false;
-            }
-
-            user.password = BCrypt.Net.BCrypt.HashPassword(model.confirmPassword);
-
-            _bd.Accounts.Update(user);
-            Save();
-
-            return true;
-        }
 
         private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         {

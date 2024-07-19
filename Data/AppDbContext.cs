@@ -6,6 +6,7 @@ using AppVidaSana.Models.Seguimientos_Mensuales.Respuestas;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
 using AppVidaSana.Models.Alimentación.Alimentos;
 using AppVidaSana.Models.Habitos;
+using AppVidaSana.Models.Graphics;
 
 namespace AppVidaSana.Data
 {
@@ -19,6 +20,7 @@ namespace AppVidaSana.Data
 
         public DbSet<Exercise> Exercises { get; set; }
         public DbSet<MFUsExercise> MFUsExcercise { get; set; }
+        public DbSet<GExercise> graphicsExercise {  get; set; }
 
         public DbSet<Breakfast> Breakfasts { get; set; }
         public DbSet<Lunch> Lunchs { get; set; }
@@ -64,6 +66,12 @@ namespace AppVidaSana.Data
                 .HasMany(account => account.MFUsExercise)
                 .WithOne(MFUsExercise => MFUsExercise.account)
                 .HasForeignKey(MFUsExercise => MFUsExercise.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.graphicsValuesExercise)
+                .WithOne(graphic => graphic.account)
+                .HasForeignKey(graphic => graphic.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
             //Alimentacion(Desayuno, ..., Cena)

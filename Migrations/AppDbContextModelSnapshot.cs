@@ -344,6 +344,28 @@ namespace AppVidaSana.Migrations
                     b.ToTable("Exercises");
                 });
 
+            modelBuilder.Entity("AppVidaSana.Models.Graphics.GExercise", b =>
+                {
+                    b.Property<Guid>("timeSpentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("accountID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("dateExercise")
+                        .HasColumnType("date");
+
+                    b.Property<int>("totalTimeSpent")
+                        .HasColumnType("int");
+
+                    b.HasKey("timeSpentID");
+
+                    b.HasIndex("accountID");
+
+                    b.ToTable("graphicsExercise");
+                });
+
             modelBuilder.Entity("AppVidaSana.Models.Habitos.DrinkHabit", b =>
                 {
                     b.Property<Guid>("habitID")
@@ -423,7 +445,7 @@ namespace AppVidaSana.Migrations
                     b.ToTable("habitsSleep");
                 });
 
-            modelBuilder.Entity("AppVidaSana.Models.Medicamento", b =>
+            modelBuilder.Entity("AppVidaSana.Models.Medication", b =>
                 {
                     b.Property<Guid>("medicationID")
                         .ValueGeneratedOnAdd()
@@ -492,7 +514,7 @@ namespace AppVidaSana.Migrations
                     b.ToTable("Profiles");
                 });
 
-            modelBuilder.Entity("AppVidaSana.Models.Seguimientos_Mensuales.MFUsExcercise", b =>
+            modelBuilder.Entity("AppVidaSana.Models.Seguimientos_Mensuales.MFUsExercise", b =>
                 {
                     b.Property<Guid>("monthlyFollowUpID")
                         .ValueGeneratedOnAdd()
@@ -998,6 +1020,17 @@ namespace AppVidaSana.Migrations
                     b.Navigation("account");
                 });
 
+            modelBuilder.Entity("AppVidaSana.Models.Graphics.GExercise", b =>
+                {
+                    b.HasOne("AppVidaSana.Models.Account", "account")
+                        .WithMany("graphicsValuesExercise")
+                        .HasForeignKey("accountID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("account");
+                });
+
             modelBuilder.Entity("AppVidaSana.Models.Habitos.DrinkHabit", b =>
                 {
                     b.HasOne("AppVidaSana.Models.Account", "account")
@@ -1031,7 +1064,7 @@ namespace AppVidaSana.Migrations
                     b.Navigation("account");
                 });
 
-            modelBuilder.Entity("AppVidaSana.Models.Medicamento", b =>
+            modelBuilder.Entity("AppVidaSana.Models.Medication", b =>
                 {
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("medications")
@@ -1053,7 +1086,7 @@ namespace AppVidaSana.Migrations
                     b.Navigation("account");
                 });
 
-            modelBuilder.Entity("AppVidaSana.Models.Seguimientos_Mensuales.MFUsExcercise", b =>
+            modelBuilder.Entity("AppVidaSana.Models.Seguimientos_Mensuales.MFUsExercise", b =>
                 {
                     b.HasOne("AppVidaSana.Models.Account", "account")
                         .WithMany("MFUsExercise")
@@ -1145,6 +1178,8 @@ namespace AppVidaSana.Migrations
                     b.Navigation("dinners");
 
                     b.Navigation("exercises");
+
+                    b.Navigation("graphicsValuesExercise");
 
                     b.Navigation("habitsDrink");
 

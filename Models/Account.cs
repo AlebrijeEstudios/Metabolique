@@ -1,4 +1,5 @@
 ﻿using AppVidaSana.Models.Alimentación;
+using AppVidaSana.Models.Graphics;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using System.ComponentModel.DataAnnotations;
@@ -39,6 +40,8 @@ namespace AppVidaSana.Models
         public ICollection<Exercise> exercises { get; set; } = new List<Exercise>();
 
         public ICollection<MFUsExercise> MFUsExercise { get; set; } = new List<MFUsExercise>();
+
+        public ICollection<GExercise> graphicsValuesExercise { get; set; } = new List<GExercise>();
 
         public ICollection<Medication> medications { get; set; } = new List<Medication>();
         
