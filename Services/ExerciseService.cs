@@ -72,7 +72,7 @@ namespace AppVidaSana.Services
 
             if (!Save())
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             return "Actualización completada";
@@ -115,7 +115,7 @@ namespace AppVidaSana.Services
 
             if (!Save())
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             totalTimeSpentforDay(exercise.accountID, exercise.dateExercise, exercise.timeSpent);
@@ -135,7 +135,7 @@ namespace AppVidaSana.Services
 
             if (!Save())
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             return "Se ha eliminado correctamente.";

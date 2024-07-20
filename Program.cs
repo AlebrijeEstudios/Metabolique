@@ -13,6 +13,8 @@ using AppVidaSana.Services.Seguimientos_Mensuales;
 using AppVidaSana.Api.Key;
 using AppVidaSana.Api;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Options;
+using System.Reflection;
 
 Env.Load();
 
@@ -90,7 +92,11 @@ builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "DeveloperTest", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { 
+        Title = "Metabolique_API", 
+        Version = "v1",
+        Description = "An ASP.NET Core web API to manage medical tracking elements of a user's medical record."
+    });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -112,6 +118,9 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+    // using System.Reflection;
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
 var app = builder.Build();

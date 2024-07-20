@@ -36,7 +36,7 @@ namespace AppVidaSana.Services
         {
             if (account == null)
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             List<string?> er = new List<string?>();
@@ -107,7 +107,7 @@ namespace AppVidaSana.Services
 
             if (!Save())
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             var user = _bd.Accounts.AsEnumerable()
@@ -234,7 +234,7 @@ namespace AppVidaSana.Services
 
             if (!Save())
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             ProfileUserDto result = new ProfileUserDto
@@ -292,7 +292,7 @@ namespace AppVidaSana.Services
 
             if (!Save())
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             return true;
@@ -310,7 +310,7 @@ namespace AppVidaSana.Services
 
             if (!Save())
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             return "El usuario a sido eliminado correctamente.";

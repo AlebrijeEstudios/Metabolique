@@ -102,7 +102,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
             if (!Save())
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             return "Sus respuestas han sido guardadas correctamente";

@@ -59,7 +59,7 @@ namespace AppVidaSana.Services
 
             if (!Save())
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             return Save();
@@ -98,7 +98,7 @@ namespace AppVidaSana.Services
 
             if (!Save())
             {
-                throw new ValuesVoidException();
+                throw new UnstoredValuesException();
             }
 
             return "Actualización completada";
@@ -108,7 +108,6 @@ namespace AppVidaSana.Services
         {
             try
             {
-
                 return _bd.SaveChanges() >= 0;
 
             }catch(Exception)
