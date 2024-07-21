@@ -4,7 +4,7 @@
     {
         public string message { get; set; } = "Hubo un error, intentelo de nuevo.";
 
-        public List<string?> response { get; set; } = null!;
+        public List<string?> status { get; set; } = null!;
 
     }
 }

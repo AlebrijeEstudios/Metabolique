@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
+using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.ProducesResponseType;
 
 namespace AppVidaSana.Controllers.Seg_Men_Controllers
 {
@@ -16,7 +18,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/monthly-exercise-monitoring")]
-
+    [EnableRateLimiting("sliding")]
     public class MFUsExerciseController : ControllerBase
     {
         private readonly IMFUsExercise _MFUsExcerciseService;
@@ -30,10 +32,12 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         /// <summary>
         /// This controller receives responses from the monthly monitoring account.
         /// </summary>
-        /// <response code="201">Returns a message indicating that the answers were stored correctly.</response>
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="201">Returns a message indicating that the answers were stored correctly. The information is stored in the attribute called 'response'.</response>
+        /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddResponsesExercise))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
@@ -45,7 +49,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
 
                 ReturnAddResponsesExercise response = new ReturnAddResponsesExercise
                 {
-                    response = res
+                    status = res
                 };
 
                 return StatusCode(StatusCodes.Status201Created, new { response });
@@ -54,7 +58,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             {
                 ReturnExceptionList response = new ReturnExceptionList
                 {
-                    response = ex.Errors
+                    status = ex.Errors
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { response });
@@ -64,10 +68,12 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         /// <summary>
         /// This controller returns the answers from the monthly monitoring questionnaire.
         /// </summary>
-        /// <response code="200">Return the answers of the questionnaire that was made in such month and such year.</response>
-        /// <response code="404">Return an error message if the user is not found.</response>
+        /// <response code="200">Return the answers of the questionnaire that was made in such month and such year. The information is stored in the attribute called 'response'.</response>
+        /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnRetrieveResponses))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
@@ -79,7 +85,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
 
                 ReturnRetrieveResponses response = new ReturnRetrieveResponses
                 {
-                    response = res
+                    responsesAnswers = res
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
@@ -88,7 +94,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    response = ex.Message
+                    status = ex.Message
                 };
 
                 return StatusCode(StatusCodes.Status404NotFound, new { response });

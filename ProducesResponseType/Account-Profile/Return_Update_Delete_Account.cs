@@ -4,6 +4,6 @@
     {
         public string message { get; set; } = "Ok.";
 
-        public string response { get; set; } = null!;
+        public string status { get; set; } = null!;
     }
 }

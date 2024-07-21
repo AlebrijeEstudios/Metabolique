@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.ProducesResponseType.Account;
+using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.ProducesResponseType;
 
 namespace AppVidaSana.Controllers
 {
@@ -17,6 +19,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/accounts")]
+    [EnableRateLimiting("sliding")]
     public class AccountController : ControllerBase
     {
         private readonly IAccount _AccountService;
@@ -33,10 +36,21 @@ namespace AppVidaSana.Controllers
         /// <summary>
         /// This controller obtains the user's account and profile.
         /// </summary>
-        /// <response code="200">Returns account information if found.</response>
-        /// <response code="404">Return an error message if the user is not found.</response>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The birthDate property must have the following structure:   
+        ///     {
+        ///        "birthDate": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="200">Returns account information if found. The information is stored in the attribute called 'response'.</response>
+        /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetAccount))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet("{id:guid}")]
         [Produces("application/json")]
@@ -46,19 +60,19 @@ namespace AppVidaSana.Controllers
             {
                 ReturnAccountDto info = _AccountService.GetAccount(id);
 
-                ReturnGetAccount infoAccount = new ReturnGetAccount
+                ReturnGetAccount response = new ReturnGetAccount
                 {
-                    response = info
+                    account = info
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { infoAccount });
+                return StatusCode(StatusCodes.Status200OK, new { response });
             }
             catch (UserNotFoundException ex)
             {
 
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    response = ex.Message
+                    status = ex.Message
                 };
 
                 return StatusCode(StatusCodes.Status404NotFound, new { response });
@@ -68,16 +82,27 @@ namespace AppVidaSana.Controllers
         /// <summary>
         /// This controller creates the user's account.
         /// </summary>
-        /// <response code="201">Returns a token to validate in the app.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>
-        /// <response code="401">Returns a message that you were unable to log in.</response>        
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The birthDate property must have the following structure:   
+        ///     {
+        ///        "birthDate": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="201">Returns a token to validate in the app. The information is stored in the attribute called 'response'.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
+        /// <response code="401">Returns a message that you were unable to log in. The information is stored in the attribute called 'response'.</response>        
+        /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response>
+        /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnCreateAccount))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [AllowAnonymous]
         [HttpPost("account-profile")]
@@ -104,7 +129,7 @@ namespace AppVidaSana.Controllers
 
                 ReturnCreateAccount response = new ReturnCreateAccount
                 {
-                    response = token
+                    auth = token
                 };
 
                 return StatusCode(StatusCodes.Status201Created, new { response });
@@ -113,7 +138,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionList response = new ReturnExceptionList
                 {
-                    response = ex.Errors
+                    status = ex.Errors
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { response });
@@ -122,7 +147,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    response = ex.Message
+                    status = ex.Message
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
@@ -131,7 +156,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    response = ex.Message
+                    status = ex.Message
                 };
 
                 return StatusCode(StatusCodes.Status404NotFound, new { response });
@@ -140,7 +165,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    response = ex.Message
+                    status = ex.Message
                 };
 
                 return StatusCode(StatusCodes.Status401Unauthorized, new { response });
@@ -149,7 +174,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionList response = new ReturnExceptionList
                 {
-                    response = ex.Errors
+                    status = ex.Errors
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { response });
@@ -159,14 +184,25 @@ namespace AppVidaSana.Controllers
         /// <summary>
         /// This driver updates the user's account.
         /// </summary>
-        /// <response code="200">Returns a message that the update has been successful.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>     
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The birthDate property must have the following structure:   
+        ///     {
+        ///        "birthDate": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="200">Returns a message that the update has been successful. The information is stored in the attribute called 'response'.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
+        /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response>     
+        /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response> 
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Return_Update_Delete_Account))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpPut("{id:guid}")] 
         [Produces("application/json")]
@@ -179,7 +215,7 @@ namespace AppVidaSana.Controllers
 
                 Return_Update_Delete_Account response = new Return_Update_Delete_Account
                 {
-                    response = res
+                    status = res
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
@@ -188,7 +224,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    response = ex.Message
+                    status = ex.Message
                 };
 
                 return StatusCode(StatusCodes.Status404NotFound, new { response });
@@ -197,7 +233,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    response = ex.Message
+                    status = ex.Message
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
@@ -206,7 +242,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionList response = new ReturnExceptionList
                 {
-                    response = ex.Errors
+                    status = ex.Errors
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { response });
@@ -215,7 +251,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionList response = new ReturnExceptionList
                 {
-                    response = ex.Errors
+                    status = ex.Errors
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { response });
@@ -225,12 +261,14 @@ namespace AppVidaSana.Controllers
         /// <summary>
         /// This driver deletes the user's account and everything related to it.
         /// </summary>
-        /// <response code="200">Returns a message that the elimination has been successful.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>     
+        /// <response code="200">Returns a message that the elimination has been successful. The information is stored in the attribute called 'response'.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
+        /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response> 
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Return_Update_Delete_Account))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{id:guid}")]
         [Produces("application/json")]
@@ -242,7 +280,7 @@ namespace AppVidaSana.Controllers
 
                 Return_Update_Delete_Account response = new Return_Update_Delete_Account
                 {
-                    response = res
+                    status = res
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
@@ -251,7 +289,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    response = ex.Message
+                    status = ex.Message
                 };
 
                 return StatusCode(StatusCodes.Status404NotFound, new { response });
@@ -260,7 +298,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    response = ex.Message
+                    status = ex.Message
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });

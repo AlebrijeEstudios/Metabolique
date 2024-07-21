@@ -12,7 +12,6 @@ namespace AppVidaSana.Models
         public Guid accountID { get; set; }
 
         [Required(ErrorMessage = "El campo fecha es obligatoria")]
-        [DataType(DataType.Date)]
         public DateOnly dateExercise { get; set; }
 
         [Required(ErrorMessage = "El campo tipo es obligatorio")]

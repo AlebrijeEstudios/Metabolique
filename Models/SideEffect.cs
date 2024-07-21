@@ -12,7 +12,6 @@ namespace AppVidaSana.Models
         public Guid accountID { get; set; }
 
         [Required(ErrorMessage = "El campo fecha es obligatorio")]
-        [DataType(DataType.Date)]
         public DateOnly dateSideEffect { get; set; }
 
         [Required(ErrorMessage = "El campo horario inicial es obligatorio")]

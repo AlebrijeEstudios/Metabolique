@@ -15,6 +15,11 @@ using AppVidaSana.Api;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Options;
 using System.Reflection;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
+using System.Net;
+using AppVidaSana.ProducesResponseType;
+using System.Text.Json;
 
 Env.Load();
 
@@ -38,6 +43,33 @@ builder.Services.AddCors(opt =>
          builder.WithOrigins("https://dominio1.com", "https://dominio2.com")
                .AllowAnyMethod()
                .AllowAnyHeader();*/
+    });
+});
+
+var myOptions = new MyRateLimitOptions();
+builder.Configuration.GetSection("MyRateLimitOptions").Bind(myOptions);
+var slidingPolicy = "sliding";
+RateLimiting response = new RateLimiting();
+var jsonResponse = JsonSerializer.Serialize(response);
+
+builder.Services.AddRateLimiter(options =>
+{ 
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync(jsonResponse);
+    };
+
+    options.AddSlidingWindowLimiter(policyName: slidingPolicy, op =>
+    {
+        op.PermitLimit = myOptions.PermitLimit;
+        op.Window = TimeSpan.FromSeconds(myOptions.Window);
+        op.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        op.QueueLimit = myOptions.QueueLimit;
+        op.SegmentsPerWindow = myOptions.SegmentsPerWindow;
     });
 });
 
@@ -121,6 +153,7 @@ builder.Services.AddSwaggerGen(c =>
     // using System.Reflection;
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+
 });
 
 var app = builder.Build();
@@ -136,10 +169,12 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseCors(myrulesCORS);
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllers();
 
 await Seed();
 

@@ -12,7 +12,6 @@ namespace AppVidaSana.Models
         public Guid accountID { get; set; }
 
         [Required(ErrorMessage = "El campo fecha es obligatorio")]
-        [DataType(DataType.Date)]
         public DateOnly dateMedication { get; set; }
 
         [Required(ErrorMessage = "El campo nombre del medicamento es obligatorio")]

@@ -11,7 +11,6 @@ namespace AppVidaSana.Models
         public Guid accountID { get; set; }
 
         [Required(ErrorMessage = "El campo fecha de nacimiento es obligatoria")]
-        [DataType(DataType.Date)]
         public DateOnly birthDate { get; set; }
 
         [Required(ErrorMessage = "El campo sexo es obligatorio")]

@@ -6,6 +6,6 @@ namespace AppVidaSana.ProducesResponseType.Exercise
     {
         public string message { get; set; } = "Ok.";
 
-        public List<ExerciseListDto> response { get; set; } = null!;
+        public List<ExerciseListDto> exercises { get; set; } = null!;
     }
 }

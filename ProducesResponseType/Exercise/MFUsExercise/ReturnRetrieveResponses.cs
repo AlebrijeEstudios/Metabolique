@@ -6,7 +6,7 @@ namespace AppVidaSana.ProducesResponseType.Exercise.MFUsExercise
     {
         public string message { get; set; } = "Ok.";
 
-        public RetrieveResponsesDto response { get; set; } = null!;
+        public RetrieveResponsesDto responsesAnswers { get; set; } = null!;
     }
 }
 
