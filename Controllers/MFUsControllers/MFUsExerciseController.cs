@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
+using AppVidaSana.Exceptions.Account_Profile;
 
 namespace AppVidaSana.Controllers.Seg_Men_Controllers
 {
@@ -22,7 +23,6 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
     public class MFUsExerciseController : ControllerBase
     {
         private readonly IMFUsExercise _MFUsExcerciseService;
-        private string mensaje = "Hubo un error, intentelo de nuevo.";
 
         public MFUsExerciseController(IMFUsExercise MFUsExcerciseService)
         {
@@ -33,9 +33,13 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         /// This controller receives responses from the monthly monitoring account.
         /// </summary>
         /// <response code="201">Returns a message indicating that the answers were stored correctly. The information is stored in the attribute called 'response'.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
+        /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddResponsesExercise))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
@@ -53,6 +57,24 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
                 };
 
                 return StatusCode(StatusCodes.Status201Created, new { response });
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
+            catch (UserNotFoundException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
             catch (ErrorDatabaseException ex)
             {

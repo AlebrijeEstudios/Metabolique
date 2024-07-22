@@ -2,7 +2,7 @@
 {
     public class EmailNotSendException : Exception
     {
-        public EmailNotSendException() : base("No se logro enviar el correo, intentelo de nuevo")
+        public EmailNotSendException() : base("No se logró enviar el correo, inténtelo de nuevo.")
         {
         }
     }

@@ -10,19 +10,19 @@ namespace AppVidaSana.Models
         [ForeignKey("Account")]
         public Guid accountID { get; set; }
 
-        [Required(ErrorMessage = "El campo fecha de nacimiento es obligatoria")]
+        [Required(ErrorMessage = "El campo fecha de nacimiento es obligatoria.")]
         public DateOnly birthDate { get; set; }
 
-        [Required(ErrorMessage = "El campo sexo es obligatorio")]
+        [Required(ErrorMessage = "El campo sexo es obligatorio.")]
         public string sex { get; set; } = null!;
 
-        [Required(ErrorMessage = "El campo estatura es obligatorio")]
+        [Required(ErrorMessage = "El campo estatura es obligatorio.")]
         public int stature { get; set; }
 
-        [Required(ErrorMessage = "El campo peso es obligatorio")]
+        [Required(ErrorMessage = "El campo peso es obligatorio.")]
         public int weigth { get; set; }
 
-        [Required(ErrorMessage = "El campo protocolo es obligatorio")]
+        [Required(ErrorMessage = "El campo protocolo es obligatorio.")]
         public string protocolToFollow { get; set; } = null!;
 
         public Account? account { get; set; }

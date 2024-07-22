@@ -10,7 +10,7 @@ namespace AppVidaSana.Services.IServices
 
         CreateAccountReturn CreateAccount(CreateAccountProfileDto account);
 
-        ProfileUserDto UpdateAccount(Guid id, CreateAccountProfileDto infoAccount);
+        ProfileUserDto UpdateAccount(Guid id, ReturnAccountDto infoAccount);
 
         string DeleteAccount(Guid userid);
 

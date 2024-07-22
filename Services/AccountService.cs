@@ -45,19 +45,13 @@ namespace AppVidaSana.Services
 
             string vUsername = verifyUsername(account.username); 
             
-            if(vUsername != "")
-            {
-                er.Add(vUsername);
-            }
+            if(vUsername != ""){ er.Add(vUsername); }
 
             try
             {
                 string vEmail = verifyEmail(account.email);
                 
-                if(vEmail != "")
-                {
-                    er.Add(vEmail);
-                 }
+                if(vEmail != ""){ er.Add(vEmail); }
 
             }catch(EmailValidationTimeoutException ex)
             {
@@ -68,10 +62,7 @@ namespace AppVidaSana.Services
             {
                 string vPassword = verifyPassword(account.password);
 
-                if (vPassword != "")
-                {
-                    er.Add(vPassword);
-                }
+                if (vPassword != "") { er.Add(vPassword); }
 
             }catch(PasswordValidationTimeoutException ex)
             {
@@ -176,8 +167,8 @@ namespace AppVidaSana.Services
                         new Claim(ClaimTypes.Role, user.role)
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
-                Issuer = "vidasanaapi",
-                Audience = "vidasana.com",
+                Issuer = "metaboliqueapi",
+                Audience = "metabolique.com",
                 SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -198,7 +189,7 @@ namespace AppVidaSana.Services
             return ut;
         }
 
-        public ProfileUserDto UpdateAccount(Guid id, CreateAccountProfileDto infoAccount)
+        public ProfileUserDto UpdateAccount(Guid id, ReturnAccountDto infoAccount)
         {
             var user = _bd.Accounts.Find(id);
 
@@ -313,7 +304,7 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            return "El usuario a sido eliminado correctamente.";
+            return "El usuario ha sido eliminado correctamente.";
         }
 
         public bool Save()
@@ -349,8 +340,8 @@ namespace AppVidaSana.Services
                         new Claim(ClaimTypes.Email, user.email.ToString()),
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
-                Issuer = "vidasanaapi",
-                Audience = "vidasana.com",
+                Issuer = "metaboliqueapi",
+                Audience = "metabolique.com",
                 SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -388,8 +379,8 @@ namespace AppVidaSana.Services
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = "vidasanaapi",
-                ValidAudience = "vidasana.com",
+                ValidIssuer = "metaboliqueapi",
+                ValidAudience = "metabolique.com",
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateLifetime = false
             };
@@ -412,7 +403,7 @@ namespace AppVidaSana.Services
             var existingAccount = _bd.Accounts.FirstOrDefault(c => c.username == username);
             if (existingAccount != null)
             {
-                return "Este nombre de usuario ya está en uso";
+                return "Este nombre de usuario ya está en uso.";
             }
 
             return "";
@@ -422,13 +413,13 @@ namespace AppVidaSana.Services
         {
             if (!RegexPatterns.RegexPatterns.Emailregex.IsMatch(email))
             {
-                return "El correo electrónico no tiene un formato válido";
+                return "El correo electrónico no tiene un formato válido.";
             }
 
             var existingEmail = _bd.Accounts.FirstOrDefault(c => c.email == email);
             if (existingEmail != null)
             {
-                return "Este correo electrónico está ligado a una cuenta existente";
+                return "Este correo electrónico está ligado a una cuenta existente.";
             }
 
             return "";
@@ -439,12 +430,12 @@ namespace AppVidaSana.Services
             
             if (password.Length < 8)
             {
-                return "La contraseña debe tener al menos 8 caracteres";
+                return "La contraseña debe tener al menos 8 caracteres.";
             }
 
             if (!RegexPatterns.RegexPatterns.Passwordregex.IsMatch(password))
             {
-                return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico";
+                return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico.";
             }
 
             return "";

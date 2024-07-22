@@ -101,7 +101,7 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            return "Actualización completada";
+            return "Actualización completada.";
         }
 
         public bool Save()

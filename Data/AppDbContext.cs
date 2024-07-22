@@ -22,7 +22,7 @@ namespace AppVidaSana.Data
         public DbSet<MFUsExercise> MFUsExcercise { get; set; }
         public DbSet<GExercise> graphicsExercise {  get; set; }
 
-        public DbSet<Breakfast> Breakfasts { get; set; }
+        /*public DbSet<Breakfast> Breakfasts { get; set; }
         public DbSet<Lunch> Lunchs { get; set; }
         public DbSet<Meal> Meals { get; set; }
         public DbSet<Snack> Snacks { get; set; }
@@ -43,7 +43,7 @@ namespace AppVidaSana.Data
         public DbSet<DrugsHabit> habitsDrugs { get; set; }
         public DbSet<SleepHabit> habitsSleep { get; set; }
         public DbSet<MFUsHabits> MFUsHabits { get; set; }
-        public DbSet<HabitsResults> resultsHabits { get; set; }
+        public DbSet<HabitsResults> resultsHabits { get; set; }*/
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -74,6 +74,7 @@ namespace AppVidaSana.Data
                 .HasForeignKey(graphic => graphic.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            /*
             //Alimentacion(Desayuno, ..., Cena)
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.breakfasts)
@@ -204,7 +205,7 @@ namespace AppVidaSana.Data
                 .HasOne(MFUsHabits => MFUsHabits.results)
                 .WithOne(results => results.MFUsHabits)
                 .HasForeignKey<HabitsResults>(results => results.monthlyFollowUpID)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade);*/
 
         }
     }

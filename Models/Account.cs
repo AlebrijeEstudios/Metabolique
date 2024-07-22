@@ -11,14 +11,14 @@ namespace AppVidaSana.Models
         [Key]
         public Guid accountID { get; set; } = Guid.NewGuid();
 
-        [Required(ErrorMessage = "El campo username es obligatorio")]
+        [Required(ErrorMessage = "El campo username es obligatorio.")]
         public string username { get; set; } = null!;
 
-        [Required(ErrorMessage = "El campo email es obligatorio")]
+        [Required(ErrorMessage = "El campo email es obligatorio.")]
         [EmailAddress(ErrorMessage = "Debe tener la estructura de un correo.")]
         public string email { get; set; } = null!;
 
-        [Required(ErrorMessage = "El campo contraseña es obligatoria")]
+        [Required(ErrorMessage = "El campo contraseña es obligatoria.")]
         public string password { get; set; } = null!;
 
         public string role { get; set; } = "User";

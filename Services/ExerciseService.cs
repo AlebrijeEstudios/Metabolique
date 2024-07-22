@@ -75,7 +75,7 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            return "Actualización completada";
+            return "Actualización completada.";
 
         }
 
@@ -85,7 +85,7 @@ namespace AppVidaSana.Services
 
             if (user == null)
             {
-                return "No se guardaron los datos, intentelo de nuevo";
+                throw new UserNotFoundException();
             }
 
             Exercise ex = new Exercise
@@ -120,7 +120,7 @@ namespace AppVidaSana.Services
 
             totalTimeSpentforDay(exercise.accountID, exercise.dateExercise, exercise.timeSpent);
             
-            return "Los datos han sido guardados correctamente";
+            return "Los datos han sido guardados correctamente.";
         }
 
         public string DeleteExercise(Guid idexercise)

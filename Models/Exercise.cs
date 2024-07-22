@@ -11,16 +11,16 @@ namespace AppVidaSana.Models
         [ForeignKey("Account")]
         public Guid accountID { get; set; }
 
-        [Required(ErrorMessage = "El campo fecha es obligatoria")]
+        [Required(ErrorMessage = "El campo fecha es obligatoria.")]
         public DateOnly dateExercise { get; set; }
 
-        [Required(ErrorMessage = "El campo tipo es obligatorio")]
+        [Required(ErrorMessage = "El campo tipo es obligatorio.")]
         public string typeExercise { get; set; } = null!;
 
-        [Required(ErrorMessage = "El campo intensidad es obligatorio")]
+        [Required(ErrorMessage = "El campo intensidad es obligatorio.")]
         public string intensityExercise { get; set; } = null!;
 
-        [Required(ErrorMessage = "El campo tiempo es obligatorio")]
+        [Required(ErrorMessage = "El campo tiempo es obligatorio.")]
         public int timeSpent { get; set; }
 
         public Account? account { get; set; }

@@ -93,7 +93,7 @@ namespace AppVidaSana.Controllers
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
                     message = "Ok.",
-                    status = "Se le envio un correo a su bandeja principal"
+                    status = "Se le envió un correo a su bandeja principal."
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { response });

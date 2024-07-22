@@ -126,10 +126,12 @@ namespace AppVidaSana.Controllers
         /// </remarks>
         /// <response code="201">Returns a message that the information has been successfully stored. The information is stored in the attribute called 'response'.</response>
         /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
+        /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Return_Add_Update_Delete_Exercises))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
@@ -156,6 +158,16 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
+            catch (UserNotFoundException ex)
+            {
+
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
             catch (ErrorDatabaseException ex)
             {

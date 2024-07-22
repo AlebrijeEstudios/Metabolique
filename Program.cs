@@ -106,8 +106,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = "vidasanaapi",
-        ValidAudience = "vidasana.com",
+        ValidIssuer = "metaboliqueapi",
+        ValidAudience = "metabolique.com",
         IssuerSigningKey = new SymmetricSecurityKey(key)
     };
 });

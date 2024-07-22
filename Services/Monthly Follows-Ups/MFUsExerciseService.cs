@@ -26,7 +26,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
             if (count == null)
             {
-                return "Algo salio mal, intentelo de nuevo";
+                throw new UserNotFoundException();
             }
 
             string LevelAF = "BAJO";

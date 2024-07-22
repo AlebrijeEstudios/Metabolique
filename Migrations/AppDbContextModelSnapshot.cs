@@ -69,7 +69,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("breakfastID");
 
-                    b.ToTable("foodsBreakfast");
+                    b.ToTable("FoodsBreakfast");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Alimentación.Alimentos.FoodsDinner", b =>
@@ -92,7 +92,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("dinnerID");
 
-                    b.ToTable("foodsDinner");
+                    b.ToTable("FoodsDinner");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Alimentación.Alimentos.FoodsLunch", b =>
@@ -115,7 +115,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("lunchID");
 
-                    b.ToTable("foodsLunch");
+                    b.ToTable("FoodsLunch");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Alimentación.Alimentos.FoodsMeal", b =>
@@ -138,7 +138,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("mealID");
 
-                    b.ToTable("foodsMeal");
+                    b.ToTable("FoodsMeal");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Alimentación.Alimentos.FoodsSnack", b =>
@@ -161,7 +161,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("snackID");
 
-                    b.ToTable("foodsSnack");
+                    b.ToTable("FoodsSnack");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Alimentación.Breakfast", b =>
@@ -191,7 +191,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("accountID");
 
-                    b.ToTable("Breakfasts");
+                    b.ToTable("Breakfast");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Alimentación.Dinner", b =>
@@ -221,7 +221,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("accountID");
 
-                    b.ToTable("Dinners");
+                    b.ToTable("Dinner");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Alimentación.Lunch", b =>
@@ -251,7 +251,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("accountID");
 
-                    b.ToTable("Lunchs");
+                    b.ToTable("Lunch");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Alimentación.Meal", b =>
@@ -281,7 +281,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("accountID");
 
-                    b.ToTable("Meals");
+                    b.ToTable("Meal");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Alimentación.Snack", b =>
@@ -311,7 +311,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("accountID");
 
-                    b.ToTable("Snacks");
+                    b.ToTable("Snack");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Exercise", b =>
@@ -390,7 +390,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("accountID");
 
-                    b.ToTable("habitsDrink");
+                    b.ToTable("DrinkHabit");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Habitos.DrugsHabit", b =>
@@ -416,7 +416,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("accountID");
 
-                    b.ToTable("habitsDrugs");
+                    b.ToTable("DrugsHabit");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Habitos.SleepHabit", b =>
@@ -442,7 +442,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("accountID");
 
-                    b.ToTable("habitsSleep");
+                    b.ToTable("SleepHabit");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Medication", b =>
@@ -484,7 +484,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("accountID");
 
-                    b.ToTable("Medications");
+                    b.ToTable("Medication");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Profiles", b =>
@@ -822,7 +822,7 @@ namespace AppVidaSana.Migrations
                     b.HasIndex("monthlyFollowUpID")
                         .IsUnique();
 
-                    b.ToTable("resultsNutrition");
+                    b.ToTable("NutritionResults");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Seguimientos_Mensuales.Resultados.HabitsResults", b =>
@@ -867,7 +867,7 @@ namespace AppVidaSana.Migrations
                     b.HasIndex("monthlyFollowUpID")
                         .IsUnique();
 
-                    b.ToTable("resultsHabits");
+                    b.ToTable("HabitsResults");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.SideEffect", b =>
@@ -896,7 +896,7 @@ namespace AppVidaSana.Migrations
 
                     b.HasIndex("accountID");
 
-                    b.ToTable("sideEffects");
+                    b.ToTable("SideEffect");
                 });
 
             modelBuilder.Entity("AppVidaSana.Models.Alimentación.Alimentos.FoodsBreakfast", b =>
