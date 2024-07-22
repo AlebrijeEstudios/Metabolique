@@ -1,2 +1,2 @@
-# VidaSanaApp
-Backend para la aplicación VidaSana
+# Metabolique API
+Backend para la aplicación Metabolique
