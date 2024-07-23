@@ -14,12 +14,10 @@ namespace AppVidaSana.Services
     public class ProfileService : IProfile
     {
         private readonly AppDbContext _bd;
-        private readonly IMapper _mapper;
 
-        public ProfileService(AppDbContext bd, IMapper mapper)
+        public ProfileService(AppDbContext bd)
         {
             _bd = bd;
-            _mapper = mapper;
         }
 
         public bool CreateProfile(Guid id, CreateAccountProfileDto profile)

@@ -21,15 +21,12 @@ namespace AppVidaSana.Services
     public class AccountService : IAccount
     {
         private readonly AppDbContext _bd;
-        private readonly IMapper _mapper;
         private readonly string keyToken;
 
-        public AccountService(AppDbContext bd, IMapper mapper)
+        public AccountService(AppDbContext bd)
         {
             _bd = bd;
             keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? "ABCD67890_secure_key_32_characters";
-            _mapper = mapper;
-
         }
 
         public CreateAccountReturn CreateAccount(CreateAccountProfileDto account)

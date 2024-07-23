@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
+using NuGet.Packaging.Signing;
 
 namespace AppVidaSana.Api
 {
@@ -14,19 +15,17 @@ namespace AppVidaSana.Api
 
         public ApiKeySchemeHandler(ApiDbContext context, IOptionsMonitor<ApiKeySchemeOptions> options,
 
-            ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
+            ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
         {
             _context = context;
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            if (!Request.Headers.ContainsKey(Options.HeaderName))
+            if (!Request.Headers.TryGetValue(Options.HeaderName, out var headerValue))
             {
                 return AuthenticateResult.Fail("Header Not Found.");
             }
-
-            var headerValue = Request.Headers[Options.HeaderName];
 
             var apiKey = await _context.ApiKeys
                 .AsNoTracking() 

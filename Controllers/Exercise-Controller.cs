@@ -129,7 +129,7 @@ namespace AppVidaSana.Controllers
         /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Return_Add_Update_Delete_Exercises))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddUpdateDeleteExercises))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
@@ -143,7 +143,7 @@ namespace AppVidaSana.Controllers
             {
                 var res = _ExerciseService.AddExercises(exercise);
 
-                Return_Add_Update_Delete_Exercises response = new Return_Add_Update_Delete_Exercises
+                ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
                 {
                     status = res
                 };
@@ -189,7 +189,7 @@ namespace AppVidaSana.Controllers
         /// <response code="404">Returns a message indicating that no record(s) were found for a certain exercise. The information is stored in the attribute called 'response'.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Return_Add_Update_Delete_Exercises))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDeleteExercises))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
@@ -203,7 +203,7 @@ namespace AppVidaSana.Controllers
             {
                 var res = _ExerciseService.UpdateExercises(id, listExercises);
 
-                Return_Add_Update_Delete_Exercises response = new Return_Add_Update_Delete_Exercises
+                ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
                 {
                     status = res
                 };
@@ -246,7 +246,7 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
         /// <response code="404">Returns a message indicating that an exercise does not exist in the Exercises table. The information is stored in the attribute called 'response'.</response>     
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Return_Add_Update_Delete_Exercises))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDeleteExercises))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
@@ -259,7 +259,7 @@ namespace AppVidaSana.Controllers
             {
                 var res = _ExerciseService.DeleteExercise(id);
 
-                Return_Add_Update_Delete_Exercises response = new Return_Add_Update_Delete_Exercises
+                ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
                 {
                     status = res
                 };

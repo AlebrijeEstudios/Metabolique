@@ -24,13 +24,11 @@ namespace AppVidaSana.Controllers
     {
         private readonly IAccount _AccountService;
         private readonly IProfile _ProfileService;
-        private readonly IMapper _mapper;
 
-        public AccountController(IAccount AccountService, IProfile ProfileService, IMapper mapper)
+        public AccountController(IAccount AccountService, IProfile ProfileService)
         {
             _AccountService = AccountService;
             _ProfileService = ProfileService;
-            _mapper = mapper;
         }
 
         /// <summary>
@@ -209,7 +207,7 @@ namespace AppVidaSana.Controllers
         /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response> 
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Return_Update_Delete_Account))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnUpdateDeleteAccount))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
@@ -224,7 +222,7 @@ namespace AppVidaSana.Controllers
                 var values = _AccountService.UpdateAccount(id, account);
                 var res = _ProfileService.UpdateProfile(values.accountID, values);
 
-                Return_Update_Delete_Account response = new Return_Update_Delete_Account
+                ReturnUpdateDeleteAccount response = new ReturnUpdateDeleteAccount
                 {
                     status = res
                 };
@@ -276,7 +274,7 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
         /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response> 
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Return_Update_Delete_Account))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnUpdateDeleteAccount))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
@@ -289,7 +287,7 @@ namespace AppVidaSana.Controllers
             {
                 var res = _AccountService.DeleteAccount(id);
 
-                Return_Update_Delete_Account response = new Return_Update_Delete_Account
+                ReturnUpdateDeleteAccount response = new ReturnUpdateDeleteAccount
                 {
                     status = res
                 };

@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.RegexPatterns
 {
-    public class RegexPatterns
+    public static class RegexPatterns
     {
         public static Regex Emailregex { get;  } = new Regex(@"[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}", 
             RegexOptions.None, TimeSpan.FromMilliseconds(100));

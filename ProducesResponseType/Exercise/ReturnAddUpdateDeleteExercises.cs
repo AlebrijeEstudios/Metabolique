@@ -1,6 +1,6 @@
 ﻿namespace AppVidaSana.ProducesResponseType.Exercise
 {
-    public class Return_Add_Update_Delete_Exercises
+    public class ReturnAddUpdateDeleteExercises
     {
         public string message { get; set; } = "Ok.";
 

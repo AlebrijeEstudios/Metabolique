@@ -1,6 +1,6 @@
 ﻿namespace AppVidaSana.ProducesResponseType.Account
 {
-    public class Return_Update_Delete_Account
+    public class ReturnUpdateDeleteAccount
     {
         public string message { get; set; } = "Ok.";
 

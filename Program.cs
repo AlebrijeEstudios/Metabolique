@@ -60,7 +60,7 @@ builder.Services.AddRateLimiter(options =>
     options.OnRejected = async (context, token) =>
     {
         context.HttpContext.Response.ContentType = "application/json";
-        await context.HttpContext.Response.WriteAsync(jsonResponse);
+        await context.HttpContext.Response.WriteAsync(jsonResponse, token);
     };
 
     options.AddSlidingWindowLimiter(policyName: slidingPolicy, op =>
@@ -150,7 +150,7 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
-    // using System.Reflection;
+
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 
@@ -185,11 +185,18 @@ async Task Seed()
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetService<ApiDbContext>();
 
+    var apiKeyEnv = Environment.GetEnvironmentVariable("API_KEY");
+
+    if (string.IsNullOrEmpty(apiKeyEnv))
+    {
+        throw new InvalidOperationException("La variable de entorno 'API_KEY' no está configurada.");
+    }
+
     if (!await context.ApiKeys.AnyAsync())
     {
         context.ApiKeys.Add(new ApiKey
         {
-            Key = Guid.Parse(Environment.GetEnvironmentVariable("API_KEY")),
+            Key = Guid.Parse(apiKeyEnv),
             Name = "Metabolique"
         });
 
