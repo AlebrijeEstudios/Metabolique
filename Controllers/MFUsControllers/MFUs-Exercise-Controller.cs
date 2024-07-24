@@ -20,11 +20,11 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
     [ApiController]
     [Route("api/monthly-exercise-monitoring")]
     [EnableRateLimiting("sliding")]
-    public class MFUsExerciseController : ControllerBase
+    public class MFUs_ExerciseController : ControllerBase
     {
         private readonly IMFUsExercise _MFUsExcerciseService;
 
-        public MFUsExerciseController(IMFUsExercise MFUsExcerciseService)
+        public MFUs_ExerciseController(IMFUsExercise MFUsExcerciseService)
         {
             _MFUsExcerciseService = MFUsExcerciseService;
         }

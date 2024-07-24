@@ -1,8 +1,7 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Habits;
-using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Services.IServices.IHabits;

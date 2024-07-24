@@ -1,11 +1,7 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
-using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Exceptions.Habits;
-using AppVidaSana.Exceptions.Habits.Sleep;
-using AppVidaSana.Models;
-using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Services.IServices.IHabits;

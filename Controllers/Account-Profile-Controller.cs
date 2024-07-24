@@ -4,7 +4,6 @@ using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Services.IServices;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -20,12 +19,12 @@ namespace AppVidaSana.Controllers
     [ApiController]
     [Route("api/accounts")]
     [EnableRateLimiting("sliding")]
-    public class AccountController : ControllerBase
+    public class Account_ProfileController : ControllerBase
     {
         private readonly IAccount _AccountService;
         private readonly IProfile _ProfileService;
 
-        public AccountController(IAccount AccountService, IProfile ProfileService)
+        public Account_ProfileController(IAccount AccountService, IProfile ProfileService)
         {
             _AccountService = AccountService;
             _ProfileService = ProfileService;
