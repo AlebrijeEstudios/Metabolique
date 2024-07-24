@@ -1,9 +1,6 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Models;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
-using AutoMapper;
-using AppVidaSana.Exceptions;
 using System.ComponentModel.DataAnnotations;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
@@ -35,7 +32,7 @@ namespace AppVidaSana.Services
                 birthDate = profile.birthDate,
                 sex = profile.sex,
                 stature = profile.stature,
-                weigth = profile.weigth,
+                weight = profile.weight,
                 protocolToFollow  = profile.protocolToFollow,
                 account = null
             };
@@ -76,7 +73,7 @@ namespace AppVidaSana.Services
             prf.sex = profile.sex;
             prf.birthDate = profile.birthDate;
             prf.stature = profile.stature;
-            prf.weigth = profile.weigth;
+            prf.weight = profile.weight;
             prf.protocolToFollow = profile.protocolToFollow;
 
             var validationResults = new List<ValidationResult>();

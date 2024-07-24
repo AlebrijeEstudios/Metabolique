@@ -20,7 +20,7 @@ namespace AppVidaSana.Models
         public int stature { get; set; }
 
         [Required(ErrorMessage = "El campo peso es obligatorio.")]
-        public int weigth { get; set; }
+        public int weight { get; set; }
 
         [Required(ErrorMessage = "El campo protocolo es obligatorio.")]
         public string protocolToFollow { get; set; } = null!;
