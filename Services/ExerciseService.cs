@@ -1,5 +1,5 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Models;
@@ -8,9 +8,7 @@ using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Graphics;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
-using Microsoft.Identity.Client;
 using System.ComponentModel.DataAnnotations;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AppVidaSana.Services
 {

@@ -10,11 +10,8 @@ using System.Text;
 using AppVidaSana.Models;
 using System.ComponentModel.DataAnnotations;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
-using AppVidaSana.RegexPatterns;
-using AutoMapper;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Exceptions.Account_Profile;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using AppVidaSana.Exceptions;
 
 namespace AppVidaSana.Services
 {
@@ -188,6 +185,11 @@ namespace AppVidaSana.Services
 
         public ProfileUserDto UpdateAccount(Guid id, ReturnAccountDto infoAccount)
         {
+            if(id != infoAccount.accountID)
+            {
+                throw new UnstoredValuesException();
+            }
+
             var user = _bd.Accounts.Find(id);
 
             if (user == null)

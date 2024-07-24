@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.Exceptions;
 
 namespace AppVidaSana.Controllers.Seg_Men_Controllers
 {

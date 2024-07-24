@@ -1,13 +1,10 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Models;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
-using AutoMapper;
 using AppVidaSana.Exceptions;
 using System.ComponentModel.DataAnnotations;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Exceptions.Account_Profile;
 
 namespace AppVidaSana.Services
 {
@@ -66,6 +63,11 @@ namespace AppVidaSana.Services
 
         public string UpdateProfile(Guid id, ProfileUserDto profile)
         {
+            if (id != profile.accountID)
+            {
+                throw new UnstoredValuesException();
+            }
+
             var prf = _bd.Profiles.Find(id);
 
             if (prf == null)

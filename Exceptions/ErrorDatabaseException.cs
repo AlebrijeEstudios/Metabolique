@@ -1,4 +1,4 @@
-﻿namespace AppVidaSana.Exceptions.Cuenta_Perfil
+﻿namespace AppVidaSana.Exceptions
 {
     public class ErrorDatabaseException : Exception
     {

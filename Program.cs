@@ -12,8 +12,6 @@ using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
 using AppVidaSana.Services.Seguimientos_Mensuales;
 using AppVidaSana.Api.Key;
 using AppVidaSana.Api;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Options;
 using System.Reflection;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
@@ -25,7 +23,7 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRINGL");
 
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? "ABCD67890_secure_key_32_characters";
 var key = Encoding.ASCII.GetBytes(token);

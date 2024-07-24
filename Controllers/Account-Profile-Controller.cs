@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
@@ -12,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.ProducesResponseType.Account;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
+using AppVidaSana.Exceptions;
 
 namespace AppVidaSana.Controllers
 {

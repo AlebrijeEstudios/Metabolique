@@ -7,12 +7,12 @@ using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Api;
 using AppVidaSana.Models;
-using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.ProducesResponseType.Exercise;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
+using AppVidaSana.Exceptions;
 
 namespace AppVidaSana.Controllers
 {
