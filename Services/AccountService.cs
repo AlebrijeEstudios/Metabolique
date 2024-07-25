@@ -131,7 +131,7 @@ namespace AppVidaSana.Services
                 birthDate = profile.birthDate,
                 sex = profile.sex,
                 stature = profile.stature,
-                weigth = profile.weigth,
+                weight = profile.weight,
                 protocolToFollow = profile.protocolToFollow
             };
 
@@ -233,7 +233,7 @@ namespace AppVidaSana.Services
                 birthDate = infoAccount.birthDate,
                 sex = infoAccount.sex,
                 stature = infoAccount.stature,
-                weigth = infoAccount.weigth,
+                weight = infoAccount.weight,
                 protocolToFollow = infoAccount.protocolToFollow
             };
 

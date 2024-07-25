@@ -12,7 +12,7 @@ namespace AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos
 
         [JsonRequired]  public int stature { get; set; }
 
-        [JsonRequired]  public int weigth { get; set; }
+        [JsonRequired]  public int weight { get; set; }
 
         [JsonRequired] public string protocolToFollow { get; set; } = null!;
     }

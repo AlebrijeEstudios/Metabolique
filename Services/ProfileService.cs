@@ -32,7 +32,7 @@ namespace AppVidaSana.Services
                 birthDate = profile.birthDate,
                 sex = profile.sex,
                 stature = profile.stature,
-                weigth = profile.weigth,
+                
                 protocolToFollow  = profile.protocolToFollow,
                 account = null
             };
@@ -78,7 +78,7 @@ namespace AppVidaSana.Services
             prf.sex = profile.sex;
             prf.birthDate = profile.birthDate;
             prf.stature = profile.stature;
-            prf.weigth = profile.weigth;
+            prf.weight = profile.weight;
             prf.protocolToFollow = profile.protocolToFollow;
 
             var validationResults = new List<ValidationResult>();
