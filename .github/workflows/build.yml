@@ -2,9 +2,8 @@ name: SonarCloud
 on:
   push:
     branches:
+      - main
       - dev
-    paths-ignore:
-      - 'main/**'  # Ignorar todos los cambios en la rama master
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
