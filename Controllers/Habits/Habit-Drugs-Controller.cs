@@ -20,11 +20,11 @@ namespace AppVidaSana.Controllers.Habits
     [ApiController]
     [Route("api/habits-drugs")]
     [EnableRateLimiting("sliding")]
-    public class Habit_DrugsController : ControllerBase
+    public class HabitDrugsController : ControllerBase
     {
         private readonly IDrugsHabit _DrugsHabitService;
 
-        public Habit_DrugsController(IDrugsHabit DrugsHabitService)
+        public HabitDrugsController(IDrugsHabit DrugsHabitService)
         {
             _DrugsHabitService = DrugsHabitService;
         }

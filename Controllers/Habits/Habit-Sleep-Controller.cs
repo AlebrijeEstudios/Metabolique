@@ -20,11 +20,11 @@ namespace AppVidaSana.Controllers.Habits
     [ApiController]
     [Route("api/habits-sleep")]
     [EnableRateLimiting("sliding")]
-    public class Habit_SleepController : ControllerBase
+    public class HabitSleepController : ControllerBase
     {
         private readonly ISleepHabit _SleepHabitService;
 
-        public Habit_SleepController(ISleepHabit SleepHabitService)
+        public HabitSleepController(ISleepHabit SleepHabitService)
         {
             _SleepHabitService = SleepHabitService;
         }

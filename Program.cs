@@ -18,6 +18,10 @@ using System.Threading.RateLimiting;
 using System.Net;
 using AppVidaSana.ProducesResponseType;
 using System.Text.Json;
+using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Services.Habits;
+using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
+using AppVidaSana.Services.Monthly_Follows_Ups;
 
 Env.Load();
 
@@ -80,6 +84,10 @@ builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
 builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
+builder.Services.AddScoped<IDrinkHabit, DrinkHabitService>();
+builder.Services.AddScoped<ISleepHabit, SleepHabitService>();
+builder.Services.AddScoped<IDrugsHabit, DrugsHabitService>();
+builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
 
 builder.Services.AddControllersWithViews();
 

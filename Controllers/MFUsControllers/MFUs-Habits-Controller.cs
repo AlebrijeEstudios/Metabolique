@@ -1,43 +1,45 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.ProducesReponseType;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
-using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
-using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
+using AppVidaSana.Exceptions;
+using AppVidaSana.ProducesReponseType;
+using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
+using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
 using Microsoft.AspNetCore.RateLimiting;
-using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Exceptions;
+using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
+using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
+using AppVidaSana.ProducesResponseType.Habits.MFUsHabits;
+using AppVidaSana.Exceptions.Habits;
 
-namespace AppVidaSana.Controllers.Seg_Men_Controllers
+namespace AppVidaSana.Controllers.MFUsControllers
 {
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
-    [Route("api/monthly-exercise-monitoring")]
+    [Route("api/monthly-habits-monitoring")]
     [EnableRateLimiting("sliding")]
-    public class MFUsExerciseController : ControllerBase
+    public class MFUsHabitsController : ControllerBase
     {
-        private readonly IMFUsExercise _MFUsExcerciseService;
+        private readonly IMFUsHabits _MFUsHabitsService;
 
-        public MFUsExerciseController(IMFUsExercise MFUsExcerciseService)
+        public MFUsHabitsController(IMFUsHabits MFUsHabitsService)
         {
-            _MFUsExcerciseService = MFUsExcerciseService;
+            _MFUsHabitsService = MFUsHabitsService;
         }
 
         /// <summary>
-        /// This controller stores the responses and results of the monthly Exercise tracking survey.
+        /// This controller stores the responses and results of the monthly Habits tracking survey.
         /// </summary>
         /// <response code="201">Returns a message indicating that the answers were stored correctly. The information is stored in the attribute called 'response'.</response>
         /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
+        /// <response code="404">Returns an error message if the user is not found or if a record does not exist in the resultsHabits table. The information is stored in the attribute called 'response'.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddResponsesExercise))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddResponsesHabits))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
@@ -45,13 +47,14 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult AddResponsesExercise([FromBody] SaveResponsesExerciseDto responses)
+        public IActionResult AddResponsesHabits([FromBody] SaveResponsesHabitsDto responses)
         {
             try
             {
-                var res = _MFUsExcerciseService.SaveAnswers(responses);
+                var results = _MFUsHabitsService.SaveAnswers(responses);
+                var res = _MFUsHabitsService.SaveResults(results);
 
-                ReturnAddResponsesExercise response = new ReturnAddResponsesExercise
+                ReturnAddResponsesHabits response = new ReturnAddResponsesHabits
                 {
                     status = res
                 };
@@ -76,6 +79,15 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
 
                 return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
+            catch (HabitNotFoundException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { response });
+            }
             catch (ErrorDatabaseException ex)
             {
                 ReturnExceptionList response = new ReturnExceptionList
@@ -88,24 +100,24 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         }
 
         /// <summary>
-        /// This controller returns responses from the monthly Exercise tracking questionnaire.
+        /// This controller returns responses from the monthly Habits tracking questionnaire..
         /// </summary>
         /// <response code="200">Return the answers of the questionnaire that was made in such month and such year. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
+        /// <response code="404">Returns an error message if the user is not found or if a record with the survey results is not found. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnRetrieveResponsesExercise))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnRetrieveResponsesHabits))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public IActionResult RetrieveResponses([FromQuery] Guid id, [FromQuery] string month, [FromQuery] int year)
+        public IActionResult RetrieveResponsesHabits([FromQuery] Guid id, [FromQuery] string month, [FromQuery] int year)
         {
             try
             {
-                RetrieveResponsesExerciseDto res = _MFUsExcerciseService.RetrieveAnswers(id, month, year);
+                RetrieveResponsesHabitsDto res = _MFUsHabitsService.RetrieveAnswers(id, month, year);
 
-                ReturnRetrieveResponsesExercise response = new ReturnRetrieveResponsesExercise
+                ReturnRetrieveResponsesHabits response = new ReturnRetrieveResponsesHabits
                 {
                     responsesAnswers = res
                 };
@@ -113,6 +125,15 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
                 return StatusCode(StatusCodes.Status200OK, new { response });
             }
             catch (UserNotFoundException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { response });
+            }
+            catch (ResultsNotFoundException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {

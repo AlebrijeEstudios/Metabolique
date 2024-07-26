@@ -2,11 +2,11 @@
 
 namespace AppVidaSana.ProducesResponseType.Exercise.MFUsExercise
 {
-    public class ReturnRetrieveResponses
+    public class ReturnRetrieveResponsesExercise
     {
         public string message { get; set; } = "Ok.";
 
-        public RetrieveResponsesDto responsesAnswers { get; set; } = null!;
+        public RetrieveResponsesExerciseDto responsesAnswers { get; set; } = null!;
     }
 }
 

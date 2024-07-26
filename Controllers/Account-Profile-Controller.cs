@@ -19,12 +19,12 @@ namespace AppVidaSana.Controllers
     [ApiController]
     [Route("api/accounts")]
     [EnableRateLimiting("sliding")]
-    public class Account_ProfileController : ControllerBase
+    public class AccountProfileController : ControllerBase
     {
         private readonly IAccount _AccountService;
         private readonly IProfile _ProfileService;
 
-        public Account_ProfileController(IAccount AccountService, IProfile ProfileService)
+        public AccountProfileController(IAccount AccountService, IProfile ProfileService)
         {
             _AccountService = AccountService;
             _ProfileService = ProfileService;

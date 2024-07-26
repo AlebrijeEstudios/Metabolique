@@ -20,18 +20,18 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             _mapper = mapper;
         }
 
-        public string SaveAnswers(SaveResponsesDto res)
+        public string SaveAnswers(SaveResponsesExerciseDto res)
         {
-            var count = _bd.Accounts.Find(res.accountID);
+            var account = _bd.Accounts.Find(res.accountID);
 
-            if (count == null)
+            if (account == null)
             {
                 throw new UserNotFoundException();
             }
 
             string LevelAF = "BAJO";
 
-            RetrieveResponsesDto response = new RetrieveResponsesDto
+            RetrieveResponsesExerciseDto response = new RetrieveResponsesExerciseDto
             {
                 question1 = res.question1,
                 question2 = res.question2,
@@ -108,7 +108,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             return "Sus respuestas han sido guardadas correctamente";
         }
 
-        public RetrieveResponsesDto RetrieveAnswers(Guid id, string month, int year)
+        public RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, string month, int year)
         {
             var reg = _bd.MFUsExcercise.FirstOrDefault(c => c.accountID == id && c.month == month && c.year == year);
 
@@ -117,7 +117,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 throw new UserNotFoundException();
             }
 
-            RetrieveResponsesDto res = _mapper.Map<RetrieveResponsesDto>(reg);
+            RetrieveResponsesExerciseDto res = _mapper.Map<RetrieveResponsesExerciseDto>(reg);
 
             return res;
         }
@@ -190,7 +190,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             return criterion1 || criterion2;
         }
 
-        private static bool levelActModerate(RetrieveResponsesDto res, float MET_AFvigorous, float MET_AFmoderate, float MET_AFwalking)
+        private static bool levelActModerate(RetrieveResponsesExerciseDto res, float MET_AFvigorous, float MET_AFmoderate, float MET_AFwalking)
         {
             bool criterion1 = false;
             bool criterion2 = false;
