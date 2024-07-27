@@ -62,8 +62,7 @@ namespace AppVidaSana.Services.Habits
 
         public GetDrugsConsumedDto GetDrugsConsumed(Guid idAccount, DateOnly date)
         {
-            var habit = _bd.habitsDrugs
-            .Where(e => e.accountID == idAccount && e.drugsDateHabit == date);
+            var habit = _bd.habitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
 
             if (habit == null)
             {

@@ -98,7 +98,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 }
             }
 
-            _bd.MFUsExcercise.Add(mfus);
+            _bd.MFUsExercise.Add(mfus);
 
             if (!Save())
             {
@@ -110,7 +110,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         public RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, string month, int year)
         {
-            var reg = _bd.MFUsExcercise.FirstOrDefault(c => c.accountID == id && c.month == month && c.year == year);
+            var reg = _bd.MFUsExercise.FirstOrDefault(c => c.accountID == id && c.month == month && c.year == year);
 
             if (reg == null)
             {

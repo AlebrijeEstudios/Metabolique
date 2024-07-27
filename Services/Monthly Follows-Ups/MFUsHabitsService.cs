@@ -6,6 +6,7 @@ using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
+using Azure;
 using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Services.Monthly_Follows_Ups
@@ -81,16 +82,16 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 throw new UserNotFoundException();
             }
 
-            int resultsComponent1 = component1(res.answerQuestion6);
-            int resultsComponent2 = component2(res.answerQuestion2, res.answerQuestion5a);
-            int resultsComponent3 = component3(res.answerQuestion4);
-            int resultsComponent4 = component4(res.answerQuestion1, res.answerQuestion3, res.answerQuestion4);
-            int resultsComponent5 = component5(res);
-            int resultsComponent6 = component6(res.answerQuestion7);
-            int resultsComponent7 = component7(res.answerQuestion8, res.answerQuestion9);
+            int resultComponent1 = res.answerQuestion6;
+            int resultComponent2 = component2(res.answerQuestion2, res.answerQuestion5a);
+            int resultComponent3 = res.answerQuestion4;
+            int resultComponent4 = component4(res.answerQuestion1, res.answerQuestion3, res.answerQuestion4);
+            int resultComponent5 = component5(res);
+            int resultComponent6 = res.answerQuestion7;
+            int resultComponent7 = component7(res.answerQuestion8, res.answerQuestion9);
 
-            int total = resultsComponent1 + resultsComponent2 +
-                resultsComponent3 + resultsComponent4 + resultsComponent5 + resultsComponent6 + resultsComponent7;
+            int total = resultComponent1 + resultComponent2 + resultComponent3 + resultComponent4 +
+                        resultComponent5 + resultComponent6 + resultComponent7;
 
             string classificationPSQI = classification(total);
 
@@ -145,13 +146,13 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 accountID = res.accountID,
                 month = res.month,
                 year = res.year,
-                resultComponent1 = resultsComponent1,
-                resultComponent2 = resultsComponent2,
-                resultComponent3 = resultsComponent3,
-                resultComponent4 = resultsComponent4,
-                resultComponent5 = resultsComponent5,
-                resultComponent6 = resultsComponent6,
-                resultComponent7 = resultsComponent7,
+                resultComponent1 = resultComponent1,
+                resultComponent2 = resultComponent2,
+                resultComponent3 = resultComponent3,
+                resultComponent4 = resultComponent4,
+                resultComponent5 = resultComponent5,
+                resultComponent6 = resultComponent6,
+                resultComponent7 = resultComponent7,
                 globalClassification = total,
                 classification = classificationPSQI
             };
@@ -218,62 +219,17 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             }
         }
 
-        public static int component1(string response6)
+
+        public static int component2(int response2, int response5a)
         {
-            int value = 0;
-
-            if (response6 == "Bastante buena") { return value; }
-
-            if (response6 == "Buena") { value = 1; }
-
-            if (response6 == "Mala") { value = 2; }
-
-            if (response6 == "Bastante mala") { value = 3; }
-
-            return value;
-        }
-
-        public static int component2(int response2, string response5a)
-        {
-            int test1 = 0, test2 = 0, totalTest, value = 0;
-
-            if (response2 <= 15) { test1 = 0; }
-
-            if (response2 >= 16 && response2 <= 30) { test1 = 1; }
-
-            if (response2 >= 31 && response2 <= 60) { test1 = 2; }
-
-            if (response2 > 60) { test1 = 3; }
-
-            if (response5a == "Ninguna vez en el último mes") { test2 = 0; }
-
-            if (response5a == "Menos de una vez a la semana") { test2 = 1; }
-
-            if (response5a == "Una o dos veces a la semana") { test2 = 2; }
-
-            if (response5a == "Tres o más veces a la semana") { test2 = 3; }
-
-            totalTest = test1 + test2;
+            int totalTest, value = 0;
+            
+            totalTest = response2 + response5a;
 
             if (totalTest == 0) { return value; }
             if (totalTest == 1 || totalTest == 2) { value = 1; }
             if (totalTest == 3 || totalTest == 4) { value = 2; }
             if (totalTest == 5 || totalTest == 6) { value = 3; }
-
-            return value;
-        }
-
-        public static int component3(int response4)
-        {
-            int value = 0;
-
-            if ((float) response4 > 7) { return value; }
-
-            if ((float) response4 >= 6 && (float) response4 <= 7) { value = 1; }
-
-            if ((float) response4 >= 5 || (float) response4 <= 6) { value = 2; }
-
-            if ((float) response4 < 5) { value = 3; }
 
             return value;
         }
@@ -308,47 +264,17 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         public static int component5(SaveResponsesHabitsDto response)
         { 
-            int value = 0, totalTest, testB, testC, testD, testE,
-                testF, testG, testH, testI, testJ;
+            int value = 0, totalTest;
 
-            var responseMapping = new Dictionary<string, int>
-            {
-                { "Ninguna vez en el último mes", 0 },
-                { "Menos de una vez a la semana", 1 },
-                { "Una o dos veces a la semana", 2 },
-                { "Tres o más veces a la semana", 3 }
-            };
-
-            testB = responseMapping.ContainsKey(response.answerQuestion5b)
-                ? responseMapping[response.answerQuestion5b] : 0;
-
-            testC = responseMapping.ContainsKey(response.answerQuestion5c)
-                ? responseMapping[response.answerQuestion5c] : 0;
-
-            testD = responseMapping.ContainsKey(response.answerQuestion5d)
-                ? responseMapping[response.answerQuestion5d] : 0;
-
-            testE = responseMapping.ContainsKey(response.answerQuestion5e)
-                ? responseMapping[response.answerQuestion5e] : 0;
-
-            testF = responseMapping.ContainsKey(response.answerQuestion5f)
-                ? responseMapping[response.answerQuestion5f] : 0;
-
-            testG = responseMapping.ContainsKey(response.answerQuestion5g)
-                ? responseMapping[response.answerQuestion5g] : 0;
-
-            testH = responseMapping.ContainsKey(response.answerQuestion5h)
-                ? responseMapping[response.answerQuestion5h] : 0;
-
-            testI = responseMapping.ContainsKey(response.answerQuestion5i)
-                ? responseMapping[response.answerQuestion5i] : 0;
-
-            testJ = responseMapping.ContainsKey(response.answerQuestion5j)
-                ? responseMapping[response.answerQuestion5j] : 0;
-
-
-            totalTest = testB + testC + testD + testE + testF +
-                        testG + testH + testI + testJ;
+            totalTest = response.answerQuestion5b +
+                        response.answerQuestion5c +
+                        response.answerQuestion5d +
+                        response.answerQuestion5e +
+                        response.answerQuestion5f +
+                        response.answerQuestion5g +
+                        response.answerQuestion5h +
+                        response.answerQuestion5i +
+                        response.answerQuestion5j;
 
             if (totalTest == 0) { return value; }
 
@@ -361,48 +287,11 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
-        public static int component6(string response7)
+        public static int component7(int response8, int response9)
         {
-            int value = 0;
+            int value = 0, totalTest;
 
-            if (response7 == "Ninguna vez en el último mes") { return value; }
-
-            if (response7 == "Menos de una vez a la semana") { value = 1; }
-
-            if (response7 == "Una o dos veces a la semana") { value = 2; }
-
-            if (response7 == "Tres o más veces a la semana") { value = 3; }
-
-            return value;
-        }
-
-        public static int component7(string response8, string response9)
-        {
-            int value = 0, totalTest, test1, test2;
-
-            var responseTest1Mapping = new Dictionary<string, int>
-            {
-                { "Ninguna vez en el último mes", 0 },
-                { "Menos de una vez a la semana", 1 },
-                { "Una o dos veces a la semana", 2 },
-                { "Tres o más veces a la semana", 3 }
-            };
-
-            var responseTest2Mapping = new Dictionary<string, int>
-            {
-                { "Ningún problema", 0 },
-                { "Problema muy ligero", 1 },
-                { "Algo de problema", 2 },
-                { "Un gran problema", 3 }
-            };
-
-            test1 = responseTest1Mapping.ContainsKey(response8)
-                ? responseTest1Mapping[response8] : 0;
-
-            test2 = responseTest2Mapping.ContainsKey(response9)
-                ? responseTest2Mapping[response9] : 0;
-
-            totalTest = test1 + test2;
+            totalTest = response8 + response9;
 
             if (totalTest == 0) { return value; }
 
