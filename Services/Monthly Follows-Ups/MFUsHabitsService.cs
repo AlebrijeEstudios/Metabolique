@@ -27,54 +27,24 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
         {
             var responses = _bd.MFUsHabits.FirstOrDefault(c => c.accountID == id && c.month == month && c.year == year);
 
-            if (responses == null)
+            RetrieveResponsesHabitsDto res;
+
+            if(responses == null)
             {
-                throw new UserNotFoundException();
+                res = null;
+                return res;
             }
 
             var results = _bd.resultsHabits.FirstOrDefault(c => c.monthlyFollowUpID == responses.monthlyFollowUpID);
 
             if (results == null)
             {
-                throw new ResultsNotFoundException();
+                res = null;
+                return res;
             }
 
-            var res = _mapper.Map<RetrieveResponsesHabitsDto>(responses);
+            res = _mapper.Map<RetrieveResponsesHabitsDto>(responses);
             _mapper.Map(results, res);
-
-            /*RetrieveResponsesHabitsDto res = new RetrieveResponsesHabitsDto
-            {
-                monthlyFollowUpID = responses.monthlyFollowUpID,
-                month = responses.month,
-                year = responses.year,
-                answerQuestion1 = responses.answerQuestion1,
-                answerQuestion2 = responses.answerQuestion2,
-                answerQuestion3 = responses.answerQuestion3,
-                answerQuestion4 = responses.answerQuestion4,
-                answerQuestion5a = responses.answerQuestion5a,
-                answerQuestion5b = responses.answerQuestion5b,
-                answerQuestion5c = responses.answerQuestion5c,
-                answerQuestion5d = responses.answerQuestion5d,
-                answerQuestion5e = responses.answerQuestion5e,
-                answerQuestion5f = responses.answerQuestion5f,
-                answerQuestion5g = responses.answerQuestion5g,
-                answerQuestion5h = responses.answerQuestion5h,
-                answerQuestion5i = responses.answerQuestion5i,
-                answerQuestion5j = responses.answerQuestion5j,
-                answerQuestion6 = responses.answerQuestion6,
-                answerQuestion7 = responses.answerQuestion7,
-                answerQuestion8 = responses.answerQuestion8,
-                answerQuestion9 = responses.answerQuestion9,
-                resultComponent1 = results.resultComponent1,
-                resultComponent2 = results.resultComponent2,
-                resultComponent3 = results.resultComponent3,
-                resultComponent4 = results.resultComponent4,
-                resultComponent5 = results.resultComponent5,
-                resultComponent6 = results.resultComponent6,
-                resultComponent7 = results.resultComponent7,
-                globalClassification = results.globalClassification,
-                classification = results.classification
-            };*/
 
             return res;
         }
@@ -252,11 +222,14 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             TimeSpan diff = end - start;
 
-            int minutes = (int)diff.TotalMinutes;
+            int bedHours = (int) diff.TotalHours;
 
-            float bedHours = minutes / 60.0f;
+            if (bedHours == 0)
+            {
+                return 3;
+            }
 
-            float ES = ((float)response4 / bedHours) * 100;
+            float ES = ((float) response4 / bedHours) * 100;
 
             if (ES > 85) { return value; }
 

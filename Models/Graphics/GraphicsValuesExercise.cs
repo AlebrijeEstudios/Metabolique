@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Models.Graphics
 {
-    public class GExercise
+    public class GraphicsValuesExercise
     {
         [Key]
         public Guid timeSpentID { get; set; } = Guid.NewGuid();

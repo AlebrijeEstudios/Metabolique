@@ -22,7 +22,7 @@ namespace AppVidaSana.Mappers
         {
             CreateMap<Exercise, ExerciseListDto>().ReverseMap();
             CreateMap<MFUsExercise, RetrieveResponsesExerciseDto>().ReverseMap();
-            CreateMap<GExercise, GExerciseDto>().ReverseMap();
+            CreateMap<GraphicsValuesExercise, GExerciseDto>().ReverseMap();
             CreateMap<DrinkHabit, GetDrinksConsumedDto>().ReverseMap();
             CreateMap<SleepHabit, GetSleepingHoursDto>().ReverseMap();
             CreateMap<DrugsHabit, GetDrugsConsumedDto>().ReverseMap();

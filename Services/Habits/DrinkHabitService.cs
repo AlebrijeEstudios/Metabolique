@@ -26,7 +26,8 @@ namespace AppVidaSana.Services.Habits
         public string AddDrinksConsumed(DrinksConsumedDto drinksConsumed)
         {
 
-            var habitExisting = _bd.habitsDrink.Count(e => e.typeDrink == drinksConsumed.typeDrink &&
+            var habitExisting = _bd.habitsDrink.Count(e => e.drinkDateHabit == drinksConsumed.drinkDateHabit && 
+                                e.typeDrink == drinksConsumed.typeDrink &&
                                 e.amountConsumed == drinksConsumed.amountConsumed);
 
             if (habitExisting > 0)
