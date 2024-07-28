@@ -1,6 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
@@ -20,8 +21,32 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             _mapper = mapper;
         }
 
+        public RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, string month, int year)
+        {
+            var results = _bd.MFUsExercise.FirstOrDefault(c => c.accountID == id && c.month == month && c.year == year);
+
+            RetrieveResponsesExerciseDto response;
+
+            if (results == null)
+            {
+                response = _mapper.Map<RetrieveResponsesExerciseDto>(results);
+            }
+
+            response = _mapper.Map<RetrieveResponsesExerciseDto>(results);
+
+            return response;
+        }
+
         public string SaveAnswers(SaveResponsesExerciseDto res)
         {
+            var answersExisting = _bd.MFUsExercise.Count(e => e.accountID == res.accountID &&
+                                    e.month == res.month && e.year == res.year);
+
+            if (answersExisting > 0)
+            {
+                throw new RepeatRegistrationException();
+            }
+
             var account = _bd.Accounts.Find(res.accountID);
 
             if (account == null)
@@ -108,20 +133,6 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             return "Sus respuestas han sido guardadas correctamente";
         }
 
-        public RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, string month, int year)
-        {
-            var reg = _bd.MFUsExercise.FirstOrDefault(c => c.accountID == id && c.month == month && c.year == year);
-
-            if (reg == null)
-            {
-                throw new UserNotFoundException();
-            }
-
-            RetrieveResponsesExerciseDto res = _mapper.Map<RetrieveResponsesExerciseDto>(reg);
-
-            return res;
-        }
-
         public bool Save()
         {
             try
@@ -177,12 +188,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 criterion1 = true;
             }
 
-            if ((int) (MET_AFwalking + MET_AFmoderate) >= 3000)
-            {
-                criterion2 = true;
-            }
-
-            if ((int)(MET_AFwalking + MET_AFvigorous) >= 3000)
+            if ((int) (MET_AFwalking + MET_AFmoderate + MET_AFvigorous) >= 3000)
             {
                 criterion2 = true;
             }

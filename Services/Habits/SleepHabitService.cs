@@ -2,10 +2,12 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Habits;
+using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Services.Habits
@@ -23,6 +25,13 @@ namespace AppVidaSana.Services.Habits
 
         public string AddSleepHours(SleepingHoursDto sleepingHours)
         {
+            var habitExisting = _bd.habitsSleep.Count(e => e.sleepDateHabit == sleepingHours.sleepDateHabit);
+
+            if (habitExisting > 0)
+            {
+                throw new RepeatRegistrationException();
+            }
+
             var user = _bd.Accounts.Find(sleepingHours.accountID);
 
             if (user == null)
@@ -62,16 +71,22 @@ namespace AppVidaSana.Services.Habits
 
         public List<GetSleepingHoursDto> GetSleepingHours(Guid idAccount, DateOnly date)
         {
+            DateOnly dateFinal = date.AddDays(-6);
+
             var habits = _bd.habitsSleep
-            .Where(e => e.accountID == idAccount && e.sleepDateHabit == date)
-            .ToList();
+                .Where(e => e.sleepDateHabit >= dateFinal && e.sleepDateHabit <= date && e.accountID == idAccount)
+                .ToList();
+
+            List<GetSleepingHoursDto> habitsSleep;
 
             if (habits.Count == 0)
             {
-                throw new HoursSleepNotFoundException();
+                habitsSleep = _mapper.Map<List<GetSleepingHoursDto>>(habits);
             }
 
-            var habitsSleep = _mapper.Map<List<GetSleepingHoursDto>>(habits);
+            habitsSleep = _mapper.Map<List<GetSleepingHoursDto>>(habits);
+
+            habitsSleep = habitsSleep.OrderBy(x => x.sleepDateHabit).ToList();
 
             return habitsSleep;
         }

@@ -8,7 +8,7 @@ namespace AppVidaSana.Services.IServices
     {
         bool CreateProfile(Guid id, CreateAccountProfileDto profile);
 
-        string UpdateProfile(Guid id, ProfileUserDto profile);
+        string UpdateProfile(ReturnProfileDto profile);
 
         bool Save();
     }

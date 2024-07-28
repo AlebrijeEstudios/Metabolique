@@ -42,37 +42,22 @@ namespace AppVidaSana.Controllers.Habits
         ///     
         /// </remarks>
         /// <response code="200">Returns sleeping hours information if found. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return an error message if the information is not found. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetSleepingHours))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
         public IActionResult GetSleepingHours([FromQuery] Guid id, [FromQuery] DateOnly date)
         {
-            try
+            List<GetSleepingHoursDto> info = _SleepHabitService.GetSleepingHours(id, date);
+
+            ReturnGetSleepingHours response = new ReturnGetSleepingHours
             {
-                List<GetSleepingHoursDto> info = _SleepHabitService.GetSleepingHours(id, date);
+                hoursSleep = info
+            };
 
-                ReturnGetSleepingHours response = new ReturnGetSleepingHours
-                {
-                    hoursSleep = info
-                };
-
-                return StatusCode(StatusCodes.Status200OK, new { response });
-            }
-            catch (HoursSleepNotFoundException ex)
-            {
-
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
-            }
+            return StatusCode(StatusCodes.Status200OK, new { response });
         }
 
         /// <summary>
@@ -114,6 +99,15 @@ namespace AppVidaSana.Controllers.Habits
                 return StatusCode(StatusCodes.Status201Created, new { response });
             }
             catch (UnstoredValuesException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
+            catch (RepeatRegistrationException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
@@ -173,15 +167,6 @@ namespace AppVidaSana.Controllers.Habits
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
             }
-            catch (HabitNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
-            }
             catch (UnstoredValuesException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
@@ -190,6 +175,15 @@ namespace AppVidaSana.Controllers.Habits
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
+            catch (HabitNotFoundException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -229,15 +223,6 @@ namespace AppVidaSana.Controllers.Habits
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
             }
-            catch (HabitNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
-            }
             catch (UnstoredValuesException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
@@ -246,6 +231,15 @@ namespace AppVidaSana.Controllers.Habits
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
+            catch (HabitNotFoundException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
         }
     }

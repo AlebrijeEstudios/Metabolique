@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos
 {
-    public class ProfileUserDto
+    public class ReturnProfileDto
     {
         [JsonRequired]  public Guid accountID { get; set; }
 

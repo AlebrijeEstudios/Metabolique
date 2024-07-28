@@ -67,6 +67,15 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
             }
+            catch (RepeatRegistrationException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
             catch (UserNotFoundException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
@@ -90,37 +99,25 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         /// <summary>
         /// This controller returns responses from the monthly Exercise tracking questionnaire.
         /// </summary>
-        /// <response code="200">Return the answers of the questionnaire that was made in such month and such year. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
+        /// <response code="200">It returns the answers of the questionnaire that was made in such month and such year, otherwise it returns empty results. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnRetrieveResponsesExercise))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
         public IActionResult RetrieveResponses([FromQuery] Guid id, [FromQuery] string month, [FromQuery] int year)
         {
-            try
+
+            RetrieveResponsesExerciseDto res = _MFUsExcerciseService.RetrieveAnswers(id, month, year);
+
+            ReturnRetrieveResponsesExercise response = new ReturnRetrieveResponsesExercise
             {
-                RetrieveResponsesExerciseDto res = _MFUsExcerciseService.RetrieveAnswers(id, month, year);
+                responsesAnswers = res
+            };
 
-                ReturnRetrieveResponsesExercise response = new ReturnRetrieveResponsesExercise
-                {
-                    responsesAnswers = res
-                };
+            return StatusCode(StatusCodes.Status200OK, new { response });
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
-            }
-            catch (UserNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
-            }
         }
     }
 }

@@ -23,6 +23,13 @@ namespace AppVidaSana.Services.Habits
 
         public string AddDrugsConsumed(DrugsConsumedDto drugsConsumed)
         {
+            var habitExisting = _bd.habitsDrugs.Count(e => e.drugsDateHabit == drugsConsumed.drugsDateHabit);
+
+            if (habitExisting > 0)
+            {
+                throw new RepeatRegistrationException();
+            }
+
             var user = _bd.Accounts.Find(drugsConsumed.accountID);
 
             if (user == null)
@@ -64,12 +71,14 @@ namespace AppVidaSana.Services.Habits
         {
             var habit = _bd.habitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
 
+            GetDrugsConsumedDto habitDrug;
+
             if (habit == null)
             {
-                throw new HabitNotFoundException();
+                habitDrug = _mapper.Map<GetDrugsConsumedDto>(habit);
             }
 
-            var habitDrug = _mapper.Map<GetDrugsConsumedDto>(habit);
+            habitDrug = _mapper.Map<GetDrugsConsumedDto>(habit);
 
             return habitDrug;
         }

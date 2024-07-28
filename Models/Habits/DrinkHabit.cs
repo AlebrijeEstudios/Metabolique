@@ -18,7 +18,7 @@ namespace AppVidaSana.Models.Habitos
         public string typeDrink { get; set; } = null!;
 
         [Required(ErrorMessage = "El campo cantidad consumida es obligatorio")]
-        public int amountConsumed { get; set; }
+        public string amountConsumed { get; set; } = null!;
 
         public Account? account { get; set; }
     }

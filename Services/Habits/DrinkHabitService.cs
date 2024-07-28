@@ -2,10 +2,12 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Habits;
+using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Services.Habits
@@ -23,6 +25,15 @@ namespace AppVidaSana.Services.Habits
 
         public string AddDrinksConsumed(DrinksConsumedDto drinksConsumed)
         {
+
+            var habitExisting = _bd.habitsDrink.Count(e => e.typeDrink == drinksConsumed.typeDrink &&
+                                e.amountConsumed == drinksConsumed.amountConsumed);
+
+            if (habitExisting > 0)
+            {
+                throw new RepeatRegistrationException();
+            }
+
             var user = _bd.Accounts.Find(drinksConsumed.accountID);
 
             if (user == null)
@@ -67,12 +78,14 @@ namespace AppVidaSana.Services.Habits
             .Where(e => e.accountID == idAccount && e.drinkDateHabit == date)
             .ToList();
 
+            List<GetDrinksConsumedDto> habitsDrink;
+
             if (habits.Count == 0)
             {
-                throw new HabitNotFoundException("No se encontraron registros de las bebidas consumidas este día, inténtelo de nuevo");
+               habitsDrink = _mapper.Map<List<GetDrinksConsumedDto>>(habits);  
             }
 
-            var habitsDrink = _mapper.Map<List<GetDrinksConsumedDto>>(habits);
+            habitsDrink = _mapper.Map<List<GetDrinksConsumedDto>>(habits);
 
             return habitsDrink;
         }

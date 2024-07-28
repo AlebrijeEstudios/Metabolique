@@ -6,6 +6,7 @@ using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
+using AutoMapper;
 using Azure;
 using System.ComponentModel.DataAnnotations;
 
@@ -14,10 +15,12 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
     public class MFUsHabitsService : IMFUsHabits
     {
         private readonly AppDbContext _bd;
+        private readonly IMapper _mapper;
 
-        public MFUsHabitsService(AppDbContext bd)
+        public MFUsHabitsService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
+            _mapper = mapper;
         }
 
         public RetrieveResponsesHabitsDto RetrieveAnswers(Guid id, string month, int year)
@@ -36,7 +39,10 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 throw new ResultsNotFoundException();
             }
 
-            RetrieveResponsesHabitsDto res = new RetrieveResponsesHabitsDto
+            var res = _mapper.Map<RetrieveResponsesHabitsDto>(responses);
+            _mapper.Map(results, res);
+
+            /*RetrieveResponsesHabitsDto res = new RetrieveResponsesHabitsDto
             {
                 monthlyFollowUpID = responses.monthlyFollowUpID,
                 month = responses.month,
@@ -68,13 +74,21 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 resultComponent7 = results.resultComponent7,
                 globalClassification = results.globalClassification,
                 classification = results.classification
-            };
+            };*/
 
             return res;
         }
 
         public SaveResultsDto SaveAnswers(SaveResponsesHabitsDto res)
         {
+            var answersExisting = _bd.MFUsHabits.Count(e => e.accountID == res.accountID &&
+                                    e.month == res.month && e.year == res.year);
+
+            if (answersExisting > 0)
+            {
+                throw new RepeatRegistrationException();
+            }
+
             var account = _bd.Accounts.Find(res.accountID);
 
             if (account == null)
@@ -84,7 +98,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             int resultComponent1 = res.answerQuestion6;
             int resultComponent2 = component2(res.answerQuestion2, res.answerQuestion5a);
-            int resultComponent3 = res.answerQuestion4;
+            int resultComponent3 = component3(res.answerQuestion4);
             int resultComponent4 = component4(res.answerQuestion1, res.answerQuestion3, res.answerQuestion4);
             int resultComponent5 = component5(res);
             int resultComponent6 = res.answerQuestion7;
@@ -95,31 +109,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             string classificationPSQI = classification(total);
 
-            MFUsHabits answers = new MFUsHabits
-            {
-                accountID = res.accountID,
-                month = res.month,
-                year = res.year,
-                answerQuestion1 = res.answerQuestion1,
-                answerQuestion2 = res.answerQuestion2,
-                answerQuestion3 = res.answerQuestion3,
-                answerQuestion4 = res.answerQuestion4,
-                answerQuestion5a = res.answerQuestion5a,
-                answerQuestion5b = res.answerQuestion5b,
-                answerQuestion5c = res.answerQuestion5c,
-                answerQuestion5d = res.answerQuestion5d,
-                answerQuestion5e = res.answerQuestion5e,
-                answerQuestion5f = res.answerQuestion5f,
-                answerQuestion5g = res.answerQuestion5g,
-                answerQuestion5h = res.answerQuestion5h,
-                answerQuestion5i = res.answerQuestion5i,
-                answerQuestion5j = res.answerQuestion5j,
-                answerQuestion6 = res.answerQuestion6,
-                answerQuestion7 = res.answerQuestion7,
-                answerQuestion8 = res.answerQuestion8,
-                answerQuestion9 = res.answerQuestion9
-            };
-
+            var answers = _mapper.Map<MFUsHabits>(res);
 
             var validationResults = new List<ValidationResult>();
             var validationContext = new ValidationContext(answers, null, null);
@@ -163,7 +153,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         public string SaveResults(SaveResultsDto res)
         {
-            var mfusHabit = _bd.MFUsHabits.FirstOrDefault(c => c.accountID == res.accountID 
+            var mfusHabit = _bd.MFUsHabits.FirstOrDefault(c => c.accountID == res.accountID
                             && c.month == res.month && c.year == res.year);
 
             if (mfusHabit == null)
@@ -234,6 +224,21 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
+        public static int component3(int response4)
+        {
+            int value = 0;
+
+            if ((float) response4 > 7) { return value; }
+
+            if ((float) response4 >= 6 && (float) response4 <= 7) { value = 1; }
+
+            if ((float) response4 >= 5 && (float) response4 <= 6) { value = 2; }
+
+            if ((float) response4 < 5) { value = 3; }
+
+            return value;
+        }
+
         public static int component4(TimeOnly response1, TimeOnly response3, int response4)
         {
             int value = 0;
@@ -242,12 +247,14 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             if (end < start)
             {
-                start += TimeSpan.FromDays(1);
+                end += TimeSpan.FromDays(1);
             }
 
-            TimeSpan diff = start - end;
+            TimeSpan diff = end - start;
 
-            int bedHours = (int)diff.TotalHours;
+            int minutes = (int)diff.TotalMinutes;
+
+            float bedHours = minutes / 60.0f;
 
             float ES = ((float)response4 / bedHours) * 100;
 

@@ -32,7 +32,7 @@ namespace AppVidaSana.Services
                 birthDate = profile.birthDate,
                 sex = profile.sex,
                 stature = profile.stature,
-                
+                weight = profile.weight,
                 protocolToFollow  = profile.protocolToFollow,
                 account = null
             };
@@ -61,14 +61,9 @@ namespace AppVidaSana.Services
 
         }
 
-        public string UpdateProfile(Guid id, ProfileUserDto profile)
+        public string UpdateProfile(ReturnProfileDto profile)
         {
-            if (id != profile.accountID)
-            {
-                throw new UnstoredValuesException();
-            }
-
-            var prf = _bd.Profiles.Find(id);
+            var prf = _bd.Profiles.Find(profile.accountID);
 
             if (prf == null)
             {

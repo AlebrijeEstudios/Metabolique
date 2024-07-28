@@ -70,6 +70,15 @@ namespace AppVidaSana.Controllers.MFUsControllers
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
             }
+            catch (RepeatRegistrationException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
             catch (UserNotFoundException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage

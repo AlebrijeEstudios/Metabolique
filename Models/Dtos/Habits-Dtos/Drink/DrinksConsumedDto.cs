@@ -10,7 +10,7 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos.Drink
 
         [JsonRequired] public string typeDrink { get; set; } = null!;
 
-        [JsonRequired] public int amountConsumed { get; set; }
+        [JsonRequired] public string amountConsumed { get; set; }
 
     }
 }

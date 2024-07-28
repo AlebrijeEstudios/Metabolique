@@ -111,8 +111,7 @@ namespace AppVidaSana.Controllers
             try
             {
                 var ac = _AccountService.CreateAccount(account);
-                var profile = _ProfileService.CreateProfile(ac.accountID, account);
-
+                
                 if(ac.messageException != "")
                 {
                     ReturnExceptionMessage timeOut = new ReturnExceptionMessage
@@ -121,6 +120,8 @@ namespace AppVidaSana.Controllers
                     };
                     return StatusCode(StatusCodes.Status408RequestTimeout, new { timeOut });
                 }
+
+                var profile = _ProfileService.CreateProfile(ac.accountID, account);
 
                 if (!profile)
                 {
@@ -142,15 +143,6 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status201Created, new { response });
             }
-            catch (ValuesInvalidException ex)
-            {
-                ReturnExceptionList response = new ReturnExceptionList
-                {
-                    status = ex.Errors
-                };
-
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
-            }
             catch (UnstoredValuesException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
@@ -159,6 +151,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
+            catch (LoginException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status401Unauthorized, new { response });
             }
             catch (UserNotFoundException ex)
             {
@@ -169,14 +170,14 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
-            catch (LoginException ex)
+            catch (ValuesInvalidException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ReturnExceptionList response = new ReturnExceptionList
                 {
-                    status = ex.Message
+                    status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status401Unauthorized, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { response });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -212,14 +213,14 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
-        [HttpPut("{id:guid}")] 
+        [HttpPut] 
         [Produces("application/json")]
-        public IActionResult UpdateAccount(Guid id, [FromBody] ReturnAccountDto account)
+        public IActionResult UpdateAccount([FromBody] ReturnAccountDto account)
         {
             try
             {
-                var values = _AccountService.UpdateAccount(id, account);
-                var res = _ProfileService.UpdateProfile(values.accountID, values);
+                var values = _AccountService.UpdateAccount(account);
+                var res = _ProfileService.UpdateProfile(values);
 
                 ReturnUpdateDeleteAccount response = new ReturnUpdateDeleteAccount
                 {
@@ -228,14 +229,6 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
 
-            }catch(UserNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
             catch (UnstoredValuesException ex)
             {
@@ -245,6 +238,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
+            catch(UserNotFoundException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
             catch (ValuesInvalidException ex)
             {
@@ -293,15 +295,6 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
             }
-            catch (UserNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
-            }
             catch (UnstoredValuesException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
@@ -310,6 +303,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
+            catch (UserNotFoundException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
         }
 

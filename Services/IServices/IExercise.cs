@@ -14,7 +14,7 @@ namespace AppVidaSana.Services.IServices
 
         string AddExercises(AddExerciseDto exercise);
 
-        string UpdateExercises(Guid idexercise, ExerciseListDto exercise);
+        string UpdateExercises(ExerciseListDto exercise);
 
         string DeleteExercise(Guid idexercise);
 

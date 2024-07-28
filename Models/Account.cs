@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models.Alimentación;
-using AppVidaSana.Models.Graphics;
+﻿using AppVidaSana.Models.Graphics;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using System.ComponentModel.DataAnnotations;
@@ -25,29 +24,11 @@ namespace AppVidaSana.Models
 
         public Profiles? profile { get; set; }
 
-        public ICollection<Breakfast> breakfasts { get; set; } = new List<Breakfast>();
-
-        public ICollection<Lunch> lunches { get; set; } = new List<Lunch>();
-
-        public ICollection<Meal> meals { get; set; } = new List<Meal>();
-
-        public ICollection<Snack> snacks { get; set; } = new List<Snack>();
-
-        public ICollection<Dinner> dinners { get; set; } = new List<Dinner>();
-
-        public ICollection<MFUsNutrition> MFUsNutrition { get; set; } = new List<MFUsNutrition>();
-
         public ICollection<Exercise> exercises { get; set; } = new List<Exercise>();
 
         public ICollection<MFUsExercise> MFUsExercise { get; set; } = new List<MFUsExercise>();
 
         public ICollection<GExercise> graphicsValuesExercise { get; set; } = new List<GExercise>();
-
-        public ICollection<Medication> medications { get; set; } = new List<Medication>();
-        
-        public ICollection<SideEffect> sideEffects { get; set; } = new List<SideEffect>();
-
-        public ICollection<MFUsMedications> MFUsMedications { get; set; } = new List<MFUsMedications>();
 
         public ICollection<DrinkHabit> habitsDrink { get; set; } = new List<DrinkHabit>();
 

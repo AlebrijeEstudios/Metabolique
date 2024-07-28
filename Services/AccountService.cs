@@ -23,16 +23,11 @@ namespace AppVidaSana.Services
         public AccountService(AppDbContext bd)
         {
             _bd = bd;
-            keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? "ABCD67890_secure_key_32_characters";
+            keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
         }
 
         public CreateAccountReturn CreateAccount(CreateAccountProfileDto account)
         {
-            if (account == null)
-            {
-                throw new UnstoredValuesException();
-            }
-
             List<string?> er = new List<string?>();
 
             string message = "";
@@ -183,14 +178,9 @@ namespace AppVidaSana.Services
             return ut;
         }
 
-        public ProfileUserDto UpdateAccount(Guid id, ReturnAccountDto infoAccount)
+        public ReturnProfileDto UpdateAccount(ReturnAccountDto infoAccount)
         {
-            if(id != infoAccount.accountID)
-            {
-                throw new UnstoredValuesException();
-            }
-
-            var user = _bd.Accounts.Find(id);
+            var user = _bd.Accounts.Find(infoAccount.accountID);
 
             if (user == null)
             {
@@ -227,9 +217,9 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            ProfileUserDto result = new ProfileUserDto
+            ReturnProfileDto result = new ReturnProfileDto
             {
-                accountID = id,
+                accountID = infoAccount.accountID,
                 birthDate = infoAccount.birthDate,
                 sex = infoAccount.sex,
                 stature = infoAccount.stature,
@@ -291,6 +281,7 @@ namespace AppVidaSana.Services
         public string DeleteAccount(Guid userid)
         {
             var user = _bd.Accounts.Find(userid);
+
             if (user == null)
             {
                 throw new UserNotFoundException();
@@ -358,7 +349,7 @@ namespace AppVidaSana.Services
 
         public void SendPasswordResetEmail(string email, string resetLink)
         {
-            EmailClient emailClient = new EmailClient(Environment.GetEnvironmentVariable("KEY_API"));
+            EmailClient emailClient = new EmailClient(Environment.GetEnvironmentVariable("EMAIL_API"));
             emailClient.Send(
                 WaitUntil.Completed,
                 senderAddress: "DoNotReply@cdc6f1d4-e706-4ef8-8d96-fe23fb30a815.azurecomm.net",
