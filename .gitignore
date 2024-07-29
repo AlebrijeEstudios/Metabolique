@@ -7,4 +7,4 @@ TestResult/
 Test/
 AppVidaSana.http
 appsettings.Development.json
-*.yml
+
