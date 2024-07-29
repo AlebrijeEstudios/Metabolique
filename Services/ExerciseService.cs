@@ -1,5 +1,5 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Models;
@@ -8,9 +8,7 @@ using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Graphics;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
-using Microsoft.Identity.Client;
 using System.ComponentModel.DataAnnotations;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AppVidaSana.Services
 {
@@ -31,56 +29,50 @@ namespace AppVidaSana.Services
             .Where(e => e.accountID == id && e.dateExercise == date)
             .ToList();
 
+            List<ExerciseListDto> exercises;
+
             if(exercise.Count == 0)
             {
-                throw new ExerciseNotFoundException();
+                exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
             }
 
-            var exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
+            exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
 
             return exercises;
         }
 
-        public string UpdateExercises(Guid idexercise, ExerciseListDto exercise)
+        public List<GraphicsValuesExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date)
         {
-            var ex = _bd.Exercises.Find(idexercise);
+            DateOnly dateFinal = date.AddDays(-6);
 
-            if (ex == null)
+            var events = _bd.graphicsValuesExercise
+                .Where(e => e.dateExercise >= dateFinal && e.dateExercise <= date && e.accountID == id)
+                .ToList();
+
+            List<GraphicsValuesExerciseDto> gExercises;
+
+            if (events.Count == 0)
             {
-                throw new ExerciseNotFoundException();
+                gExercises = _mapper.Map<List<GraphicsValuesExerciseDto>>(events);
             }
 
-            ex.typeExercise = exercise.typeExercise;
-            ex.intensityExercise = exercise.intensityExercise;
-            ex.timeSpent = exercise.timeSpent;
+            gExercises = _mapper.Map<List<GraphicsValuesExerciseDto>>(events);
 
+            gExercises = gExercises.OrderBy(x => x.dateExercise).ToList();
 
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(ex, null, null);
-
-            if (!Validator.TryValidateObject(ex, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
-
-            _bd.Exercises.Update(ex);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            return "Actualización completada.";
-
+            return gExercises;
         }
 
         public string AddExercises(AddExerciseDto exercise)
         {
+            var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == exercise.dateExercise && e.typeExercise == exercise.typeExercise &&
+                                e.intensityExercise == exercise.intensityExercise && e.timeSpent == exercise.timeSpent);
+
+            if(exerciseExisting > 0)
+            {
+                throw new RepeatRegistrationException();
+            }
+
             var user = _bd.Accounts.Find(exercise.accountID);
 
             if (user == null)
@@ -123,12 +115,106 @@ namespace AppVidaSana.Services
             return "Los datos han sido guardados correctamente.";
         }
 
-        public string DeleteExercise(Guid idexercise)
+        public string UpdateExercises(ExerciseListDto exercise)
         {
-            var ex = _bd.Exercises.Find(idexercise);
+            var ex = _bd.Exercises.Find(exercise.exerciseID);
+
             if (ex == null)
             {
                 throw new ExerciseNotFoundException();
+            }
+
+            if(ex.timeSpent < exercise.timeSpent || ex.timeSpent > exercise.timeSpent)
+            {
+                var previousTotal = _bd.graphicsValuesExercise.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
+
+                if(previousTotal == null)
+                {
+                    return "No existe un registro de minutos activos para este dia";
+                }
+
+                int currentTotal = previousTotal.totalTimeSpent - ex.timeSpent;
+                int newTotal = currentTotal + exercise.timeSpent;
+
+                previousTotal.totalTimeSpent = newTotal;
+
+                _bd.graphicsValuesExercise.Update(previousTotal);
+
+                if (!Save())
+                {
+                    throw new UnstoredValuesException();
+                }
+            }
+            
+            ex.typeExercise = exercise.typeExercise;
+            ex.intensityExercise = exercise.intensityExercise;
+            ex.timeSpent = exercise.timeSpent;
+
+            var validationResults = new List<ValidationResult>();
+            var validationContext = new ValidationContext(ex, null, null);
+
+            if (!Validator.TryValidateObject(ex, validationContext, validationResults, true))
+            {
+                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
+            }
+
+            _bd.Exercises.Update(ex);
+
+            if (!Save())
+            {
+                throw new UnstoredValuesException();
+            }
+
+            return "Actualización completada.";
+
+        }
+
+        public string DeleteExercise(Guid idexercise)
+        {
+            var ex = _bd.Exercises.Find(idexercise);
+
+            if (ex == null)
+            {
+                throw new ExerciseNotFoundException();
+            }
+
+            var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == ex.dateExercise);
+            var previousTotal = _bd.graphicsValuesExercise.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
+
+            if (exerciseExisting >= 2)
+            {
+                if (previousTotal != null)
+                {
+                    int currentTotal = previousTotal.totalTimeSpent - ex.timeSpent;
+                    int newTotal = currentTotal;
+
+                    previousTotal.totalTimeSpent = newTotal;
+
+                    _bd.graphicsValuesExercise.Update(previousTotal);
+
+                    if (!Save())
+                    {
+                        throw new UnstoredValuesException();
+                    }
+                }
+            }
+
+            if (exerciseExisting == 1)
+            {
+                if (previousTotal != null)
+                {
+                    _bd.graphicsValuesExercise.Remove(previousTotal);
+
+                    if (!Save())
+                    {
+                        throw new UnstoredValuesException();
+                    }
+                }
             }
 
             _bd.Exercises.Remove(ex);
@@ -141,28 +227,9 @@ namespace AppVidaSana.Services
             return "Se ha eliminado correctamente.";
         }
 
-        public List<GExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date)
-        {
-            DateOnly dateFinal = date.AddDays(-6);
-
-            var events = _bd.graphicsExercise
-                .Where(e => e.dateExercise >= dateFinal && e.dateExercise <= date && e.accountID == id)
-                .ToList();
-
-            if (events.Count == 0)
-            {
-                throw new ExerciseNotFoundException();
-            }
-
-            var gExercises = _mapper.Map<List<GExerciseDto>>(events);
-
-            return gExercises;
-        }
-
-
         public void totalTimeSpentforDay(Guid id, DateOnly dateInitial, int timeSpent)
         {
-            var infoGraphics = _bd.graphicsExercise.FirstOrDefault(c => c.accountID == id && c.dateExercise == dateInitial);
+            var infoGraphics = _bd.graphicsValuesExercise.FirstOrDefault(c => c.accountID == id && c.dateExercise == dateInitial);
 
             if(infoGraphics != null)
             {            
@@ -170,20 +237,28 @@ namespace AppVidaSana.Services
 
                 infoGraphics.totalTimeSpent = value + timeSpent;
 
-                _bd.graphicsExercise.Update(infoGraphics);
-                Save();
+                _bd.graphicsValuesExercise.Update(infoGraphics);
+
+                if (!Save())
+                {
+                    throw new UnstoredValuesException();
+                }
             }
             else
             {
-                GExercise dates = new GExercise
+                GraphicsValuesExercise dates = new GraphicsValuesExercise
                 {
                     accountID = id,
                     dateExercise = dateInitial,
                     totalTimeSpent = timeSpent
                 };
 
-                _bd.graphicsExercise.Add(dates);
-                Save();
+                _bd.graphicsValuesExercise.Add(dates);
+
+                if (!Save())
+                {
+                    throw new UnstoredValuesException();
+                }
             }
         } 
         public bool Save()

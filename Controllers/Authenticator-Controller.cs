@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
@@ -12,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using AppVidaSana.ProducesResponseType.Authenticator;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
+using AppVidaSana.Exceptions;
 
 namespace AppVidaSana.Controllers
 {
@@ -184,15 +184,6 @@ namespace AppVidaSana.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
 
             }
-            catch(ValuesInvalidException ex)
-            {
-                ReturnExceptionList response = new ReturnExceptionList
-                {
-                    status = ex.Errors
-                };
-
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
-            }
             catch (UnstoredValuesException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
@@ -201,6 +192,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            } 
+            catch(ValuesInvalidException ex)
+            {
+                ReturnExceptionList response = new ReturnExceptionList
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { response });
             }
         }
     }

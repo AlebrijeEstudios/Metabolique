@@ -1,10 +1,10 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Exceptions;
 using System.ComponentModel.DataAnnotations;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Exceptions.Account_Profile;
 
 namespace AppVidaSana.Services
 {
@@ -61,9 +61,9 @@ namespace AppVidaSana.Services
 
         }
 
-        public string UpdateProfile(Guid id, ProfileUserDto profile)
+        public string UpdateProfile(ReturnProfileDto profile)
         {
-            var prf = _bd.Profiles.Find(id);
+            var prf = _bd.Profiles.Find(profile.accountID);
 
             if (prf == null)
             {

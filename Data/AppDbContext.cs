@@ -1,10 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Seguimientos_Mensuales;
-using AppVidaSana.Models.Alimentación;
-using AppVidaSana.Models.Seguimientos_Mensuales.Respuestas;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
-using AppVidaSana.Models.Alimentación.Alimentos;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Graphics;
 
@@ -17,11 +14,11 @@ namespace AppVidaSana.Data
 
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Profiles> Profiles { get; set; }
-
         public DbSet<Exercise> Exercises { get; set; }
-        public DbSet<MFUsExercise> MFUsExcercise { get; set; }
-        public DbSet<GExercise> graphicsExercise {  get; set; }
 
+        public DbSet<MFUsExercise> MFUsExercise { get; set; }
+        public DbSet<GraphicsValuesExercise> graphicsValuesExercise {  get; set; }
+        
         public DbSet<DrinkHabit> habitsDrink { get; set; }
         public DbSet<DrugsHabit> habitsDrugs { get; set; }
         public DbSet<SleepHabit> habitsSleep { get; set; }
@@ -87,6 +84,14 @@ namespace AppVidaSana.Data
                 .WithOne(results => results.MFUsHabits)
                 .HasForeignKey<HabitsResults>(results => results.monthlyFollowUpID)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MFUsHabits>()
+               .Property(e => e.answerQuestion1)
+               .HasColumnType("TIME(0)");
+
+            modelBuilder.Entity<MFUsHabits>()
+              .Property(e => e.answerQuestion3)
+              .HasColumnType("TIME(0)");
 
         }
     }

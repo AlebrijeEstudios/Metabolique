@@ -1,6 +1,7 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
@@ -20,18 +21,42 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             _mapper = mapper;
         }
 
-        public string SaveAnswers(SaveResponsesDto res)
+        public RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, string month, int year)
         {
-            var count = _bd.Accounts.Find(res.accountID);
+            var results = _bd.MFUsExercise.FirstOrDefault(c => c.accountID == id && c.month == month && c.year == year);
 
-            if (count == null)
+            RetrieveResponsesExerciseDto response;
+
+            if (results == null)
+            {
+                response = _mapper.Map<RetrieveResponsesExerciseDto>(results);
+            }
+
+            response = _mapper.Map<RetrieveResponsesExerciseDto>(results);
+
+            return response;
+        }
+
+        public string SaveAnswers(SaveResponsesExerciseDto res)
+        {
+            var answersExisting = _bd.MFUsExercise.Count(e => e.accountID == res.accountID &&
+                                    e.month == res.month && e.year == res.year);
+
+            if (answersExisting > 0)
+            {
+                throw new RepeatRegistrationException();
+            }
+
+            var account = _bd.Accounts.Find(res.accountID);
+
+            if (account == null)
             {
                 throw new UserNotFoundException();
             }
 
             string LevelAF = "BAJO";
 
-            RetrieveResponsesDto response = new RetrieveResponsesDto
+            RetrieveResponsesExerciseDto response = new RetrieveResponsesExerciseDto
             {
                 question1 = res.question1,
                 question2 = res.question2,
@@ -98,7 +123,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 }
             }
 
-            _bd.MFUsExcercise.Add(mfus);
+            _bd.MFUsExercise.Add(mfus);
 
             if (!Save())
             {
@@ -106,20 +131,6 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             }
 
             return "Sus respuestas han sido guardadas correctamente";
-        }
-
-        public RetrieveResponsesDto RetrieveAnswers(Guid id, string month, int year)
-        {
-            var reg = _bd.MFUsExcercise.FirstOrDefault(c => c.accountID == id && c.month == month && c.year == year);
-
-            if (reg == null)
-            {
-                throw new UserNotFoundException();
-            }
-
-            RetrieveResponsesDto res = _mapper.Map<RetrieveResponsesDto>(reg);
-
-            return res;
         }
 
         public bool Save()
@@ -177,12 +188,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 criterion1 = true;
             }
 
-            if ((int) (MET_AFwalking + MET_AFmoderate) >= 3000)
-            {
-                criterion2 = true;
-            }
-
-            if ((int)(MET_AFwalking + MET_AFvigorous) >= 3000)
+            if ((int) (MET_AFwalking + MET_AFmoderate + MET_AFvigorous) >= 3000)
             {
                 criterion2 = true;
             }
@@ -190,7 +196,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             return criterion1 || criterion2;
         }
 
-        private static bool levelActModerate(RetrieveResponsesDto res, float MET_AFvigorous, float MET_AFmoderate, float MET_AFwalking)
+        private static bool levelActModerate(RetrieveResponsesExerciseDto res, float MET_AFvigorous, float MET_AFmoderate, float MET_AFwalking)
         {
             bool criterion1 = false;
             bool criterion2 = false;

@@ -6,14 +6,13 @@ namespace AppVidaSana.Models.Habitos
     public class DrugsHabit
     {
         [Key]
-        public Guid habitID { get; set; } = Guid.NewGuid();
+        public Guid drugsHabitID { get; set; } = Guid.NewGuid();
 
         [ForeignKey("Account")]
         public Guid accountID { get; set; }
 
         [Required(ErrorMessage = "El campo fecha es obligatorio")]
-        [DataType(DataType.Date)]
-        public DateOnly dateHabit { get; set; }
+        public DateOnly drugsDateHabit { get; set; }
 
         [Required(ErrorMessage = "El campo cigarros consumidos es obligatorio")]
         public int cigarettesSmoked { get; set; } 

@@ -12,22 +12,24 @@ using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
 using AppVidaSana.Services.Seguimientos_Mensuales;
 using AppVidaSana.Api.Key;
 using AppVidaSana.Api;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Options;
 using System.Reflection;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
-using System.Net;
 using AppVidaSana.ProducesResponseType;
 using System.Text.Json;
+using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Services.Habits;
+using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
+using AppVidaSana.Services.Monthly_Follows_Ups;
+using AppVidaSana.JsonFormat;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
-var token = Environment.GetEnvironmentVariable("TOKEN") ?? "ABCD67890_secure_key_32_characters";
+var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
 var key = Encoding.ASCII.GetBytes(token);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString)); 
@@ -73,15 +75,22 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-builder.Services.AddControllers().AddJsonOptions(opt =>
+builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+    options.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
 });
+
 
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
 builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
+builder.Services.AddScoped<IDrinkHabit, DrinkHabitService>();
+builder.Services.AddScoped<ISleepHabit, SleepHabitService>();
+builder.Services.AddScoped<IDrugsHabit, DrugsHabitService>();
+builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
 
 builder.Services.AddControllersWithViews();
 

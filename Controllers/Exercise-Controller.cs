@@ -7,12 +7,12 @@ using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Api;
 using AppVidaSana.Models;
-using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.ProducesResponseType.Exercise;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
+using AppVidaSana.Exceptions;
 
 namespace AppVidaSana.Controllers
 {
@@ -34,37 +34,24 @@ namespace AppVidaSana.Controllers
         /// <summary>
         /// This controller returns the exercises performed by the user during the day.
         /// </summary>
-        /// <response code="200">Returns an array with all the exercises performed by the user during the day. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Returns a message indicating that no records were found for that date. The information is stored in the attribute called 'response'.</response>
+        /// <response code="200">Returns an array with all the exercises performed by the user during the day or an empty array. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetExercises))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
         public IActionResult GetExercises([FromQuery] Guid id, [FromQuery] DateOnly date)
         {
-            try
+
+            List<ExerciseListDto> exercises = _ExerciseService.GetExercises(id, date);
+
+            ReturnGetExercises response = new ReturnGetExercises
             {
-                List<ExerciseListDto> exercises = _ExerciseService.GetExercises(id, date);
+                exercises = exercises
+            };
 
-                ReturnGetExercises response = new ReturnGetExercises
-                {
-                    exercises = exercises
-                };
-
-                return StatusCode(StatusCodes.Status200OK, new { response });
-            }
-            catch (ExerciseNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
-            }
+            return StatusCode(StatusCodes.Status200OK, new { response });
         }
 
         /// <summary>
@@ -79,37 +66,25 @@ namespace AppVidaSana.Controllers
         ///     }
         ///     
         /// </remarks>
-        /// <response code="200">Returns an array with the last 7 days including total minutes spent. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Returns a message indicating that there are no records associated with that date. The information is stored in the attribute called 'response'.</response>
+        /// <response code="200">Returns an array with the last 7 days including the total minutes consumed or an empty array. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetValuesGraphic))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet("minutes-consumed")]
         [Produces("application/json")]
         public IActionResult GetValuesGraphic([FromQuery] Guid id, [FromQuery] DateOnly date)
         {
-            try
+
+            List<GraphicsValuesExerciseDto> values = _ExerciseService.ValuesGraphicExercises(id,date);
+
+            ReturnGetValuesGraphic response = new ReturnGetValuesGraphic
             {
-                List<GExerciseDto> values = _ExerciseService.ValuesGraphicExercises(id,date);
+                timeSpentsforDay = values
+            };
 
-                ReturnGetValuesGraphic response = new ReturnGetValuesGraphic
-                {
-                    timeSpentsforDay = values
-                };
-
-                return StatusCode(StatusCodes.Status200OK, new { response });
-            }
-            catch (ExerciseNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                }; 
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
-            }
+            return StatusCode(StatusCodes.Status200OK, new { response });
+            
         }
 
         /// <summary>
@@ -159,6 +134,15 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
             }
+            catch (RepeatRegistrationException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
             catch (UserNotFoundException ex)
             {
 
@@ -195,13 +179,13 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
-        [HttpPut("{id:guid}")]
+        [HttpPut]
         [Produces("application/json")]
-        public IActionResult UpdateExercises(Guid id, [FromBody] ExerciseListDto listExercises)
+        public IActionResult UpdateExercises([FromBody] ExerciseListDto listExercises)
         {
             try
             {
-                var res = _ExerciseService.UpdateExercises(id, listExercises);
+                var res = _ExerciseService.UpdateExercises(listExercises);
 
                 ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
                 {
@@ -209,15 +193,6 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
-            }
-            catch (ExerciseNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
             catch (UnstoredValuesException ex)
             {
@@ -227,6 +202,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
+            catch (ExerciseNotFoundException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -266,15 +250,6 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
             }
-            catch (ExerciseNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
-            }
             catch (UnstoredValuesException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
@@ -283,6 +258,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            }
+            catch (ExerciseNotFoundException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
         }
     }
