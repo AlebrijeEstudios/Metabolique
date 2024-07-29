@@ -66,13 +66,13 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 throw new UserNotFoundException();
             }
 
-            int resultComponent1 = res.answerQuestion6;
-            int resultComponent2 = component2(res.answerQuestion2, res.answerQuestion5a);
-            int resultComponent3 = component3(res.answerQuestion4);
-            int resultComponent4 = component4(res.answerQuestion1, res.answerQuestion3, res.answerQuestion4);
-            int resultComponent5 = component5(res);
-            int resultComponent6 = res.answerQuestion7;
-            int resultComponent7 = component7(res.answerQuestion8, res.answerQuestion9);
+            byte resultComponent1 = res.answerQuestion6;
+            byte resultComponent2 = component2(res.answerQuestion2, res.answerQuestion5a);
+            byte resultComponent3 = component3(res.answerQuestion4);
+            byte resultComponent4 = component4(res.answerQuestion1, res.answerQuestion3, res.answerQuestion4);
+            byte resultComponent5 = component5(res);
+            byte resultComponent6 = res.answerQuestion7;
+            byte resultComponent7 = component7(res.answerQuestion8, res.answerQuestion9);
 
             int total = resultComponent1 + resultComponent2 + resultComponent3 + resultComponent4 +
                         resultComponent5 + resultComponent6 + resultComponent7;
@@ -180,11 +180,10 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
         }
 
 
-        public static int component2(int response2, int response5a)
+        public static byte component2(byte response2, byte response5a)
         {
-            int totalTest, value = 0;
-            
-            totalTest = response2 + response5a;
+            byte value = 0;
+            int totalTest = response2 + response5a;
 
             if (totalTest == 0) { return value; }
             if (totalTest == 1 || totalTest == 2) { value = 1; }
@@ -194,9 +193,9 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
-        public static int component3(int response4)
+        public static byte component3(int response4)
         {
-            int value = 0;
+            byte value = 0;
 
             if ((float) response4 > 7) { return value; }
 
@@ -209,9 +208,9 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
-        public static int component4(TimeOnly response1, TimeOnly response3, int response4)
+        public static byte component4(TimeOnly response1, TimeOnly response3, int response4)
         {
-            int value = 0;
+            byte value = 0;
             TimeSpan start = response1.ToTimeSpan();
             TimeSpan end = response3.ToTimeSpan();
 
@@ -242,11 +241,10 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
-        public static int component5(SaveResponsesHabitsDto response)
-        { 
-            int value = 0, totalTest;
-
-            totalTest = response.answerQuestion5b +
+        public static byte component5(SaveResponsesHabitsDto response)
+        {
+            byte value = 0;
+            int totalTest = response.answerQuestion5b +
                         response.answerQuestion5c +
                         response.answerQuestion5d +
                         response.answerQuestion5e +
@@ -267,11 +265,10 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
-        public static int component7(int response8, int response9)
+        public static byte component7(byte response8, byte response9)
         {
-            int value = 0, totalTest;
-
-            totalTest = response8 + response9;
+            byte value = 0;
+            int totalTest = response8 + response9;
 
             if (totalTest == 0) { return value; }
 

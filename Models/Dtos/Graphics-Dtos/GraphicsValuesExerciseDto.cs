@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.Models.Dtos.Graphics_Dtos
 {
-    public class GExerciseDto
+    public class GraphicsValuesExerciseDto
     {
         [JsonRequired]  public Guid timeSpentID { get; set; }
 

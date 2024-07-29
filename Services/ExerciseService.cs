@@ -41,7 +41,7 @@ namespace AppVidaSana.Services
             return exercises;
         }
 
-        public List<GExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date)
+        public List<GraphicsValuesExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date)
         {
             DateOnly dateFinal = date.AddDays(-6);
 
@@ -49,14 +49,14 @@ namespace AppVidaSana.Services
                 .Where(e => e.dateExercise >= dateFinal && e.dateExercise <= date && e.accountID == id)
                 .ToList();
 
-            List<GExerciseDto> gExercises;
+            List<GraphicsValuesExerciseDto> gExercises;
 
             if (events.Count == 0)
             {
-                gExercises = _mapper.Map<List<GExerciseDto>>(events);
+                gExercises = _mapper.Map<List<GraphicsValuesExerciseDto>>(events);
             }
 
-            gExercises = _mapper.Map<List<GExerciseDto>>(events);
+            gExercises = _mapper.Map<List<GraphicsValuesExerciseDto>>(events);
 
             gExercises = gExercises.OrderBy(x => x.dateExercise).ToList();
 
@@ -186,7 +186,7 @@ namespace AppVidaSana.Services
             var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == ex.dateExercise);
             var previousTotal = _bd.graphicsValuesExercise.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
 
-            if (exerciseExisting > 2)
+            if (exerciseExisting >= 2)
             {
                 if (previousTotal != null)
                 {

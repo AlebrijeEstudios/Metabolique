@@ -10,7 +10,7 @@ namespace AppVidaSana.Services.IServices
     {
         List<ExerciseListDto> GetExercises(Guid id, DateOnly date);
 
-        List<GExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date);
+        List<GraphicsValuesExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date);
 
         string AddExercises(AddExerciseDto exercise);
 

@@ -184,15 +184,6 @@ namespace AppVidaSana.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
 
             }
-            catch(ValuesInvalidException ex)
-            {
-                ReturnExceptionList response = new ReturnExceptionList
-                {
-                    status = ex.Errors
-                };
-
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
-            }
             catch (UnstoredValuesException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
@@ -201,6 +192,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { response });
+            } 
+            catch(ValuesInvalidException ex)
+            {
+                ReturnExceptionList response = new ReturnExceptionList
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { response });
             }
         }
     }

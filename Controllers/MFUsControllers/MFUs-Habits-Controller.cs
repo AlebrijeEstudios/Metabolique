@@ -122,35 +122,15 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [Produces("application/json")]
         public IActionResult RetrieveResponsesHabits([FromQuery] Guid id, [FromQuery] string month, [FromQuery] int year)
         {
-            try
+
+            RetrieveResponsesHabitsDto res = _MFUsHabitsService.RetrieveAnswers(id, month, year);
+
+            ReturnRetrieveResponsesHabits response = new ReturnRetrieveResponsesHabits
             {
-                RetrieveResponsesHabitsDto res = _MFUsHabitsService.RetrieveAnswers(id, month, year);
+                responsesAnswers = res
+            };
 
-                ReturnRetrieveResponsesHabits response = new ReturnRetrieveResponsesHabits
-                {
-                    responsesAnswers = res
-                };
-
-                return StatusCode(StatusCodes.Status200OK, new { response });
-            }
-            catch (UserNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
-            }
-            catch (ResultsNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
-            }
+            return StatusCode(StatusCodes.Status200OK, new { response });
         }
     }
 }

@@ -17,7 +17,7 @@ namespace AppVidaSana.Models.Habitos
         [Required(ErrorMessage = "El campo horas de sueño es obligatorio")]
         public int sleepHours { get; set; }
 
-        [Required(ErrorMessage = "El campo percepcion de descanso es obligatorio")]
+        [Required(ErrorMessage = "El campo percepción de descanso es obligatorio")]
         public string perceptionOfRelaxation { get; set; } = null!;
 
         public Account? account { get; set; }

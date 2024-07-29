@@ -76,7 +76,7 @@ namespace AppVidaSana.Controllers
         public IActionResult GetValuesGraphic([FromQuery] Guid id, [FromQuery] DateOnly date)
         {
 
-            List<GExerciseDto> values = _ExerciseService.ValuesGraphicExercises(id,date);
+            List<GraphicsValuesExerciseDto> values = _ExerciseService.ValuesGraphicExercises(id,date);
 
             ReturnGetValuesGraphic response = new ReturnGetValuesGraphic
             {
