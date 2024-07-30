@@ -29,6 +29,31 @@ namespace AppVidaSana.Controllers.Habits
         }
 
         /// <summary>
+        /// This controller returns the beverages consumed by the user.
+        /// </summary>
+        /// <response code="200">Returns information on beverages consumed if found. The information is stored in the attribute called 'response'.</response>
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetDrinksConsumed))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet]
+        [Produces("application/json")]
+        public IActionResult GetDrinksConsumed([FromQuery] Guid id, [FromQuery] DateOnly date)
+        {
+
+            List<GetDrinksConsumedDto> info = _DrinkHabitService.GetDrinksConsumed(id, date);
+
+            ReturnGetDrinksConsumed response = new ReturnGetDrinksConsumed
+            {
+                drinksConsumed = info
+            };
+
+            return StatusCode(StatusCodes.Status200OK, new { response });
+
+        }
+
+
+        /// <summary>
         /// This controller adds the beverages consumed by the user and returns the beverages consumed by the user.
         /// </summary>
         /// <remarks>

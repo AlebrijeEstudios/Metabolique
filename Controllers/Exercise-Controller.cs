@@ -34,6 +34,30 @@ namespace AppVidaSana.Controllers
         }
 
         /// <summary>
+        /// This controller returns the exercises performed by the user during the day.
+        /// </summary>
+        /// <response code="200">Returns an array with all the exercises performed by the user during the day or an empty array. The information is stored in the attribute called 'response'.</response>
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetExercise))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet]
+        [Produces("application/json")]
+        public IActionResult GetExercises([FromQuery] Guid id, [FromQuery] DateOnly date)
+        {
+
+            List<ExerciseListDto> exercises = _ExerciseService.GetExercises(id, date);
+
+            ReturnGetExercise response = new ReturnGetExercise
+            {
+                exercises = exercises
+            };
+
+            return StatusCode(StatusCodes.Status200OK, new { response });
+        }
+
+
+        /// <summary>
         /// This controller obtains the total minutes spent exercising in the last 7 days.
         /// </summary>
         /// <remarks>
