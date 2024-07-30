@@ -6,11 +6,11 @@ namespace AppVidaSana.Services.IServices.IHabits
     {
         List<GetDrinksConsumedDto> GetDrinksConsumed(Guid idAccount, DateOnly date);
 
-        string AddDrinksConsumed(DrinksConsumedDto drinksConsumed);
+        List<GetDrinksConsumedDto> AddDrinksConsumed(DrinksConsumedDto drinksConsumed);
 
-        string UpdateDrinksConsumed(UpdateDrinksConsumedDto values);
+        List<GetDrinksConsumedDto> UpdateDrinksConsumed(UpdateDrinksConsumedDto values);
 
-        string DeleteDrinksConsumed(Guid idHabit);
+        List<GetDrinksConsumedDto> DeleteDrinksConsumed(Guid idHabit);
 
         bool Save();
 

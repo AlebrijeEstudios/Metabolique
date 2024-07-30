@@ -23,23 +23,7 @@ namespace AppVidaSana.Services
             _mapper = mapper;
         }
 
-        public List<ExerciseListDto> GetExercises(Guid id, DateOnly date)
-        {
-            var exercise = _bd.Exercises
-            .Where(e => e.accountID == id && e.dateExercise == date)
-            .ToList();
-
-            List<ExerciseListDto> exercises;
-
-            if(exercise.Count == 0)
-            {
-                exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
-            }
-
-            exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
-
-            return exercises;
-        }
+        
 
         public List<GraphicsValuesExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date)
         {
@@ -63,7 +47,7 @@ namespace AppVidaSana.Services
             return gExercises;
         }
 
-        public string AddExercises(AddExerciseDto exercise)
+        public List<ExerciseListDto> AddExercises(AddExerciseDto exercise)
         {
             var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == exercise.dateExercise && e.typeExercise == exercise.typeExercise &&
                                 e.intensityExercise == exercise.intensityExercise && e.timeSpent == exercise.timeSpent);
@@ -111,11 +95,13 @@ namespace AppVidaSana.Services
             }
 
             totalTimeSpentforDay(exercise.accountID, exercise.dateExercise, exercise.timeSpent);
-            
-            return "Los datos han sido guardados correctamente.";
+
+            List<ExerciseListDto> exercises = GetExercises(exercise.accountID, exercise.dateExercise);
+
+            return exercises;
         }
 
-        public string UpdateExercises(ExerciseListDto exercise)
+        public List<ExerciseListDto> UpdateExercises(ExerciseListDto exercise)
         {
             var ex = _bd.Exercises.Find(exercise.exerciseID);
 
@@ -127,11 +113,6 @@ namespace AppVidaSana.Services
             if(ex.timeSpent < exercise.timeSpent || ex.timeSpent > exercise.timeSpent)
             {
                 var previousTotal = _bd.graphicsValuesExercise.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
-
-                if(previousTotal == null)
-                {
-                    return "No existe un registro de minutos activos para este dia";
-                }
 
                 int currentTotal = previousTotal.totalTimeSpent - ex.timeSpent;
                 int newTotal = currentTotal + exercise.timeSpent;
@@ -170,11 +151,12 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            return "Actualización completada.";
+            List<ExerciseListDto> exercises = GetExercises(exercise.accountID, exercise.dateExercise);
 
+            return exercises;
         }
 
-        public string DeleteExercise(Guid idexercise)
+        public List<ExerciseListDto> DeleteExercise(Guid idexercise)
         {
             var ex = _bd.Exercises.Find(idexercise);
 
@@ -182,6 +164,9 @@ namespace AppVidaSana.Services
             {
                 throw new ExerciseNotFoundException();
             }
+
+            Guid id = ex.accountID;
+            DateOnly date = ex.dateExercise;
 
             var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == ex.dateExercise);
             var previousTotal = _bd.graphicsValuesExercise.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
@@ -224,7 +209,29 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            return "Se ha eliminado correctamente.";
+
+            List<ExerciseListDto> exercises = GetExercises(id, date);
+
+            return exercises;
+
+        }
+
+        public List<ExerciseListDto> GetExercises(Guid id, DateOnly date)
+        {
+            var exercise = _bd.Exercises
+            .Where(e => e.accountID == id && e.dateExercise == date)
+            .ToList();
+
+            List<ExerciseListDto> exercises;
+
+            if (exercise.Count == 0)
+            {
+                exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
+            }
+
+            exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
+
+            return exercises;
         }
 
         public void totalTimeSpentforDay(Guid id, DateOnly dateInitial, int timeSpent)

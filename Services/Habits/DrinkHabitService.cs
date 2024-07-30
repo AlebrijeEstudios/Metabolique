@@ -23,7 +23,7 @@ namespace AppVidaSana.Services.Habits
             _mapper = mapper;
         }
 
-        public string AddDrinksConsumed(DrinksConsumedDto drinksConsumed)
+        public List<GetDrinksConsumedDto> AddDrinksConsumed(DrinksConsumedDto drinksConsumed)
         {
 
             var habitExisting = _bd.habitsDrink.Count(e => e.drinkDateHabit == drinksConsumed.drinkDateHabit && 
@@ -69,29 +69,13 @@ namespace AppVidaSana.Services.Habits
                 throw new UnstoredValuesException();
             }
 
-            return "Los datos han sido guardados correctamente.";
+            List<GetDrinksConsumedDto> drinks = GetDrinksConsumed(drinksConsumed.accountID, drinksConsumed.drinkDateHabit);
 
-        }
+            return drinks;
 
-        public List<GetDrinksConsumedDto> GetDrinksConsumed(Guid idAccount, DateOnly date)
-        {
-            var habits = _bd.habitsDrink
-            .Where(e => e.accountID == idAccount && e.drinkDateHabit == date)
-            .ToList();
+        } 
 
-            List<GetDrinksConsumedDto> habitsDrink;
-
-            if (habits.Count == 0)
-            {
-               habitsDrink = _mapper.Map<List<GetDrinksConsumedDto>>(habits);  
-            }
-
-            habitsDrink = _mapper.Map<List<GetDrinksConsumedDto>>(habits);
-
-            return habitsDrink;
-        }
-
-        public string UpdateDrinksConsumed(UpdateDrinksConsumedDto values)
+        public List<GetDrinksConsumedDto> UpdateDrinksConsumed(UpdateDrinksConsumedDto values)
         {
             var habit = _bd.habitsDrink.Find(values.drinkHabitID);
 
@@ -123,10 +107,12 @@ namespace AppVidaSana.Services.Habits
                 throw new UnstoredValuesException();
             }
 
-            return "Actualización completada.";
+            List<GetDrinksConsumedDto> drinks = GetDrinksConsumed(values.accountID, values.drinkDateHabit);
+
+            return drinks;
         }
 
-        public string DeleteDrinksConsumed(Guid idHabit)
+        public List<GetDrinksConsumedDto> DeleteDrinksConsumed(Guid idHabit)
         {
             var habit = _bd.habitsDrink.Find(idHabit);
 
@@ -135,6 +121,9 @@ namespace AppVidaSana.Services.Habits
                 throw new HabitNotFoundException();
             }
 
+            Guid id = habit.accountID;
+            DateOnly date = habit.drinkDateHabit;
+
             _bd.habitsDrink.Remove(habit);
 
             if (!Save())
@@ -142,7 +131,9 @@ namespace AppVidaSana.Services.Habits
                 throw new UnstoredValuesException();
             }
 
-            return "Se ha eliminado correctamente.";
+            List<GetDrinksConsumedDto> drinks = GetDrinksConsumed(id, date);
+
+            return drinks;
         }
 
         public bool Save()
@@ -156,6 +147,24 @@ namespace AppVidaSana.Services.Habits
                 return false;
 
             }
+        }
+        
+        public List<GetDrinksConsumedDto> GetDrinksConsumed(Guid idAccount, DateOnly date)
+        {
+            var habits = _bd.habitsDrink
+            .Where(e => e.accountID == idAccount && e.drinkDateHabit == date)
+            .ToList();
+
+            List<GetDrinksConsumedDto> habitsDrink;
+
+            if (habits.Count == 0)
+            {
+               habitsDrink = _mapper.Map<List<GetDrinksConsumedDto>>(habits);  
+            }
+
+            habitsDrink = _mapper.Map<List<GetDrinksConsumedDto>>(habits);
+
+            return habitsDrink;
         }
     }
 }
