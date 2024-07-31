@@ -11,9 +11,6 @@ namespace AppVidaSana.Models.Medications
         [ForeignKey("Account")]
         public Guid accountID { get; set; }
 
-        [Required(ErrorMessage = "El campo fecha es obligatoria.")]
-        public DateOnly dateMedication { get; set; }
-
         [Required(ErrorMessage = "El campo nombre del medicamento es obligatorio.")]
         public string nameMedication { get; set; } = null!;
 
@@ -30,6 +27,8 @@ namespace AppVidaSana.Models.Medications
         public int dailyFrec { get; set; }
 
         public Account? account { get; set; }
+
+        public ICollection<Times> times { get; set; } = new List<Times>();
 
     }
 }

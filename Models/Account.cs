@@ -1,5 +1,7 @@
 ﻿using AppVidaSana.Models.Graphics;
 using AppVidaSana.Models.Habitos;
+using AppVidaSana.Models.Medications;
+using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using System.ComponentModel.DataAnnotations;
 
@@ -37,6 +39,10 @@ namespace AppVidaSana.Models
         public ICollection<SleepHabit> habitsSleep { get; set; } = new List<SleepHabit>();
 
         public ICollection<MFUsHabits> MFUsHabits { get; set; } = new List<MFUsHabits>();
+
+        public ICollection<Medication> medications { get; set; } = new List<Medication>();
+
+        public ICollection<MFUsMedication> MFUsMedications { get; set; } = new List<MFUsMedication>();
 
     }
 }
