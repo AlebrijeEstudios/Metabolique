@@ -26,7 +26,7 @@ namespace AppVidaSana.Data
         public DbSet<HabitsResults> resultsHabits { get; set; }
         public DbSet<Medication> Medications { get; set; }
         public DbSet<MFUsMedication> MFUsMedication { get; set; }
-        public DbSet<Times> times { get; set; }
+        public DbSet<Times> Times { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

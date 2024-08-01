@@ -11,6 +11,9 @@ namespace AppVidaSana.Models.Medications
         [ForeignKey("Account")]
         public Guid accountID { get; set; }
 
+        [Required(ErrorMessage = "El campo fecha es obligatoria.")]
+        public DateOnly dateRecord { get; set; }
+
         [Required(ErrorMessage = "El campo nombre del medicamento es obligatorio.")]
         public string nameMedication { get; set; } = null!;
 
@@ -18,10 +21,10 @@ namespace AppVidaSana.Models.Medications
         public int dose { get; set; }
 
         [Required(ErrorMessage = "El campo frecuencia inicial es obligatorio.")]
-        public string initialFrec { get; set; } = null!;
+        public DateOnly initialFrec { get; set; } 
 
         [Required(ErrorMessage = "El campo frecuencia final es obligatorio.")]
-        public string finalFrec { get; set; } = null!;
+        public DateOnly finalFrec { get; set; }
 
         [Required(ErrorMessage = "El campo dosis es obligatorio.")]
         public int dailyFrec { get; set; }
