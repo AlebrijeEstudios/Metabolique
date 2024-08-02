@@ -62,7 +62,7 @@ namespace AppVidaSana.Controllers
                     account = info
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = "ok", account = info });
             }
             catch (UserNotFoundException ex)
             {

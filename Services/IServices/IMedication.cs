@@ -9,7 +9,7 @@ namespace AppVidaSana.Services.IServices
 
         public List<InfoMedicationDto> AddMedication(AddMedicationUseDto medication);
 
-        public List<InfoMedicationDto> UpdateMedication(InfoMedicationDto values);
+        public List<InfoMedicationDto> UpdateMedication(UpdateMedicationUseDto values);
 
         public List<InfoMedicationDto> DeleteMedication(Guid id);
 
