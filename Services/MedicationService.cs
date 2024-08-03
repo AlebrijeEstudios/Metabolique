@@ -1,21 +1,14 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
-using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Exceptions.Medication;
-using AppVidaSana.Models;
-using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using NuGet.Packaging.Signing;
 using Sprache;
 using System.ComponentModel.DataAnnotations;
-using Xunit;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AppVidaSana.Services
 {
@@ -83,7 +76,7 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            var medicationsList = InfoMedication(medication);
+            var medicationsList = InfoMedicationJustAdd(medication.dateRecord);
 
             return medicationsList;
 
@@ -103,27 +96,54 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            bool removeSuccessful = false;
-
             if(med.initialFrec != values.initialFrec)
             {
-                removeSuccessful = UpdateForNewDateInitial(med, values.dateRecord, values.initialFrec);
+                UpdateForNewDateInitial(med, values.dateRecord, values.initialFrec);
             }
 
             if(med.finalFrec != values.finalFrec)
             {
-                removeSuccessful = UpdateForNewDateFinal(med, values.dateRecord, values.finalFrec);
+                UpdateForNewDateFinal(med, values.dateRecord, values.finalFrec);
             }
 
             if(med.dailyFrec != values.dailyFrec)
             {
-                removeSuccessful = UpdateForNewDailyFrec(med, values.times, values.dateRecord, values.dailyFrec);
+                UpdateForNewDailyFrec(med, values.times, values.dateRecord, values.dailyFrec);
             }
 
+            Medication medication = new Medication
+            {
+                nameMedication = values.nameMedication,
+                dose = values.dose,
+                initialFrec = values.initialFrec,
+                finalFrec = values.finalFrec,
+                dailyFrec = values.dailyFrec
+            };
 
+            var valResults = new List<ValidationResult>();
+            var valContext = new ValidationContext(medication, null, null);
 
+            if (!Validator.TryValidateObject(medication, valContext, valResults, true))
+            {
+                var errors = valResults.Select(vr => vr.ErrorMessage).ToList();
 
-            throw new NotImplementedException();
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
+            }
+
+            _bd.Medications.Update(medication);
+
+            if (!Save())
+            {
+                throw new UnstoredValuesException();
+            }
+
+            var medicationsList = InfoMedicationJustAdd(values.dateRecord);
+
+            return medicationsList;
+
         }
 
         public List<InfoMedicationDto> DeleteMedication(Guid id)
@@ -174,8 +194,7 @@ namespace AppVidaSana.Services
                     {
                         medicationID = id,
                         dateMedication = date,
-                        hours = time.Hour,
-                        minutes = time.Minute,
+                        time = time,
                         medicationStatus = false
                     };
 
@@ -202,57 +221,51 @@ namespace AppVidaSana.Services
             }
         }
 
-        public List<InfoMedicationDto> InfoMedication(AddMedicationUseDto medication)
+        public List<InfoMedicationDto> InfoMedicationJustAdd(DateOnly dateRecord)
         {
-            var recordsMedication = _bd.Medications
-                                      .Where(e => e.accountID == medication.accountID && e.dateRecord == medication.dateRecord)
-                                      .ToList();
+            List<InfoMedicationDto> listInfoMed = new List<InfoMedicationDto>();
 
-            List<Guid> ids = recordsMedication.Select(e => e.medicationID).ToList();
+            var recordsTimes = _bd.Times.Where(e => e.dateMedication == dateRecord).ToList();
 
-            List<InfoMedicationDto> medicationsList = new List<InfoMedicationDto>();
+            var listTimes = _mapper.Map<List<TimeListDto>>(recordsTimes);
 
-            var recordsTimes = _bd.Times.Where(e => ids.Contains(e.medicationID)
-                                && e.dateMedication == medication.dateRecord).ToList();
+            var groupObjectsByID = listTimes.GroupBy(obj => obj.medicationID)
+                                    .ToDictionary(
+                                        g => g.Key,
+                                        g => g.ToList()
+                                    );
 
-
-            var groupByTimes = recordsTimes.GroupBy(e => e.medicationID)
-                                            .ToDictionary(g => g.Key, g => g.ToList());
-
-
-            foreach (var record in recordsMedication)
+            foreach(var time in groupObjectsByID)
             {
-                var times = groupByTimes.ContainsKey(record.medicationID)
-                ? _mapper.Map<List<TimeListDto>>(groupByTimes[record.medicationID])
-                : new List<TimeListDto>();
+                var medID = time.Key;
+                var list = time.Value;
 
-                if (times.Any())
+                var infoMed = _bd.Medications.Find(medID);
+
+                InfoMedicationDto info = new InfoMedicationDto
                 {
-                    var medicationInfo = new InfoMedicationDto
-                    {
-                        medicationID = medication.accountID,
-                        dateRecord = medication.dateRecord,
-                        nameMedication = medication.nameMedication,
-                        dose = medication.dose,
-                        initialFrec = medication.initialFrec,
-                        finalFrec = medication.finalFrec,
-                        dailyFrec = medication.dailyFrec,
-                        times = times
-                    };
+                    medicationID = infoMed.medicationID,
+                    dateRecord = dateRecord,
+                    nameMedication = infoMed.nameMedication,
+                    dose = infoMed.dose,
+                    initialFrec = infoMed.initialFrec,
+                    finalFrec = infoMed.finalFrec,
+                    dailyFrec = infoMed.dailyFrec,
+                    times = list
+                };
 
-                    medicationsList.Add(medicationInfo);
-                }
+                listInfoMed.Add(info);
             }
 
-            return medicationsList;
+            return listInfoMed;
         }
 
-        public bool UpdateForNewDateInitial(Medication medication, DateOnly dateUpdate, DateOnly newInitialDate)
+        public void UpdateForNewDateInitial(Medication medication, DateOnly dateUpdate, DateOnly newInitialDate)
         {
             List<Times> records1, records2, records3;
             List<DateOnly> list1, list2, list3;
 
-            if(!(medication.initialFrec <= newInitialDate && newInitialDate <= medication.finalFrec))
+            if(medication.finalFrec < newInitialDate)
             {
                 throw new UnstoredValuesException();
             }
@@ -296,6 +309,7 @@ namespace AppVidaSana.Services
                 }
             };
 
+
             if (medication.initialFrec <= newInitialDate && newInitialDate <= dateUpdate) {
                 
                 //initialFrecPrevious <= newInitialDate
@@ -313,7 +327,6 @@ namespace AppVidaSana.Services
 
                 processRecords(records2, list2);
 
-                return true;
             }
 
             if (dateUpdate <= newInitialDate)
@@ -324,19 +337,36 @@ namespace AppVidaSana.Services
                 list3 = GetDatesInRange(newInitialDate, dateUpdate);
 
                 processRecords(records3, list3);
-              
-                return true;
+
             }
-        
-            return false;
+
+
+            if (newInitialDate < medication.initialFrec)
+            {
+                //newFinalDate <= initialFrecPrevious
+                var newRecordsToAList = GetDatesInRange(newInitialDate, medication.initialFrec);
+
+                var timesExamples = _bd.Times.Where(e => e.medicationID == medication.medicationID).ToList();
+
+                var groupByTimes = timesExamples.GroupBy(e => e.dateMedication)
+                                   .ToDictionary(g => g.Key, g => g.Select(e => new { e.hours, e.minutes }).ToList());
+
+
+                var times = groupByTimes.ContainsKey(medication.initialFrec)
+                ? _mapper.Map<List<TimeOnly>>(groupByTimes[medication.initialFrec])
+                : new List<TimeOnly>();
+
+                AddTimes(medication.medicationID, newRecordsToAList, times);
+
+            }
         }
 
-        public bool UpdateForNewDateFinal(Medication medication, DateOnly dateUpdate, DateOnly newFinalDate)
+        public void UpdateForNewDateFinal(Medication medication, DateOnly dateUpdate, DateOnly newFinalDate)
         {
             List<Times> records1, records2, records3, records4;
             List<DateOnly> list1, list2, list3, list4;
 
-            if(newFinalDate <= medication.initialFrec)
+            if(newFinalDate < medication.initialFrec)
             {
                 throw new UnstoredValuesException();
             }
@@ -395,7 +425,6 @@ namespace AppVidaSana.Services
 
                 processRecords(records2, list2);
 
-                return true;
             }
 
             if(medication.initialFrec <= newFinalDate && newFinalDate <= dateUpdate)
@@ -414,11 +443,9 @@ namespace AppVidaSana.Services
 
                 processRecords(records4, list4);
 
-                return true;
-
             }
 
-            if(medication.finalFrec <= newFinalDate)
+            if(medication.finalFrec < newFinalDate)
             {
                 //finalFrecPrevious <= newFinalDate
                 var newRecordsToAList = GetDatesInRange(medication.finalFrec, newFinalDate);
@@ -426,7 +453,7 @@ namespace AppVidaSana.Services
                 var timesExamples = _bd.Times.Where(e => e.medicationID == medication.medicationID).ToList();
 
                 var groupByTimes = timesExamples.GroupBy(e => e.dateMedication)
-                                   .ToDictionary(g => g.Key, g => g.Select(e => new { e.hours, e.minutes }).ToList());
+                                   .ToDictionary(g => g.Key, g => g.Select(e => e.time).ToList());
 
 
                 var times = groupByTimes.ContainsKey(medication.finalFrec)
@@ -435,13 +462,10 @@ namespace AppVidaSana.Services
 
                 AddTimes(medication.medicationID, newRecordsToAList, times);
 
-                return true;
-
             }
-            return false;
         }
 
-        public bool UpdateForNewDailyFrec(Medication medication, List<TimeOnly> times, DateOnly dateUpdate, int newDailyFrec)
+        public void UpdateForNewDailyFrec(Medication medication, List<TimeOnly> times, DateOnly dateUpdate, int newDailyFrec)
         {
             List<DateOnly> newRecords = new List<DateOnly>();
             List<DateOnly> beforeDates, afterDates;
@@ -495,11 +519,7 @@ namespace AppVidaSana.Services
             if (newRecords.Count() > 0)
             {
                 AddTimes(medication.medicationID, newRecords, times);
-
-                return true;
             }
-
-            return false;
         }
     }
 }
