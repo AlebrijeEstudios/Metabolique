@@ -76,7 +76,7 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            var medicationsList = InfoMedicationJustAdd(medication.dateRecord);
+            var medicationsList = InfoMedicationJustAddUpdate(medication.dateRecord);
 
             return medicationsList;
 
@@ -140,7 +140,7 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            var medicationsList = InfoMedicationJustAdd(values.dateRecord);
+            var medicationsList = InfoMedicationJustAddUpdate(values.dateRecord);
 
             return medicationsList;
 
@@ -221,7 +221,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        public List<InfoMedicationDto> InfoMedicationJustAdd(DateOnly dateRecord)
+        public List<InfoMedicationDto> InfoMedicationJustAddUpdate(DateOnly dateRecord)
         {
             List<InfoMedicationDto> listInfoMed = new List<InfoMedicationDto>();
 
