@@ -104,6 +104,12 @@ namespace AppVidaSana.Data
                 .HasForeignKey(medications => medications.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.times)
+                .WithOne(times => times.account)
+                .HasForeignKey(times => times.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Medication>()
                 .HasMany(medication => medication.times)
                 .WithOne(times => times.medication)

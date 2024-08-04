@@ -9,6 +9,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Sprache;
 using System.ComponentModel.DataAnnotations;
+using System.Data;
 
 namespace AppVidaSana.Services
 {
@@ -25,7 +26,7 @@ namespace AppVidaSana.Services
 
         public List<InfoMedicationDto> AddMedication(AddMedicationUseDto medication)
         {
-            var medicationExisting = _bd.Medications.Any(e => e.dateRecord == medication.dateRecord
+            var medicationExisting = _bd.Medications.Any(e => e.accountID == medication.accountID 
                                         && e.nameMedication == medication.nameMedication
                                         && e.dose == medication.dose && e.initialFrec == medication.initialFrec
                                         && e.finalFrec == medication.finalFrec && e.dailyFrec == medication.dailyFrec);
@@ -42,13 +43,9 @@ namespace AppVidaSana.Services
                 throw new UserNotFoundException();
             }
 
-            List<DateOnly> dates = GetDatesInRange(medication.initialFrec, medication.finalFrec);
-            AddTimes(medication.accountID, dates, medication.times);
-
             Medication med = new Medication
             {
                 accountID = medication.accountID,
-                dateRecord = medication.dateRecord,
                 nameMedication = medication.nameMedication,
                 dose = medication.dose,
                 initialFrec = medication.initialFrec,
@@ -76,7 +73,16 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            var medicationsList = InfoMedicationJustAddUpdate(medication.dateRecord);
+            List<DateOnly> dates = GetDatesInRange(medication.initialFrec, medication.finalFrec);
+
+            var recentlyMedication = _bd.Medications.FirstOrDefault(e => e.accountID == medication.accountID
+                                        && e.nameMedication == medication.nameMedication
+                                        && e.dose == medication.dose && e.initialFrec == medication.initialFrec
+                                        && e.finalFrec == medication.finalFrec && e.dailyFrec == medication.dailyFrec);
+
+            AddTimes(recentlyMedication.medicationID, medication.accountID, dates, medication.times);
+
+            var medicationsList = InfoMedicationJustAddUpdateDelete(medication.accountID, medication.dateRecord);
 
             return medicationsList;
 
@@ -84,7 +90,50 @@ namespace AppVidaSana.Services
 
         public List<InfoMedicationDto> GetMedications(Guid id, DateOnly date)
         {
-            throw new NotImplementedException();
+            DateOnly dateFinal = date.AddDays(-6);
+
+            var recordsTimes = _bd.Times
+                .Where(e => e.accountID == id && e.dateMedication >= dateFinal && e.dateMedication <= date)
+                .ToList();
+
+            List<InfoMedicationDto> listInfoMed = new List<InfoMedicationDto>();
+
+            var listTimes = _mapper.Map<List<TimeListDto>>(recordsTimes);
+
+            var groupObjectsByID = listTimes.GroupBy(obj => obj.medicationID)
+                                    .ToDictionary(
+                                        g => g.Key,
+                                        g => g.ToList()
+                                    );
+
+            foreach (var time in groupObjectsByID)
+            {
+                var medID = time.Key;
+                var list = time.Value;
+
+                var infoMed = _bd.Medications.Find(medID);
+
+                if (list.Count() > 0)
+                {
+                    InfoMedicationDto info = new InfoMedicationDto
+                    {
+                        medicationID = infoMed.medicationID,
+                        accountID = infoMed.accountID,
+                        nameMedication = infoMed.nameMedication,
+                        dose = infoMed.dose,
+                        initialFrec = infoMed.initialFrec,
+                        finalFrec = infoMed.finalFrec,
+                        dailyFrec = infoMed.dailyFrec,
+                        times = list
+                    };
+
+                    listInfoMed.Add(info);
+                }
+            }
+
+            listInfoMed = listInfoMed.OrderBy(x => x.times.Min(t => t.dateMedication)).ToList();
+
+            return listInfoMed;
         }
 
         public List<InfoMedicationDto> UpdateMedication(UpdateMedicationUseDto values)
@@ -140,15 +189,45 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            var medicationsList = InfoMedicationJustAddUpdate(values.dateRecord);
+            var medicationsList = InfoMedicationJustAddUpdateDelete(values.accountID, values.dateRecord);
 
             return medicationsList;
 
         }
 
-        public List<InfoMedicationDto> DeleteMedication(Guid id)
+        public List<InfoMedicationDto> DeleteAMedication(Guid id, DateOnly date)
         {
-            throw new NotImplementedException();
+            var recordInfoMedication = _bd.Medications.FirstOrDefault(e => e.medicationID == id);
+
+            List<DateOnly> currentListDates = GetDatesInRange(recordInfoMedication.initialFrec, recordInfoMedication.finalFrec);
+
+            foreach (DateOnly dateOnly in currentListDates)
+            {
+                if(dateOnly == date)
+                {
+                    currentListDates.Remove(dateOnly);
+                }
+            }
+
+            if(currentListDates.Count() == 1)
+            {
+                _bd.Medications.Remove(recordInfoMedication);
+            }
+            else
+            {
+                var recordsTimes = _bd.Times.Where(e => e.medicationID == id && e.dateMedication == date).ToList();
+
+                _bd.Times.RemoveRange(recordsTimes);
+            }
+
+            if (!Save())
+            {
+                throw new UnstoredValuesException();
+            }
+
+            var medicationsList = InfoMedicationJustAddUpdateDelete(id, date);
+
+            return medicationsList;
         }
 
         public bool Save()
@@ -184,7 +263,49 @@ namespace AppVidaSana.Services
             return dates;
         }
 
-        public void AddTimes(Guid id, List<DateOnly>dates, List<TimeOnly> times)
+        public List<InfoMedicationDto> InfoMedicationJustAddUpdateDelete(Guid id, DateOnly dateRecord)
+        {
+            List<InfoMedicationDto> listInfoMed = new List<InfoMedicationDto>();
+
+            var recordsTimes = _bd.Times.Where(e => e.accountID == id && e.dateMedication == dateRecord).ToList();
+
+            var listTimes = _mapper.Map<List<TimeListDto>>(recordsTimes);
+
+            var groupObjectsByID = listTimes.GroupBy(obj => obj.medicationID)
+                                    .ToDictionary(
+                                        g => g.Key,
+                                        g => g.ToList()
+                                    );
+
+            foreach (var time in groupObjectsByID)
+            {
+                var medID = time.Key;
+                var list = time.Value;
+
+                var infoMed = _bd.Medications.Find(medID);
+
+                if (list.Count() > 0)
+                {
+                    InfoMedicationDto info = new InfoMedicationDto
+                    {
+                        medicationID = infoMed.medicationID,
+                        accountID = infoMed.accountID,
+                        nameMedication = infoMed.nameMedication,
+                        dose = infoMed.dose,
+                        initialFrec = infoMed.initialFrec,
+                        finalFrec = infoMed.finalFrec,
+                        dailyFrec = infoMed.dailyFrec,
+                        times = list
+                    };
+
+                    listInfoMed.Add(info);
+                }
+            }
+
+            return listInfoMed;
+        }
+
+        public void AddTimes(Guid medicamentID, Guid accountID, List<DateOnly>dates, List<TimeOnly> times)
         {
             foreach (DateOnly date in dates)
             {
@@ -192,7 +313,8 @@ namespace AppVidaSana.Services
                 {
                     Times register = new Times
                     {
-                        medicationID = id,
+                        accountID = accountID,
+                        medicationID = medicamentID,
                         dateMedication = date,
                         time = time,
                         medicationStatus = false
@@ -219,45 +341,6 @@ namespace AppVidaSana.Services
                     }
                 }
             }
-        }
-
-        public List<InfoMedicationDto> InfoMedicationJustAddUpdate(DateOnly dateRecord)
-        {
-            List<InfoMedicationDto> listInfoMed = new List<InfoMedicationDto>();
-
-            var recordsTimes = _bd.Times.Where(e => e.dateMedication == dateRecord).ToList();
-
-            var listTimes = _mapper.Map<List<TimeListDto>>(recordsTimes);
-
-            var groupObjectsByID = listTimes.GroupBy(obj => obj.medicationID)
-                                    .ToDictionary(
-                                        g => g.Key,
-                                        g => g.ToList()
-                                    );
-
-            foreach(var time in groupObjectsByID)
-            {
-                var medID = time.Key;
-                var list = time.Value;
-
-                var infoMed = _bd.Medications.Find(medID);
-
-                InfoMedicationDto info = new InfoMedicationDto
-                {
-                    medicationID = infoMed.medicationID,
-                    dateRecord = dateRecord,
-                    nameMedication = infoMed.nameMedication,
-                    dose = infoMed.dose,
-                    initialFrec = infoMed.initialFrec,
-                    finalFrec = infoMed.finalFrec,
-                    dailyFrec = infoMed.dailyFrec,
-                    times = list
-                };
-
-                listInfoMed.Add(info);
-            }
-
-            return listInfoMed;
         }
 
         public void UpdateForNewDateInitial(Medication medication, DateOnly dateUpdate, DateOnly newInitialDate)
@@ -349,14 +432,14 @@ namespace AppVidaSana.Services
                 var timesExamples = _bd.Times.Where(e => e.medicationID == medication.medicationID).ToList();
 
                 var groupByTimes = timesExamples.GroupBy(e => e.dateMedication)
-                                   .ToDictionary(g => g.Key, g => g.Select(e => new { e.hours, e.minutes }).ToList());
+                                   .ToDictionary(g => g.Key, g => g.Select(e => e.time).ToList());
 
 
                 var times = groupByTimes.ContainsKey(medication.initialFrec)
                 ? _mapper.Map<List<TimeOnly>>(groupByTimes[medication.initialFrec])
                 : new List<TimeOnly>();
 
-                AddTimes(medication.medicationID, newRecordsToAList, times);
+                AddTimes(medication.medicationID, medication.accountID, newRecordsToAList, times);
 
             }
         }
@@ -460,7 +543,7 @@ namespace AppVidaSana.Services
                 ? _mapper.Map<List<TimeOnly>>(groupByTimes[medication.finalFrec])
                 : new List<TimeOnly>();
 
-                AddTimes(medication.medicationID, newRecordsToAList, times);
+                AddTimes(medication.medicationID, medication.accountID, newRecordsToAList, times);
 
             }
         }
@@ -518,7 +601,7 @@ namespace AppVidaSana.Services
 
             if (newRecords.Count() > 0)
             {
-                AddTimes(medication.medicationID, newRecords, times);
+                AddTimes(medication.medicationID, medication.accountID, newRecords, times);
             }
         }
     }

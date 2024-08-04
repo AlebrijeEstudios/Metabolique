@@ -8,6 +8,9 @@ namespace AppVidaSana.Models.Medications
         [Key]
         public Guid timeID { get; set; } = Guid.NewGuid();
 
+        [ForeignKey("Account")]
+        public Guid accountID { get; set; }
+
         [ForeignKey("Medication")]
         public Guid medicationID { get; set; }
 
@@ -21,5 +24,7 @@ namespace AppVidaSana.Models.Medications
         public bool medicationStatus { get; set; }
 
         public Medication? medication { get; set; }
+
+        public Account? account { get; set; }
     }
 }

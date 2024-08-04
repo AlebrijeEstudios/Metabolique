@@ -6,7 +6,7 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
     {
         [JsonRequired] public Guid medicationID { get; set; }
 
-        [JsonRequired] public DateOnly dateRecord { get; set; }
+        [JsonRequired] public Guid accountID { get; set; }
 
         [JsonRequired] public string nameMedication { get; set; } = null!;
 

@@ -42,6 +42,8 @@ namespace AppVidaSana.Models
 
         public ICollection<Medication> medications { get; set; } = new List<Medication>();
 
+        public ICollection<Times> times { get; set; } = new List<Times>();
+
         public ICollection<MFUsMedication> MFUsMedications { get; set; } = new List<MFUsMedication>();
 
     }
