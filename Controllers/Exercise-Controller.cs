@@ -13,6 +13,8 @@ using AppVidaSana.ProducesResponseType.Exercise;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Exceptions;
+using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AppVidaSana.Controllers
 {
@@ -28,7 +30,7 @@ namespace AppVidaSana.Controllers
         public ExerciseController(IExercise ExerciseService)
         {
             _ExerciseService = ExerciseService;
-        
+
         }
 
         /// <summary>
@@ -36,7 +38,7 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="200">Returns an array with all the exercises performed by the user during the day or an empty array. The information is stored in the attribute called 'response'.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetExercises))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetExercise))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
@@ -46,13 +48,14 @@ namespace AppVidaSana.Controllers
 
             List<ExerciseListDto> exercises = _ExerciseService.GetExercises(id, date);
 
-            ReturnGetExercises response = new ReturnGetExercises
+            ReturnGetExercise response = new ReturnGetExercise
             {
                 exercises = exercises
             };
 
             return StatusCode(StatusCodes.Status200OK, new { response });
         }
+
 
         /// <summary>
         /// This controller obtains the total minutes spent exercising in the last 7 days.
@@ -88,7 +91,7 @@ namespace AppVidaSana.Controllers
         }
 
         /// <summary>
-        /// This controller adds the exercises that the user does during the day.
+        /// This controller adds the exercises that the user does during the day and returns the exercises performed by the user during the day.
         /// </summary>
         /// <remarks>
         /// Sample Request:
@@ -116,11 +119,11 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var res = _ExerciseService.AddExercises(exercise);
+                List<ExerciseListDto> exercises = _ExerciseService.AddExercises(exercise);
 
                 ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
                 {
-                    status = res
+                    exercises = exercises
                 };
 
                 return StatusCode(StatusCodes.Status201Created, new { response });
@@ -185,11 +188,11 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var res = _ExerciseService.UpdateExercises(listExercises);
+                List<ExerciseListDto> exercises = _ExerciseService.UpdateExercises(listExercises);
 
                 ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
                 {
-                    status = res
+                    exercises = exercises
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
@@ -241,11 +244,11 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var res = _ExerciseService.DeleteExercise(id);
+                List<ExerciseListDto> exercises = _ExerciseService.DeleteExercise(id);
 
                 ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
                 {
-                    status = res
+                    exercises = exercises
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { response });

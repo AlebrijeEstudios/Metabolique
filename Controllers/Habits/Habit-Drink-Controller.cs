@@ -52,8 +52,9 @@ namespace AppVidaSana.Controllers.Habits
 
         }
 
+
         /// <summary>
-        /// This controller adds the beverages consumed by the user.
+        /// This controller adds the beverages consumed by the user and returns the beverages consumed by the user.
         /// </summary>
         /// <remarks>
         /// Sample Request:
@@ -81,11 +82,11 @@ namespace AppVidaSana.Controllers.Habits
         {
             try
             {
-                var res = _DrinkHabitService.AddDrinksConsumed(drinksConsumed);
+                List<GetDrinksConsumedDto> res = _DrinkHabitService.AddDrinksConsumed(drinksConsumed);
 
                 ReturnAddUpdateDeleteDrinkConsumed response = new ReturnAddUpdateDeleteDrinkConsumed
                 {
-                    status = res
+                    drinksConsumed = res
                 };
 
                 return StatusCode(StatusCodes.Status201Created, new { response });
@@ -150,11 +151,11 @@ namespace AppVidaSana.Controllers.Habits
         {
             try
             {
-                var res = _DrinkHabitService.UpdateDrinksConsumed(values);
+                List<GetDrinksConsumedDto> res = _DrinkHabitService.UpdateDrinksConsumed(values);
 
                 ReturnAddUpdateDeleteDrinkConsumed response = new ReturnAddUpdateDeleteDrinkConsumed
                 {
-                    status = res
+                    drinksConsumed = res
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { response });
@@ -206,11 +207,11 @@ namespace AppVidaSana.Controllers.Habits
         {
             try
             {
-                var res = _DrinkHabitService.DeleteDrinksConsumed(id);
+                List<GetDrinksConsumedDto> res = _DrinkHabitService.DeleteDrinksConsumed(id);
 
                 ReturnAddUpdateDeleteDrinkConsumed response = new ReturnAddUpdateDeleteDrinkConsumed
                 {
-                    status = res
+                    drinksConsumed = res
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { response });

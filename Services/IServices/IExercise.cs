@@ -12,11 +12,11 @@ namespace AppVidaSana.Services.IServices
 
         List<GraphicsValuesExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date);
 
-        string AddExercises(AddExerciseDto exercise);
+        List<ExerciseListDto> AddExercises(AddExerciseDto exercise);
 
-        string UpdateExercises(ExerciseListDto exercise);
+        List<ExerciseListDto> UpdateExercises(ExerciseListDto exercise);
 
-        string DeleteExercise(Guid idexercise);
+        List<ExerciseListDto> DeleteExercise(Guid idexercise);
 
         bool Save();
     }

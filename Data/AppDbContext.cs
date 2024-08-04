@@ -17,8 +17,10 @@ namespace AppVidaSana.Data
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Profiles> Profiles { get; set; }
         public DbSet<Exercise> Exercises { get; set; }
+
         public DbSet<MFUsExercise> MFUsExercise { get; set; }
         public DbSet<GraphicsValuesExercise> graphicsValuesExercise {  get; set; }
+        
         public DbSet<DrinkHabit> habitsDrink { get; set; }
         public DbSet<DrugsHabit> habitsDrugs { get; set; }
         public DbSet<SleepHabit> habitsSleep { get; set; }

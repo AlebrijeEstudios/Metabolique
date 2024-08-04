@@ -1,9 +1,11 @@
-﻿namespace AppVidaSana.ProducesResponseType.Exercise
+﻿using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
+
+namespace AppVidaSana.ProducesResponseType.Exercise
 {
     public class ReturnAddUpdateDeleteExercises
     {
         public string message { get; set; } = "Ok.";
 
-        public string status { get; set; } = null!;
+        public List<ExerciseListDto> exercises { get; set; } = null!;
     }
 }

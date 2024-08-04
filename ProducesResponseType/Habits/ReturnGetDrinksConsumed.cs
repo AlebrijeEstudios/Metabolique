@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Habits_Dtos;
-using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
+﻿using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 
 namespace AppVidaSana.ProducesResponseType.Habits
 {
