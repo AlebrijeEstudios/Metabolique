@@ -27,7 +27,7 @@ namespace AppVidaSana.Data
         public DbSet<Medication> Medications { get; set; }
         public DbSet<MFUsMedication> MFUsMedication { get; set; }
         public DbSet<Times> Times { get; set; }
-
+        public DbSet<SideEffects> sideEffects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -122,6 +122,18 @@ namespace AppVidaSana.Data
                 .HasForeignKey(MFUsMedications => MFUsMedications.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            //SideEffects
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.sideEffects)
+                .WithOne(sideEffects => sideEffects.account)
+                .HasForeignKey(sideEffects => sideEffects.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Medication>()
+                .HasMany(medication => medication.sideEffects)
+                .WithOne(sideEffects => sideEffects.medication)
+                .HasForeignKey(sideEffects => sideEffects.medicationID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
