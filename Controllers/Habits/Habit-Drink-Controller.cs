@@ -2,15 +2,15 @@
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Services.IServices.IHabits.IHabits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using AppVidaSana.ProducesResponseType.Habits;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
+using AppVidaSana.ProducesResponseType.Habits.DrinkHabit;
 
 namespace AppVidaSana.Controllers.Habits
 {
@@ -29,31 +29,6 @@ namespace AppVidaSana.Controllers.Habits
         }
 
         /// <summary>
-        /// This controller returns the beverages consumed by the user.
-        /// </summary>
-        /// <response code="200">Returns information on beverages consumed if found. The information is stored in the attribute called 'response'.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetDrinksConsumed))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet]
-        [Produces("application/json")]
-        public IActionResult GetDrinksConsumed([FromQuery] Guid id, [FromQuery] DateOnly date)
-        {
-
-            List<GetDrinksConsumedDto> info = _DrinkHabitService.GetDrinksConsumed(id, date);
-
-            ReturnGetDrinksConsumed response = new ReturnGetDrinksConsumed
-            {
-                drinksConsumed = info
-            };
-
-            return StatusCode(StatusCodes.Status200OK, new { response });
-
-        }
-
-
-        /// <summary>
         /// This controller adds the beverages consumed by the user and returns the beverages consumed by the user.
         /// </summary>
         /// <remarks>
@@ -65,10 +40,10 @@ namespace AppVidaSana.Controllers.Habits
         ///     }
         ///   
         /// </remarks>
-        /// <response code="201">Returns a message that the information has been successfully stored. The information is stored in the attribute called 'response'.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
-        /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
+        /// <response code="201">Returns a message that the information has been successfully stored.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="404">Return an error message if the user is not found.</response>
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddUpdateDeleteDrinkConsumed))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
@@ -89,7 +64,7 @@ namespace AppVidaSana.Controllers.Habits
                     drinksConsumed = res
                 };
 
-                return StatusCode(StatusCodes.Status201Created, new { response });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, status = response.drinksConsumed });
             }
             catch (UnstoredValuesException ex)
             {
@@ -98,7 +73,7 @@ namespace AppVidaSana.Controllers.Habits
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch (RepeatRegistrationException ex)
             {
@@ -107,7 +82,7 @@ namespace AppVidaSana.Controllers.Habits
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch (UserNotFoundException ex)
             {
@@ -117,7 +92,7 @@ namespace AppVidaSana.Controllers.Habits
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -126,7 +101,7 @@ namespace AppVidaSana.Controllers.Habits
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
 
             }
         }
@@ -134,10 +109,10 @@ namespace AppVidaSana.Controllers.Habits
         /// <summary>
         /// This controller updates the beverages consumed by the user.
         /// </summary>
-        /// <response code="200">Returns a message that the update has been successful. The information is stored in the attribute called 'response'.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Returns a message indicating that no records were found for certain beverages consumed. The information is stored in the attribute called 'response'.</response>     
-        /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
+        /// <response code="200">Returns a message that the update has been successful.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="404">Returns a message indicating that no records were found for certain beverages consumed.</response>     
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDeleteDrinkConsumed))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
@@ -158,7 +133,7 @@ namespace AppVidaSana.Controllers.Habits
                     drinksConsumed = res
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.drinksConsumed });
             }
             catch (UnstoredValuesException ex)
             {
@@ -167,7 +142,7 @@ namespace AppVidaSana.Controllers.Habits
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch (HabitNotFoundException ex)
             {
@@ -176,7 +151,7 @@ namespace AppVidaSana.Controllers.Habits
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -185,16 +160,16 @@ namespace AppVidaSana.Controllers.Habits
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
         }
 
         /// <summary>
         /// This controller deletes a record containing certain beverages consumed.
         /// </summary>
-        /// <response code="200">Returns a message that the elimination has been successful. The information is stored in the attribute called 'response'.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Returns a message indicating that the record with the specified consumed beverages does not exist in the DrinkHabit table. The information is stored in the attribute called 'response'.</response>     
+        /// <response code="200">Returns a message that the elimination has been successful.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="404">Returns a message indicating that the record with the specified consumed beverages does not exist in the DrinkHabit table.</response>     
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDeleteDrinkConsumed))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
@@ -214,7 +189,7 @@ namespace AppVidaSana.Controllers.Habits
                     drinksConsumed = res
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.drinksConsumed });
             }
             catch (UnstoredValuesException ex)
             {
@@ -223,7 +198,7 @@ namespace AppVidaSana.Controllers.Habits
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch (HabitNotFoundException ex)
             {
@@ -232,7 +207,7 @@ namespace AppVidaSana.Controllers.Habits
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
         }
     }

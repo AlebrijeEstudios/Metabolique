@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using AppVidaSana.ProducesResponseType;
 using System.Text.Json;
-using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Services.IServices.IHabits.IHabits;
 using AppVidaSana.Services.Habits;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
 using AppVidaSana.Services.Monthly_Follows_Ups;
@@ -27,7 +27,7 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
 var key = Encoding.ASCII.GetBytes(token);

@@ -180,7 +180,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
         }
 
 
-        public static byte component2(byte response2, byte response5a)
+        private static byte component2(byte response2, byte response5a)
         {
             byte value = 0;
             int totalTest = response2 + response5a;
@@ -193,7 +193,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
-        public static byte component3(int response4)
+        private static byte component3(int response4)
         {
             byte value = 0;
 
@@ -208,7 +208,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
-        public static byte component4(TimeOnly response1, TimeOnly response3, int response4)
+        private static byte component4(TimeOnly response1, TimeOnly response3, int response4)
         {
             byte value = 0;
             TimeSpan start = response1.ToTimeSpan();
@@ -241,7 +241,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
-        public static byte component5(SaveResponsesHabitsDto response)
+        private static byte component5(SaveResponsesHabitsDto response)
         {
             byte value = 0;
             int totalTest = response.answerQuestion5b +
@@ -265,7 +265,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
-        public static byte component7(byte response8, byte response9)
+        private static byte component7(byte response8, byte response9)
         {
             byte value = 0;
             int totalTest = response8 + response9;
@@ -281,7 +281,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return value;
         }
 
-        public static string classification(int totalGlobal)
+        private static string classification(int totalGlobal)
         {
             string value = (totalGlobal <= 5) 
                 ? "Buena calidad del sueño" : "Mala calidad del sueño";

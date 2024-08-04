@@ -42,8 +42,8 @@ namespace AppVidaSana.Controllers
         ///     }
         ///     
         /// </remarks>
-        /// <response code="200">Returns account information if found. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
+        /// <response code="200">Returns account information if found.</response>
+        /// <response code="404">Return an error message if the user is not found.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetAccount))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
@@ -62,7 +62,7 @@ namespace AppVidaSana.Controllers
                     account = info
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = "ok", account = info });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, account = response.account });
             }
             catch (UserNotFoundException ex)
             {
@@ -72,7 +72,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
         }
 
@@ -88,12 +88,12 @@ namespace AppVidaSana.Controllers
         ///     }
         ///     
         /// </remarks>
-        /// <response code="201">Returns a token to validate in the app. The information is stored in the attribute called 'response'.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
-        /// <response code="401">Returns a message that you were unable to log in. The information is stored in the attribute called 'response'.</response>        
-        /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response>
-        /// <response code="408">Returns a message indicating that the time to scan either the email or password has expired. The information is stored in the attribute called 'timeOut'.</response>
-        /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
+        /// <response code="201">Returns a token to validate in the app.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message that you were unable to log in.</response>        
+        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>
+        /// <response code="408">Returns a message indicating that the time to scan either the email or password has expired.</response>
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnCreateAccount))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
@@ -118,7 +118,7 @@ namespace AppVidaSana.Controllers
                     {
                         status = ac.messageException
                     };
-                    return StatusCode(StatusCodes.Status408RequestTimeout, new { timeOut });
+                    return StatusCode(StatusCodes.Status408RequestTimeout, new { message = timeOut.message, status = timeOut.status });
                 }
 
                 var profile = _ProfileService.CreateProfile(ac.accountID, account);
@@ -141,7 +141,7 @@ namespace AppVidaSana.Controllers
                     auth = token
                 };
 
-                return StatusCode(StatusCodes.Status201Created, new { response });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, auth = response.auth });
             }
             catch (UnstoredValuesException ex)
             {
@@ -150,7 +150,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch (LoginException ex)
             {
@@ -159,7 +159,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status401Unauthorized, new { response });
+                return StatusCode(StatusCodes.Status401Unauthorized, new { message = response.message, status = response.status });
             }
             catch (UserNotFoundException ex)
             {
@@ -168,7 +168,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
             catch (ValuesInvalidException ex)
             {
@@ -177,7 +177,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -186,7 +186,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
         }
 
@@ -202,10 +202,10 @@ namespace AppVidaSana.Controllers
         ///     }
         ///     
         /// </remarks>
-        /// <response code="200">Returns a message that the update has been successful. The information is stored in the attribute called 'response'.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response>     
-        /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response> 
+        /// <response code="200">Returns a message that the update has been successful.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>     
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response> 
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnUpdateDeleteAccount))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
@@ -227,7 +227,7 @@ namespace AppVidaSana.Controllers
                     status = res
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
 
             }
             catch (UnstoredValuesException ex)
@@ -237,7 +237,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch(UserNotFoundException ex)
             {
@@ -246,7 +246,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
             catch (ValuesInvalidException ex)
             {
@@ -255,7 +255,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -264,16 +264,16 @@ namespace AppVidaSana.Controllers
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
         }
 
         /// <summary>
         /// This driver deletes the user's account and everything related to it.
         /// </summary>
-        /// <response code="200">Returns a message that the elimination has been successful. The information is stored in the attribute called 'response'.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response> 
+        /// <response code="200">Returns a message that the elimination has been successful.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response> 
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnUpdateDeleteAccount))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
@@ -293,7 +293,7 @@ namespace AppVidaSana.Controllers
                     status = res
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
             }
             catch (UnstoredValuesException ex)
             {
@@ -302,7 +302,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch (UserNotFoundException ex)
             {
@@ -311,7 +311,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
         }
 

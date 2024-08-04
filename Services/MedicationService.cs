@@ -243,7 +243,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        public static List<DateOnly> GetDatesInRange(DateOnly startDate, DateOnly endDate)
+        private static List<DateOnly> GetDatesInRange(DateOnly startDate, DateOnly endDate)
         {
             List<DateOnly> dates = new List<DateOnly>();
 
@@ -263,7 +263,7 @@ namespace AppVidaSana.Services
             return dates;
         }
 
-        public List<InfoMedicationDto> InfoMedicationJustAddUpdateDelete(Guid id, DateOnly dateRecord)
+        private List<InfoMedicationDto> InfoMedicationJustAddUpdateDelete(Guid id, DateOnly dateRecord)
         {
             List<InfoMedicationDto> listInfoMed = new List<InfoMedicationDto>();
 
@@ -305,7 +305,7 @@ namespace AppVidaSana.Services
             return listInfoMed;
         }
 
-        public void AddTimes(Guid medicamentID, Guid accountID, List<DateOnly>dates, List<TimeOnly> times)
+        private void AddTimes(Guid medicamentID, Guid accountID, List<DateOnly>dates, List<TimeOnly> times)
         {
             foreach (DateOnly date in dates)
             {
@@ -343,7 +343,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        public void UpdateForNewDateInitial(Medication medication, DateOnly dateUpdate, DateOnly newInitialDate)
+        private void UpdateForNewDateInitial(Medication medication, DateOnly dateUpdate, DateOnly newInitialDate)
         {
             List<Times> records1, records2, records3;
             List<DateOnly> list1, list2, list3;
@@ -444,7 +444,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        public void UpdateForNewDateFinal(Medication medication, DateOnly dateUpdate, DateOnly newFinalDate)
+        private void UpdateForNewDateFinal(Medication medication, DateOnly dateUpdate, DateOnly newFinalDate)
         {
             List<Times> records1, records2, records3, records4;
             List<DateOnly> list1, list2, list3, list4;
@@ -548,7 +548,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        public void UpdateForNewDailyFrec(Medication medication, List<TimeOnly> times, DateOnly dateUpdate, int newDailyFrec)
+        private void UpdateForNewDailyFrec(Medication medication, List<TimeOnly> times, DateOnly dateUpdate, int newDailyFrec)
         {
             List<DateOnly> newRecords = new List<DateOnly>();
             List<DateOnly> beforeDates, afterDates;

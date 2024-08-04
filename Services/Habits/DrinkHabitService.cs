@@ -5,7 +5,7 @@ using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Habitos;
-using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Services.IServices.IHabits.IHabits;
 using AutoMapper;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -149,7 +149,7 @@ namespace AppVidaSana.Services.Habits
             }
         }
         
-        public List<GetDrinksConsumedDto> GetDrinksConsumed(Guid idAccount, DateOnly date)
+        private List<GetDrinksConsumedDto> GetDrinksConsumed(Guid idAccount, DateOnly date)
         {
             var habits = _bd.habitsDrink
             .Where(e => e.accountID == idAccount && e.drinkDateHabit == date)

@@ -1,7 +1,6 @@
-﻿using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
-using AppVidaSana.Models.Dtos.Habits_Dtos;
+﻿using AppVidaSana.Models.Dtos.Habits_Dtos;
 
-namespace AppVidaSana.ProducesResponseType.Habits
+namespace AppVidaSana.ProducesResponseType.Habits.SleepHabit
 {
     public class ReturnGetSleepingHours
     {

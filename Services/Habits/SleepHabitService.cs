@@ -5,7 +5,7 @@ using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Habitos;
-using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Services.IServices.IHabits.IHabits;
 using AutoMapper;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -23,7 +23,7 @@ namespace AppVidaSana.Services.Habits
             _mapper = mapper;
         }
 
-        public string AddSleepHours(SleepingHoursDto sleepingHours)
+        public GetUpdateSleepingHoursDto AddSleepHours(SleepingHoursDto sleepingHours)
         {
             var habitExisting = _bd.habitsSleep.Count(e => e.sleepDateHabit == sleepingHours.sleepDateHabit);
 
@@ -66,7 +66,11 @@ namespace AppVidaSana.Services.Habits
                 throw new UnstoredValuesException();
             }
 
-            return "Los datos han sido guardados correctamente.";
+            var habitSleep = _mapper.Map<GetUpdateSleepingHoursDto>(_bd.habitsSleep.FirstOrDefault(
+                                                                    e => e.accountID == sleepingHours.accountID
+                                                                    && e.sleepDateHabit == sleepingHours.sleepDateHabit));
+
+            return habitSleep;
         }
 
         public List<GetSleepingHoursDto> GetSleepingHours(Guid idAccount, DateOnly date)
@@ -91,7 +95,7 @@ namespace AppVidaSana.Services.Habits
             return habitsSleep;
         }
 
-        public string UpdateSleepHours(UpdateSleepingHoursDto values)
+        public GetUpdateSleepingHoursDto UpdateSleepHours(GetUpdateSleepingHoursDto values)
         {
             var habit = _bd.habitsSleep.Find(values.sleepHabitID);
 
@@ -123,7 +127,9 @@ namespace AppVidaSana.Services.Habits
                 throw new UnstoredValuesException();
             }
 
-            return "Actualización completada.";
+            var habitSleep = _mapper.Map<GetUpdateSleepingHoursDto>(_bd.habitsSleep.Find(values.sleepHabitID));
+
+            return habitSleep;
         } 
         
         public string DeleteSleepHours(Guid idHabit)

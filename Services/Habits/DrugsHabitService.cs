@@ -4,7 +4,7 @@ using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
 using AppVidaSana.Models.Habitos;
-using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Services.IServices.IHabits.IHabits;
 using AutoMapper;
 using System.ComponentModel.DataAnnotations;
 
@@ -21,7 +21,7 @@ namespace AppVidaSana.Services.Habits
             _mapper = mapper;
         }
 
-        public string AddDrugsConsumed(DrugsConsumedDto drugsConsumed)
+        public GetDrugsConsumedDto AddDrugsConsumed(DrugsConsumedDto drugsConsumed)
         {
             var habitExisting = _bd.habitsDrugs.Count(e => e.drugsDateHabit == drugsConsumed.drugsDateHabit);
 
@@ -64,26 +64,12 @@ namespace AppVidaSana.Services.Habits
                 throw new UnstoredValuesException();
             }
 
-            return "Los datos han sido guardados correctamente.";
+            var habitDrugs = GetDrugsConsumed(drugsConsumed.accountID, drugsConsumed.drugsDateHabit);
+
+            return habitDrugs;
         }
 
-        public GetDrugsConsumedDto GetDrugsConsumed(Guid idAccount, DateOnly date)
-        {
-            var habit = _bd.habitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
-
-            GetDrugsConsumedDto habitDrug;
-
-            if (habit == null)
-            {
-                habitDrug = _mapper.Map<GetDrugsConsumedDto>(habit);
-            }
-
-            habitDrug = _mapper.Map<GetDrugsConsumedDto>(habit);
-
-            return habitDrug;
-        }
-
-        public string UpdateDrugsConsumed(UpdateDrugsConsumedDto values)
+        public GetDrugsConsumedDto UpdateDrugsConsumed(UpdateDrugsConsumedDto values)
         {
             var habit = _bd.habitsDrugs.Find(values.drugsHabitID);
 
@@ -115,7 +101,9 @@ namespace AppVidaSana.Services.Habits
                 throw new UnstoredValuesException();
             }
 
-            return "Actualización completada.";
+            var habitDrugs = _mapper.Map<GetDrugsConsumedDto>(_bd.habitsDrugs.Find(values.drugsHabitID));
+
+            return habitDrugs;
         }
         
         public string DeleteDrugsConsumed(Guid idHabit)
@@ -148,6 +136,22 @@ namespace AppVidaSana.Services.Habits
                 return false;
 
             }
+        }
+
+        private GetDrugsConsumedDto GetDrugsConsumed(Guid idAccount, DateOnly date)
+        {
+            var habit = _bd.habitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
+
+            GetDrugsConsumedDto habitDrug;
+
+            if (habit == null)
+            {
+                habitDrug = _mapper.Map<GetDrugsConsumedDto>(habit);
+            }
+
+            habitDrug = _mapper.Map<GetDrugsConsumedDto>(habit);
+
+            return habitDrug;
         }
     }
 }

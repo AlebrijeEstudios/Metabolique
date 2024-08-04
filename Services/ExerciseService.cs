@@ -23,7 +23,23 @@ namespace AppVidaSana.Services
             _mapper = mapper;
         }
 
-        
+        public List<ExerciseListDto> GetExercises(Guid id, DateOnly date)
+        {
+            var exercise = _bd.Exercises
+            .Where(e => e.accountID == id && e.dateExercise == date)
+            .ToList();
+
+            List<ExerciseListDto> exercises;
+
+            if (exercise.Count == 0)
+            {
+                exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
+            }
+
+            exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
+
+            return exercises;
+        }
 
         public List<GraphicsValuesExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date)
         {
@@ -216,25 +232,7 @@ namespace AppVidaSana.Services
 
         }
 
-        public List<ExerciseListDto> GetExercises(Guid id, DateOnly date)
-        {
-            var exercise = _bd.Exercises
-            .Where(e => e.accountID == id && e.dateExercise == date)
-            .ToList();
-
-            List<ExerciseListDto> exercises;
-
-            if (exercise.Count == 0)
-            {
-                exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
-            }
-
-            exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
-
-            return exercises;
-        }
-
-        public void totalTimeSpentforDay(Guid id, DateOnly dateInitial, int timeSpent)
+        private void totalTimeSpentforDay(Guid id, DateOnly dateInitial, int timeSpent)
         {
             var infoGraphics = _bd.graphicsValuesExercise.FirstOrDefault(c => c.accountID == id && c.dateExercise == dateInitial);
 

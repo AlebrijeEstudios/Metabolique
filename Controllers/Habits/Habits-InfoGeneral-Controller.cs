@@ -1,0 +1,53 @@
+﻿using AppVidaSana.Api;
+using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
+using AppVidaSana.ProducesResponseType.Habits;
+using AppVidaSana.ProducesResponseType;
+using AppVidaSana.Services.IServices.IHabits.IHabits;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Models.Dtos.Habits_Dtos;
+
+namespace AppVidaSana.Controllers.Habits
+{
+    [Authorize]
+    [EnableCors("RulesCORS")]
+    [ApiController]
+    [Route("api/habits")]
+    [EnableRateLimiting("sliding")]
+    public class HabitsInfoGeneralController : ControllerBase
+    {
+        private readonly IHabitsGeneral _HabitsInfoService;
+
+        public HabitsInfoGeneralController(IHabitsGeneral HabitsInfoService)
+        {
+            _HabitsInfoService = HabitsInfoService;
+        }
+
+        /// <summary>
+        /// This controller contains all the information in the habits section.
+        /// </summary>
+        /// <response code="200">Returns all information from the Habits section on a given day.</response>
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnHabitsInfo))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet]
+        [Produces("application/json")]
+        public IActionResult GetHabitsInfoGeneral([FromQuery] Guid id, [FromQuery] DateOnly date)
+        {
+
+            ReturnInfoHabitsDto info = _HabitsInfoService.GetInfoGeneralHabits(id, date);
+
+            ReturnHabitsInfo response = new ReturnHabitsInfo
+            {
+                habits = info
+            };
+
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, habits = response.habits });
+
+        }
+    }
+}

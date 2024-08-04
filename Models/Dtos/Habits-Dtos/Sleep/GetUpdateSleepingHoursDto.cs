@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.Models.Dtos.Habits_Dtos
 {
-    public class UpdateSleepingHoursDto
+    public class GetUpdateSleepingHoursDto
     {
         [JsonRequired] public Guid sleepHabitID { get; set; }
 

@@ -1,6 +1,6 @@
-﻿namespace AppVidaSana.ProducesResponseType.Habits
+﻿namespace AppVidaSana.ProducesResponseType.Habits.SleepHabit
 {
-    public class ReturnAddUpdateDeleteSleepHours
+    public class ReturnDeleteSleepHours
     {
         public string message { get; set; } = "Ok.";
 

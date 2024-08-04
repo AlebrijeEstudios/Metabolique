@@ -31,8 +31,8 @@ namespace AppVidaSana.Controllers
         /// <summary>
         /// This controller performs the login.
         /// </summary>
-        /// <response code="200">The start of the session was successful. The information is stored in the attribute called 'response'.</response>
-        /// <response code="401">Returns a message that you were unable to log in. The information is stored in the attribute called 'response'.</response>
+        /// <response code="200">The start of the session was successful.</response>
+        /// <response code="401">Returns a message that you were unable to log in.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnLoginAccount))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ReturnExceptionMessage))]
@@ -51,7 +51,7 @@ namespace AppVidaSana.Controllers
                     auth = token
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, auth = response.auth });
             }
             catch (LoginException ex)
             {
@@ -60,14 +60,14 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status401Unauthorized, new { response });
+                return StatusCode(StatusCodes.Status401Unauthorized, new { message = response.message, status = response.status });
             }
         }
 
         /// <summary>
         /// This driver performs password reset.
         /// </summary>
-        /// <response code="200">Returns a message indicating that the email has been sent correctly or on the contrary it was not sent because there is no account associated to that email and/or the email could not be sent due to external factors. The information is stored in the attribute called 'response'.</response>
+        /// <response code="200">Returns a message indicating that the email has been sent correctly or on the contrary it was not sent because there is no account associated to that email and/or the email could not be sent due to external factors.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
@@ -96,7 +96,7 @@ namespace AppVidaSana.Controllers
                     status = "Se le envió un correo a su bandeja principal."
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
             }
             catch (EmailNotSendException ex)
             {
@@ -105,7 +105,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
 
             }
         }
@@ -113,7 +113,7 @@ namespace AppVidaSana.Controllers
         /// <summary>
         /// This is the driver for the password reset view.
         /// </summary>
-        /// <response code="404">Returns a message indicating that the page could not be loaded correctly. The information is stored in the attribute called 'response'.</response>
+        /// <response code="404">Returns a message indicating that the page could not be loaded correctly.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
@@ -135,7 +135,7 @@ namespace AppVidaSana.Controllers
                     status = "No se cargo completamente la página"
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
 
             }
         }
@@ -143,9 +143,9 @@ namespace AppVidaSana.Controllers
         /// <summary>
         /// This controller performs the password reset action.
         /// </summary>
-        /// <response code="200">Returns a message that the update has been successful. The information is stored in the attribute called 'response'.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'statusUpdate or response'.</response> 
-        /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
+        /// <response code="200">Returns a message that the update has been successful.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response> 
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnResetPassword))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
@@ -167,12 +167,12 @@ namespace AppVidaSana.Controllers
                         status = "Hubo un error al actualizar la contraseña, intentelo de nuevo."
                     };
 
-                    return StatusCode(StatusCodes.Status400BadRequest, new { statusUpdate });
+                    return StatusCode(StatusCodes.Status400BadRequest, new { message = statusUpdate.message, status = statusUpdate.status });
                 }
 
                 ReturnResetPassword response = new ReturnResetPassword();
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
             }
             catch (ComparedPasswordException ex)
             {
@@ -181,7 +181,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
 
             }
             catch (UnstoredValuesException ex)
@@ -191,7 +191,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             } 
             catch(ValuesInvalidException ex)
             {
@@ -200,7 +200,7 @@ namespace AppVidaSana.Controllers
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
         }
     }

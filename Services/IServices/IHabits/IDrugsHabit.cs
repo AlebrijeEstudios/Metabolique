@@ -1,14 +1,12 @@
 ﻿using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
 
-namespace AppVidaSana.Services.IServices.IHabits
+namespace AppVidaSana.Services.IServices.IHabits.IHabits
 {
     public interface IDrugsHabit
     {
-        GetDrugsConsumedDto GetDrugsConsumed(Guid idAccount, DateOnly date);
+        GetDrugsConsumedDto AddDrugsConsumed(DrugsConsumedDto drugsConsumed);
 
-        string AddDrugsConsumed(DrugsConsumedDto drugsConsumed);
-
-        string UpdateDrugsConsumed(UpdateDrugsConsumedDto values);
+        GetDrugsConsumedDto UpdateDrugsConsumed(UpdateDrugsConsumedDto values);
 
         string DeleteDrugsConsumed(Guid idHabit);
 
