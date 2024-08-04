@@ -350,7 +350,7 @@ namespace AppVidaSana.Services
 
             if(medication.finalFrec < newInitialDate)
             {
-                throw new UnstoredValuesException();
+                throw new NewInitialDateAfterFinalDateException();
             }
 
             Func<AppDbContext, Guid , DateOnly, DateOnly, List<Times>> compiledQuery = EF.CompileQuery(
@@ -451,7 +451,7 @@ namespace AppVidaSana.Services
 
             if(newFinalDate < medication.initialFrec)
             {
-                throw new UnstoredValuesException();
+                throw new NewFinalDateBeforeInitialDateException();
             }
 
             Func<AppDbContext, Guid , DateOnly, DateOnly, List<Times>> compiledQuery = EF.CompileQuery(
