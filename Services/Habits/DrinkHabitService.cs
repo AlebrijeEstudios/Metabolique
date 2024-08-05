@@ -26,7 +26,7 @@ namespace AppVidaSana.Services.Habits
         public List<GetDrinksConsumedDto> AddDrinksConsumed(DrinksConsumedDto drinksConsumed)
         {
 
-            var habitExisting = _bd.habitsDrink.Count(e => e.drinkDateHabit == drinksConsumed.drinkDateHabit && 
+            var habitExisting = _bd.HabitsDrink.Count(e => e.drinkDateHabit == drinksConsumed.drinkDateHabit && 
                                 e.typeDrink == drinksConsumed.typeDrink &&
                                 e.amountConsumed == drinksConsumed.amountConsumed);
 
@@ -63,7 +63,7 @@ namespace AppVidaSana.Services.Habits
                     throw new ErrorDatabaseException(errors);
                 }
             }
-            _bd.habitsDrink.Add(drinkHabit);
+            _bd.HabitsDrink.Add(drinkHabit);
             if (!Save())
             {
                 throw new UnstoredValuesException();
@@ -77,7 +77,7 @@ namespace AppVidaSana.Services.Habits
 
         public List<GetDrinksConsumedDto> UpdateDrinksConsumed(UpdateDrinksConsumedDto values)
         {
-            var habit = _bd.habitsDrink.Find(values.drinkHabitID);
+            var habit = _bd.HabitsDrink.Find(values.drinkHabitID);
 
             if (habit == null)
             {
@@ -100,7 +100,7 @@ namespace AppVidaSana.Services.Habits
                 }
             }
 
-            _bd.habitsDrink.Update(habit);
+            _bd.HabitsDrink.Update(habit);
 
             if (!Save())
             {
@@ -114,7 +114,7 @@ namespace AppVidaSana.Services.Habits
 
         public List<GetDrinksConsumedDto> DeleteDrinksConsumed(Guid idHabit)
         {
-            var habit = _bd.habitsDrink.Find(idHabit);
+            var habit = _bd.HabitsDrink.Find(idHabit);
 
             if (habit == null)
             {
@@ -124,7 +124,7 @@ namespace AppVidaSana.Services.Habits
             Guid id = habit.accountID;
             DateOnly date = habit.drinkDateHabit;
 
-            _bd.habitsDrink.Remove(habit);
+            _bd.HabitsDrink.Remove(habit);
 
             if (!Save())
             {
@@ -151,7 +151,7 @@ namespace AppVidaSana.Services.Habits
         
         private List<GetDrinksConsumedDto> GetDrinksConsumed(Guid idAccount, DateOnly date)
         {
-            var habits = _bd.habitsDrink
+            var habits = _bd.HabitsDrink
             .Where(e => e.accountID == idAccount && e.drinkDateHabit == date)
             .ToList();
 

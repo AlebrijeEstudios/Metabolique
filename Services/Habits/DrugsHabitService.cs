@@ -23,7 +23,7 @@ namespace AppVidaSana.Services.Habits
 
         public GetDrugsConsumedDto AddDrugsConsumed(DrugsConsumedDto drugsConsumed)
         {
-            var habitExisting = _bd.habitsDrugs.Count(e => e.drugsDateHabit == drugsConsumed.drugsDateHabit);
+            var habitExisting = _bd.HabitsDrugs.Count(e => e.drugsDateHabit == drugsConsumed.drugsDateHabit);
 
             if (habitExisting > 0)
             {
@@ -58,7 +58,7 @@ namespace AppVidaSana.Services.Habits
                     throw new ErrorDatabaseException(errors);
                 }
             }
-            _bd.habitsDrugs.Add(drugHabit);
+            _bd.HabitsDrugs.Add(drugHabit);
             if (!Save())
             {
                 throw new UnstoredValuesException();
@@ -71,7 +71,7 @@ namespace AppVidaSana.Services.Habits
 
         public GetDrugsConsumedDto UpdateDrugsConsumed(UpdateDrugsConsumedDto values)
         {
-            var habit = _bd.habitsDrugs.Find(values.drugsHabitID);
+            var habit = _bd.HabitsDrugs.Find(values.drugsHabitID);
 
             if (habit == null)
             {
@@ -94,28 +94,28 @@ namespace AppVidaSana.Services.Habits
                 }
             }
 
-            _bd.habitsDrugs.Update(habit);
+            _bd.HabitsDrugs.Update(habit);
 
             if (!Save())
             {
                 throw new UnstoredValuesException();
             }
 
-            var habitDrugs = _mapper.Map<GetDrugsConsumedDto>(_bd.habitsDrugs.Find(values.drugsHabitID));
+            var habitDrugs = _mapper.Map<GetDrugsConsumedDto>(_bd.HabitsDrugs.Find(values.drugsHabitID));
 
             return habitDrugs;
         }
         
         public string DeleteDrugsConsumed(Guid idHabit)
         {
-            var habit = _bd.habitsDrugs.Find(idHabit);
+            var habit = _bd.HabitsDrugs.Find(idHabit);
 
             if (habit == null)
             {
                 throw new HabitNotFoundException();
             }
 
-            _bd.habitsDrugs.Remove(habit);
+            _bd.HabitsDrugs.Remove(habit);
 
             if (!Save())
             {
@@ -140,7 +140,7 @@ namespace AppVidaSana.Services.Habits
 
         private GetDrugsConsumedDto GetDrugsConsumed(Guid idAccount, DateOnly date)
         {
-            var habit = _bd.habitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
+            var habit = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
 
             GetDrugsConsumedDto habitDrug;
 

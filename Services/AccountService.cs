@@ -73,12 +73,15 @@ namespace AppVidaSana.Services
             {
                 throw new ValuesInvalidException(er);
             }
-            
+
+            Guid roleID = _bd.Roles.FirstOrDefault(e => e.role == "User").roleID;
+
             Account us = new Account
             {
                 username = account.username,
                 email = account.email,
                 password = BCrypt.Net.BCrypt.HashPassword(account.password),
+                roleID = roleID
             };
 
             var validationResults = new List<ValidationResult>();
@@ -229,11 +232,12 @@ namespace AppVidaSana.Services
             var user = _bd.Accounts.AsEnumerable()
             .FirstOrDefault(u => string.Equals(u.email, login.email, StringComparison.OrdinalIgnoreCase));
 
-
             if (user == null || !BCrypt.Net.BCrypt.Verify(login.password, user.password))
             {
                 throw new LoginException();
             }
+
+            var rol = _bd.Roles.FirstOrDefault(e => e.roleID == user.roleID);
 
             var tok = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(keyToken);
@@ -244,7 +248,7 @@ namespace AppVidaSana.Services
                 {
                         new Claim(ClaimTypes.Name, user.username.ToString()),
                         new Claim(ClaimTypes.Email, user.email.ToString()),
-                        new Claim(ClaimTypes.Role, user.role)
+                        new Claim(ClaimTypes.Role, rol.role)
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 Issuer = "metaboliqueapi",

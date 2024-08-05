@@ -6,34 +6,35 @@ using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Exercises;
+using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 
 namespace AppVidaSana.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-        { }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+        public DbSet<MFUsMonths> Months { get; set; }
         public DbSet<Account> Accounts { get; set; }
+        public DbSet<Roles> Roles { get; set; }
         public DbSet<Profiles> Profiles { get; set; }
         public DbSet<Exercise> Exercises { get; set; }
-
         public DbSet<MFUsExercise> MFUsExercise { get; set; }
-        public DbSet<minutesConsumed> graphicsValuesExercise {  get; set; }
-        
-        public DbSet<DrinkHabit> habitsDrink { get; set; }
-        public DbSet<DrugsHabit> habitsDrugs { get; set; }
-        public DbSet<SleepHabit> habitsSleep { get; set; }
+        public DbSet<ExerciseResults> ResultsExercise { get; set; }
+        public DbSet<minutesConsumed> MinutesConsumed {  get; set; }
+        public DbSet<DrinkHabit> HabitsDrink { get; set; }
+        public DbSet<DrugsHabit> HabitsDrugs { get; set; }
+        public DbSet<SleepHabit> HabitsSleep { get; set; }
         public DbSet<MFUsHabits> MFUsHabits { get; set; }
-        public DbSet<HabitsResults> resultsHabits { get; set; }
+        public DbSet<HabitsResults> ResultsHabits { get; set; }
         public DbSet<Medication> Medications { get; set; }
         public DbSet<MFUsMedication> MFUsMedication { get; set; }
         public DbSet<Times> Times { get; set; }
-        public DbSet<SideEffects> sideEffects { get; set; }
+        public DbSet<SideEffects> SideEffects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //Cuenta_Perfil
+            //Account-Profile
             modelBuilder.Entity<Account>()
                 .HasOne(account => account.profile)
                 .WithOne(profile => profile.account)
@@ -51,11 +52,17 @@ namespace AppVidaSana.Data
                 .HasForeignKey<Account>(account => account.roleID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            //Ejercicio y SegMenEjercicio
+            //Exercise and MFUsExercise
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.exercises)
                 .WithOne(exercises => exercises.account)
                 .HasForeignKey(exercises => exercises.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.graphicsValuesExercise)
+                .WithOne(graphic => graphic.account)
+                .HasForeignKey(graphic => graphic.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Account>()
@@ -64,13 +71,19 @@ namespace AppVidaSana.Data
                 .HasForeignKey(MFUsExercise => MFUsExercise.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Account>()
-                .HasMany(account => account.graphicsValuesExercise)
-                .WithOne(graphic => graphic.account)
-                .HasForeignKey(graphic => graphic.accountID)
+            modelBuilder.Entity<MFUsMonths>()
+               .HasMany(month => month.exercises)
+               .WithOne(exercises => exercises.months)
+               .HasForeignKey(exercises => exercises.monthID)
+               .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MFUsExercise>()
+                .HasOne(MFUsExercise => MFUsExercise.results)
+                .WithOne(results => results.MFUsExercise)
+                .HasForeignKey<ExerciseResults>(results => results.monthlyFollowUpID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            //Habitos(Sueño, Bebidas, Drogas)
+            //Habits (Drugs, Drink, Sleep)
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.habitsSleep)
                 .WithOne(habits => habits.account)
@@ -89,7 +102,7 @@ namespace AppVidaSana.Data
                 .HasForeignKey(habits => habits.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            //Seguimiento Mensual Habitos
+            //MFUsHabits
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.MFUsHabits)
                 .WithOne(MFUsHabits => MFUsHabits.account)
@@ -102,6 +115,12 @@ namespace AppVidaSana.Data
                 .HasForeignKey<HabitsResults>(results => results.monthlyFollowUpID)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<MFUsMonths>()
+                .HasMany(month => month.habits)
+                .WithOne(habits => habits.months)
+                .HasForeignKey(habits => habits.monthID)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<MFUsHabits>()
                .Property(e => e.answerQuestion1)
                .HasColumnType("TIME(0)");
@@ -110,7 +129,7 @@ namespace AppVidaSana.Data
               .Property(e => e.answerQuestion3)
               .HasColumnType("TIME(0)");
 
-            //Medicamentos
+            //Medications
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.medications)
                 .WithOne(medications => medications.account)
@@ -127,13 +146,19 @@ namespace AppVidaSana.Data
                 .HasMany(medication => medication.times)
                 .WithOne(times => times.medication)
                 .HasForeignKey(times => times.medicationID)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.MFUsMedications)
                 .WithOne(MFUsMedications => MFUsMedications.account)
                 .HasForeignKey(MFUsMedications => MFUsMedications.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MFUsMonths>()
+               .HasMany(month => month.medications)
+               .WithOne(medications => medications.months)
+               .HasForeignKey(medications => medications.monthID)
+               .OnDelete(DeleteBehavior.Restrict);
 
             //SideEffects
             modelBuilder.Entity<Account>()
@@ -146,7 +171,7 @@ namespace AppVidaSana.Data
                 .HasMany(medication => medication.sideEffects)
                 .WithOne(sideEffects => sideEffects.medication)
                 .HasForeignKey(sideEffects => sideEffects.medicationID)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

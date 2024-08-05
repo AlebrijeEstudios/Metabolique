@@ -1,7 +1,11 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Exceptions.Habits;
+using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
+using AppVidaSana.Models.Monthly_Follow_Ups;
+using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
 using AutoMapper;
@@ -22,26 +26,65 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         public RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, string month, int year)
         {
-            var results = _bd.MFUsExercise.FirstOrDefault(c => c.accountID == id && c.month == month && c.year == year);
-
             RetrieveResponsesExerciseDto response;
+            
+            var monthRecord = _bd.Months.FirstOrDefault(e => e.month == month && e.year == year);
+
+            if(monthRecord == null)
+            {
+                response = new RetrieveResponsesExerciseDto();
+                return response;
+            }
+
+            var records = _bd.MFUsExercise.FirstOrDefault(c => c.accountID == id && c.monthID == monthRecord.monthID);
+
+            if (records == null)
+            {
+                response = new RetrieveResponsesExerciseDto();
+                return response;
+            }
+
+            var results = _bd.ResultsExercise.FirstOrDefault(c => c.monthlyFollowUpID == records.monthlyFollowUpID);
 
             if (results == null)
             {
-                response = _mapper.Map<RetrieveResponsesExerciseDto>(results);
+                response = new RetrieveResponsesExerciseDto();
+                return response;
             }
 
-            response = _mapper.Map<RetrieveResponsesExerciseDto>(results);
+            response = _mapper.Map<RetrieveResponsesExerciseDto>(records);
+            response = _mapper.Map(monthRecord, response);
+            _mapper.Map(results, response);
 
             return response;
         }
 
-        public string SaveAnswers(SaveResponsesExerciseDto res)
+        public SaveResultsExerciseDto SaveAnswers(SaveResponsesExerciseDto res)
         {
-            var answersExisting = _bd.MFUsExercise.Count(e => e.accountID == res.accountID &&
-                                    e.month == res.month && e.year == res.year);
+            var existDate = _bd.Months.Any(e => e.month == res.month && e.year == res.year);
 
-            if (answersExisting > 0)
+            if (!existDate)
+            {
+                MFUsMonths month = new MFUsMonths
+                {
+                    month = res.month,
+                    year = res.year
+                };
+
+                _bd.Months.Add(month);
+
+                if (!Save())
+                {
+                    throw new UnstoredValuesException();
+                }
+            }
+
+            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == res.month && e.year == res.year).monthID;
+
+            var answersExisting = _bd.MFUsExercise.Any(e => e.accountID == res.accountID &&
+                                    e.monthID == monthID);
+
+            if (answersExisting)
             {
                 throw new RepeatRegistrationException();
             }
@@ -91,22 +134,14 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             MFUsExercise mfus = new MFUsExercise
             {
                 accountID = res.accountID,
-                month = res.month,
-                year = res.year,
+                monthID = monthID,
                 question1 = res.question1,
                 question2 = res.question2,
                 question3 = res.question3,
                 question4 = res.question4,
                 question5 = res.question5,
                 question6 = res.question6,
-                question7 = res.question7,
-                actWalking = METactwalking,
-                actModerate = METactmoderate,
-                actVigorous = METactvigorous,
-                totalMET = TotalMET,
-                sedentaryBehavior = sedentary,
-                levelAF = LevelAF,
-                account = null
+                question7 = res.question7
             };
 
             var validationResults = new List<ValidationResult>();
@@ -129,9 +164,68 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 throw new UnstoredValuesException();
             }
 
-            return "Sus respuestas han sido guardadas correctamente";
+            SaveResultsExerciseDto results = new SaveResultsExerciseDto
+            {
+                accountID = res.accountID,
+                month = res.month,
+                year = res.year,
+                actWalking = METactwalking,
+                actModerate = METactmoderate,
+                actVigorous = METactvigorous,
+                totalMET = TotalMET,
+                sedentaryBehavior = sedentary,
+                levelAF = LevelAF
+            };
+
+            return results;
         }
 
+        public string SaveResults(SaveResultsExerciseDto res)
+        {
+
+            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == res.month && e.year == res.year).monthID;
+
+            var mfusHabit = _bd.MFUsExercise.FirstOrDefault(c => c.accountID == res.accountID
+                            && c.monthID == monthID);
+
+            if (mfusHabit == null)
+            {
+                throw new HabitNotFoundException();
+            }
+
+            ExerciseResults results = new ExerciseResults
+            {
+                monthlyFollowUpID = mfusHabit.monthlyFollowUpID,
+                actWalking = res.actWalking,
+                actModerate = res.actModerate,
+                actVigorous = res.actVigorous,
+                totalMET = res.totalMET,
+                sedentaryBehavior = res.sedentaryBehavior,
+                levelAF = res.levelAF
+            };
+
+            var validationResults = new List<ValidationResult>();
+            var validationContext = new ValidationContext(results, null, null);
+
+            if (!Validator.TryValidateObject(results, validationContext, validationResults, true))
+            {
+                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
+            }
+
+            _bd.ResultsExercise.Add(results);
+
+            if (!Save())
+            {
+                throw new UnstoredValuesException();
+            }
+
+            return "Sus respuestas han sido guardadas correctamente";
+        }
         public bool Save()
         {
             try

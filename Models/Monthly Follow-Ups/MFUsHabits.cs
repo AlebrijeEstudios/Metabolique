@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
+using AppVidaSana.Models.Monthly_Follow_Ups;
 
 namespace AppVidaSana.Models.Seguimientos_Mensuales
 {
@@ -12,11 +13,8 @@ namespace AppVidaSana.Models.Seguimientos_Mensuales
         [ForeignKey("Account")]
         public Guid accountID { get; set; }
 
-        [Required(ErrorMessage = "El campo mes es obligatorio")]
-        public string month { get; set; } = null!;
-
-        [Required(ErrorMessage = "El campo año es obligatorio")]
-        public int year { get; set; }
+        [ForeignKey("MFUsMonths")]
+        public Guid monthID { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 1 es obligatorio")]
         public TimeOnly answerQuestion1 { get; set; }
@@ -75,5 +73,7 @@ namespace AppVidaSana.Models.Seguimientos_Mensuales
         public Account? account { get; set; }
 
         public HabitsResults? results { get; set; }
+
+        public MFUsMonths? months { get; set; }
     }
 }

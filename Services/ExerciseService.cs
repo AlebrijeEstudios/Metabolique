@@ -44,7 +44,7 @@ namespace AppVidaSana.Services
         {
             DateOnly dateFinal = date.AddDays(-6);
 
-            var events = _bd.graphicsValuesExercise
+            var events = _bd.MinutesConsumed
                 .Where(e => e.dateExercise >= dateFinal && e.dateExercise <= date && e.accountID == id)
                 .ToList();
 
@@ -127,14 +127,14 @@ namespace AppVidaSana.Services
 
             if(ex.timeSpent < exercise.timeSpent || ex.timeSpent > exercise.timeSpent)
             {
-                var previousTotal = _bd.graphicsValuesExercise.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
+                var previousTotal = _bd.MinutesConsumed.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
 
                 int currentTotal = previousTotal.totalTimeSpent - ex.timeSpent;
                 int newTotal = currentTotal + exercise.timeSpent;
 
                 previousTotal.totalTimeSpent = newTotal;
 
-                _bd.graphicsValuesExercise.Update(previousTotal);
+                _bd.MinutesConsumed.Update(previousTotal);
 
                 if (!Save())
                 {
@@ -184,7 +184,7 @@ namespace AppVidaSana.Services
             DateOnly date = ex.dateExercise;
 
             var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == ex.dateExercise);
-            var previousTotal = _bd.graphicsValuesExercise.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
+            var previousTotal = _bd.MinutesConsumed.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
 
             if (exerciseExisting >= 2)
             {
@@ -195,7 +195,7 @@ namespace AppVidaSana.Services
 
                     previousTotal.totalTimeSpent = newTotal;
 
-                    _bd.graphicsValuesExercise.Update(previousTotal);
+                    _bd.MinutesConsumed.Update(previousTotal);
 
                     if (!Save())
                     {
@@ -208,7 +208,7 @@ namespace AppVidaSana.Services
             {
                 if (previousTotal != null)
                 {
-                    _bd.graphicsValuesExercise.Remove(previousTotal);
+                    _bd.MinutesConsumed.Remove(previousTotal);
 
                     if (!Save())
                     {
@@ -245,7 +245,7 @@ namespace AppVidaSana.Services
 
         private void totalTimeSpentforDay(Guid id, DateOnly dateInitial, int timeSpent)
         {
-            var infoGraphics = _bd.graphicsValuesExercise.FirstOrDefault(c => c.accountID == id && c.dateExercise == dateInitial);
+            var infoGraphics = _bd.MinutesConsumed.FirstOrDefault(c => c.accountID == id && c.dateExercise == dateInitial);
 
             if(infoGraphics != null)
             {            
@@ -253,7 +253,7 @@ namespace AppVidaSana.Services
 
                 infoGraphics.totalTimeSpent = value + timeSpent;
 
-                _bd.graphicsValuesExercise.Update(infoGraphics);
+                _bd.MinutesConsumed.Update(infoGraphics);
 
                 if (!Save())
                 {
@@ -269,7 +269,7 @@ namespace AppVidaSana.Services
                     totalTimeSpent = timeSpent
                 };
 
-                _bd.graphicsValuesExercise.Add(dates);
+                _bd.MinutesConsumed.Add(dates);
 
                 if (!Save())
                 {

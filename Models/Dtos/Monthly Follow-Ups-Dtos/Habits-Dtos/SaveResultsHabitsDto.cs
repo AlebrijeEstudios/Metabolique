@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos
 {
-    public class SaveResultsDto
+    public class SaveResultsHabitsDto
     {
         [JsonRequired] public Guid accountID { get; set; }
 

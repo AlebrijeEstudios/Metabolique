@@ -21,11 +21,11 @@ namespace AppVidaSana.Services.Habits
 
         public ReturnInfoHabitsDto GetInfoGeneralHabits(Guid idAccount, DateOnly date)
         {
-            var habitsDrink = _bd.habitsDrink.Where(e => e.accountID == idAccount && e.drinkDateHabit == date).ToList();
+            var habitsDrink = _bd.HabitsDrink.Where(e => e.accountID == idAccount && e.drinkDateHabit == date).ToList();
 
-            var habitSleep = _bd.habitsSleep.FirstOrDefault(e => e.accountID == idAccount && e.sleepDateHabit == date);
+            var habitSleep = _bd.HabitsSleep.FirstOrDefault(e => e.accountID == idAccount && e.sleepDateHabit == date);
 
-            var habitDrugs = _bd.habitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
+            var habitDrugs = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
 
             ReturnInfoHabitsDto info = new ReturnInfoHabitsDto
             {

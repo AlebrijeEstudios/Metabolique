@@ -23,7 +23,7 @@ namespace AppVidaSana.Services.Habits
 
         public GetUpdateSleepingHoursDto AddSleepHours(SleepingHoursDto sleepingHours)
         {
-            var habitExisting = _bd.habitsSleep.Count(e => e.sleepDateHabit == sleepingHours.sleepDateHabit);
+            var habitExisting = _bd.HabitsSleep.Count(e => e.sleepDateHabit == sleepingHours.sleepDateHabit);
 
             if (habitExisting > 0)
             {
@@ -58,13 +58,13 @@ namespace AppVidaSana.Services.Habits
                     throw new ErrorDatabaseException(errors);
                 }
             }
-            _bd.habitsSleep.Add(sleepHabit);
+            _bd.HabitsSleep.Add(sleepHabit);
             if (!Save())
             {
                 throw new UnstoredValuesException();
             }
 
-            var habitSleep = _mapper.Map<GetUpdateSleepingHoursDto>(_bd.habitsSleep.FirstOrDefault(
+            var habitSleep = _mapper.Map<GetUpdateSleepingHoursDto>(_bd.HabitsSleep.FirstOrDefault(
                                                                     e => e.accountID == sleepingHours.accountID
                                                                     && e.sleepDateHabit == sleepingHours.sleepDateHabit)); 
 
@@ -75,7 +75,7 @@ namespace AppVidaSana.Services.Habits
         {
             DateOnly dateFinal = date.AddDays(-6);
 
-            var habits = _bd.habitsSleep
+            var habits = _bd.HabitsSleep
                 .Where(e => e.sleepDateHabit >= dateFinal && e.sleepDateHabit <= date && e.accountID == idAccount)
                 .ToList();
 
@@ -95,7 +95,7 @@ namespace AppVidaSana.Services.Habits
 
         public GetUpdateSleepingHoursDto UpdateSleepHours(GetUpdateSleepingHoursDto values)
         {
-            var habit = _bd.habitsSleep.Find(values.sleepHabitID);
+            var habit = _bd.HabitsSleep.Find(values.sleepHabitID);
 
             if (habit == null)
             {
@@ -118,28 +118,28 @@ namespace AppVidaSana.Services.Habits
                 }
             }
 
-            _bd.habitsSleep.Update(habit);
+            _bd.HabitsSleep.Update(habit);
 
             if (!Save())
             {
                 throw new UnstoredValuesException();
             }
 
-            var habitSleep = _mapper.Map<GetUpdateSleepingHoursDto>(_bd.habitsSleep.Find(values.sleepHabitID));
+            var habitSleep = _mapper.Map<GetUpdateSleepingHoursDto>(_bd.HabitsSleep.Find(values.sleepHabitID));
 
             return habitSleep;
         } 
         
         public string DeleteSleepHours(Guid idHabit)
         {
-            var habit = _bd.habitsSleep.Find(idHabit);
+            var habit = _bd.HabitsSleep.Find(idHabit);
 
             if (habit == null)
             {
                 throw new HabitNotFoundException();
             }
 
-            _bd.habitsSleep.Remove(habit);
+            _bd.HabitsSleep.Remove(habit);
 
             if (!Save())
             {

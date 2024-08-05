@@ -12,6 +12,7 @@ using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Exceptions;
+using AppVidaSana.Services.Monthly_Follows_Ups;
 
 namespace AppVidaSana.Controllers.Seg_Men_Controllers
 {
@@ -22,11 +23,11 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
     [EnableRateLimiting("sliding")]
     public class MFUsExerciseController : ControllerBase
     {
-        private readonly IMFUsExercise _MFUsExcerciseService;
+        private readonly IMFUsExercise _MFUsExerciseService;
 
-        public MFUsExerciseController(IMFUsExercise MFUsExcerciseService)
+        public MFUsExerciseController(IMFUsExercise MFUsExerciseService)
         {
-            _MFUsExcerciseService = MFUsExcerciseService;
+            _MFUsExerciseService = MFUsExerciseService;
         }
 
         /// <summary>
@@ -49,7 +50,8 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         {
             try
             {
-                var res = _MFUsExcerciseService.SaveAnswers(responses);
+                var results = _MFUsExerciseService.SaveAnswers(responses);
+                var res = _MFUsExerciseService.SaveResults(results);
 
                 ReturnAddResponsesExercise response = new ReturnAddResponsesExercise
                 {
@@ -109,7 +111,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         public IActionResult RetrieveResponses([FromQuery] Guid id, [FromQuery] string month, [FromQuery] int year)
         {
 
-            RetrieveResponsesExerciseDto res = _MFUsExcerciseService.RetrieveAnswers(id, month, year);
+            RetrieveResponsesExerciseDto res = _MFUsExerciseService.RetrieveAnswers(id, month, year);
 
             ReturnRetrieveResponsesExercise response = new ReturnRetrieveResponsesExercise
             {

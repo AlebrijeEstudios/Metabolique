@@ -1,7 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
-using AppVidaSana.Models;
-using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
-using AppVidaSana.Models.Graphics;
+﻿using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
 
 namespace AppVidaSana.Services.IServices

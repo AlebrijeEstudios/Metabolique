@@ -3,6 +3,7 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
+using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
@@ -24,36 +25,65 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         public RetrieveResponsesHabitsDto RetrieveAnswers(Guid id, string month, int year)
         {
-            var responses = _bd.MFUsHabits.FirstOrDefault(c => c.accountID == id && c.month == month && c.year == year);
+            RetrieveResponsesHabitsDto response;
 
-            RetrieveResponsesHabitsDto res;
+            var monthRecord = _bd.Months.FirstOrDefault(e => e.month == month && e.year == year);
 
-            if(responses == null)
+            if (monthRecord == null)
             {
-                res = null;
-                return res;
+                response = new RetrieveResponsesHabitsDto();
+                return response;
             }
 
-            var results = _bd.resultsHabits.FirstOrDefault(c => c.monthlyFollowUpID == responses.monthlyFollowUpID);
+            var records = _bd.MFUsHabits.FirstOrDefault(c => c.accountID == id && c.monthID == monthRecord.monthID);
+
+            if (records == null)
+            {
+                response = new RetrieveResponsesHabitsDto();
+                return response;
+            }
+
+            var results = _bd.ResultsHabits.FirstOrDefault(c => c.monthlyFollowUpID == records.monthlyFollowUpID);
 
             if (results == null)
             {
-                res = null;
-                return res;
+                response = new RetrieveResponsesHabitsDto();
+                return response;
             }
 
-            res = _mapper.Map<RetrieveResponsesHabitsDto>(responses);
-            _mapper.Map(results, res);
+            response = _mapper.Map<RetrieveResponsesHabitsDto>(records);
+            response = _mapper.Map(monthRecord, response);
+            _mapper.Map(results, response);
 
-            return res;
+            return response;
         }
 
-        public SaveResultsDto SaveAnswers(SaveResponsesHabitsDto res)
+        public SaveResultsHabitsDto SaveAnswers(SaveResponsesHabitsDto res)
         {
-            var answersExisting = _bd.MFUsHabits.Count(e => e.accountID == res.accountID &&
-                                    e.month == res.month && e.year == res.year);
+            var existDate = _bd.Months.Any(e => e.month == res.month && e.year == res.year);
 
-            if (answersExisting > 0)
+            if (!existDate)
+            {
+                MFUsMonths month = new MFUsMonths
+                {
+                    month = res.month,
+                    year = res.year
+                };
+
+                _bd.Months.Add(month);
+
+                if (!Save())
+                {
+                    throw new UnstoredValuesException();
+                }
+            }
+
+            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == res.month && e.year == res.year).monthID;
+
+            var answersExisting = _bd.MFUsHabits.Any(e => e.accountID == res.accountID &&
+                                    e.monthID == monthID);
+
+            if (answersExisting)
             {
                 throw new RepeatRegistrationException();
             }
@@ -100,7 +130,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 throw new UnstoredValuesException();
             }
 
-            SaveResultsDto results = new SaveResultsDto
+            SaveResultsHabitsDto results = new SaveResultsHabitsDto
             {
                 accountID = res.accountID,
                 month = res.month,
@@ -120,10 +150,13 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         }
 
-        public string SaveResults(SaveResultsDto res)
+        public string SaveResults(SaveResultsHabitsDto res)
         {
+
+            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == res.month && e.year == res.year).monthID;
+
             var mfusHabit = _bd.MFUsHabits.FirstOrDefault(c => c.accountID == res.accountID
-                            && c.month == res.month && c.year == res.year);
+                            && c.monthID == monthID);
 
             if (mfusHabit == null)
             {
@@ -157,7 +190,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 }
             }
 
-            _bd.resultsHabits.Add(results);
+            _bd.ResultsHabits.Add(results);
 
             if (!Save())
             {

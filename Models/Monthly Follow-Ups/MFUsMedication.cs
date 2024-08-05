@@ -11,11 +11,8 @@ namespace AppVidaSana.Models.Monthly_Follow_Ups
         [ForeignKey("Account")]
         public Guid accountID { get; set; }
 
-        [Required(ErrorMessage = "El campo mes es obligatorio")]
-        public string month { get; set; } = null!;
-
-        [Required(ErrorMessage = "El campo año es obligatorio")]
-        public int year { get; set; }
+        [ForeignKey("MFUsMonths")]
+        public Guid monthID { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de pregunta 1 es obligatorio")]
         public bool answerQuestion1 { get; set; }
@@ -33,6 +30,8 @@ namespace AppVidaSana.Models.Monthly_Follow_Ups
         public bool statusAdherence { get; set; }
 
         public Account? account { get; set; }
+
+        public MFUsMonths? months { get; set; }
 
     }
 }

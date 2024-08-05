@@ -4,9 +4,9 @@ namespace AppVidaSana.Services.IServices.IMonthly_Follow_Ups
 {
     public interface IMFUsHabits
     {
-        SaveResultsDto SaveAnswers(SaveResponsesHabitsDto res);
+        SaveResultsHabitsDto SaveAnswers(SaveResponsesHabitsDto res);
 
-        public string SaveResults(SaveResultsDto res);
+        public string SaveResults(SaveResultsHabitsDto res);
 
         RetrieveResponsesHabitsDto RetrieveAnswers(Guid id, string month, int year);
 
