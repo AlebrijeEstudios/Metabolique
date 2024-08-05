@@ -47,9 +47,9 @@ namespace AppVidaSana.Data
             );
 
             modelBuilder.Entity<Roles>()
-                .HasOne(rol => rol.account)
+                .HasMany(rol => rol.account)
                 .WithOne(account => account.roles)
-                .HasForeignKey<Account>(account => account.roleID)
+                .HasForeignKey(account => account.roleID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             //Exercise and MFUsExercise

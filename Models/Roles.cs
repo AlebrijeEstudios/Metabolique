@@ -9,6 +9,6 @@ namespace AppVidaSana.Models
 
         public string role { get; set; } = null!;
 
-        public Account? account { get; set; }
+        public ICollection<Account> account { get; set; } = new List<Account>();
     }
 }

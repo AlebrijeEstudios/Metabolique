@@ -45,7 +45,7 @@ namespace AppVidaSana.Controllers.Habits
         /// <response code="404">Return an error message if the user is not found.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddUpdateDeleteDrinkConsumed))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddUpdateDrinkConsumed))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
@@ -57,9 +57,9 @@ namespace AppVidaSana.Controllers.Habits
         {
             try
             {
-                List<GetDrinksConsumedDto> res = _DrinkHabitService.AddDrinksConsumed(drinksConsumed);
+                GetDrinksConsumedDto res = _DrinkHabitService.AddDrinksConsumed(drinksConsumed);
 
-                ReturnAddUpdateDeleteDrinkConsumed response = new ReturnAddUpdateDeleteDrinkConsumed
+                ReturnAddUpdateDrinkConsumed response = new ReturnAddUpdateDrinkConsumed
                 {
                     drinksConsumed = res
                 };
@@ -114,7 +114,7 @@ namespace AppVidaSana.Controllers.Habits
         /// <response code="404">Returns a message indicating that no records were found for certain beverages consumed.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDeleteDrinkConsumed))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDrinkConsumed))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
@@ -126,9 +126,9 @@ namespace AppVidaSana.Controllers.Habits
         {
             try
             {
-                List<GetDrinksConsumedDto> res = _DrinkHabitService.UpdateDrinksConsumed(values);
+                GetDrinksConsumedDto res = _DrinkHabitService.UpdateDrinksConsumed(values);
 
-                ReturnAddUpdateDeleteDrinkConsumed response = new ReturnAddUpdateDeleteDrinkConsumed
+                ReturnAddUpdateDrinkConsumed response = new ReturnAddUpdateDrinkConsumed
                 {
                     drinksConsumed = res
                 };
@@ -171,7 +171,7 @@ namespace AppVidaSana.Controllers.Habits
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Returns a message indicating that the record with the specified consumed beverages does not exist in the DrinkHabit table.</response>     
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDeleteDrinkConsumed))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDrinkConsumed))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
@@ -182,14 +182,14 @@ namespace AppVidaSana.Controllers.Habits
         {
             try
             {
-                List<GetDrinksConsumedDto> res = _DrinkHabitService.DeleteDrinksConsumed(id);
+                var res = _DrinkHabitService.DeleteDrinksConsumed(id);
 
-                ReturnAddUpdateDeleteDrinkConsumed response = new ReturnAddUpdateDeleteDrinkConsumed
+                ReturnDeleteDrinkConsumed response = new ReturnDeleteDrinkConsumed
                 {
-                    drinksConsumed = res
+                    status = res
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, drinksConsumed = response.drinksConsumed });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
             }
             catch (UnstoredValuesException ex)
             {

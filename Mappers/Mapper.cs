@@ -39,10 +39,12 @@ namespace AppVidaSana.Mappers
             .ForMember(dest => dest.levelAF, opt => opt.Ignore());
 
             CreateMap<ExerciseResults, RetrieveResponsesExerciseDto>()
+             .ForMember(dest => dest.monthlyFollowUpID, opt => opt.Ignore())
             .ForMember(dest => dest.month, opt => opt.Ignore())
             .ForMember(dest => dest.year, opt => opt.Ignore())
             .ForMember(dest => dest.question1, opt => opt.Ignore())
             .ForMember(dest => dest.question2, opt => opt.Ignore())
+            .ForMember(dest => dest.question3, opt => opt.Ignore())
             .ForMember(dest => dest.question3, opt => opt.Ignore())
             .ForMember(dest => dest.question4, opt => opt.Ignore())
             .ForMember(dest => dest.question5, opt => opt.Ignore())
@@ -50,6 +52,7 @@ namespace AppVidaSana.Mappers
             .ForMember(dest => dest.question7, opt => opt.Ignore());
 
             CreateMap<MFUsMonths, RetrieveResponsesExerciseDto>()
+            .ForMember(dest => dest.monthlyFollowUpID, opt => opt.Ignore())
             .ForMember(dest => dest.question1, opt => opt.Ignore())
             .ForMember(dest => dest.question2, opt => opt.Ignore())
             .ForMember(dest => dest.question3, opt => opt.Ignore())
@@ -67,7 +70,6 @@ namespace AppVidaSana.Mappers
             CreateMap<MFUsHabits, RetrieveResponsesHabitsDto>()
             .ForMember(dest => dest.month, opt => opt.Ignore())
             .ForMember(dest => dest.year, opt => opt.Ignore())
-            .ForMember(dest => dest.monthlyFollowUpID, opt => opt.Ignore())
             .ForMember(dest => dest.resultComponent1, opt => opt.Ignore())
             .ForMember(dest => dest.resultComponent2, opt => opt.Ignore())
             .ForMember(dest => dest.resultComponent3, opt => opt.Ignore())
@@ -79,6 +81,7 @@ namespace AppVidaSana.Mappers
             .ForMember(dest => dest.classification, opt => opt.Ignore());
 
             CreateMap<HabitsResults, RetrieveResponsesHabitsDto>()
+                .ForMember(dest => dest.monthlyFollowUpID, opt => opt.Ignore())
                 .ForMember(dest => dest.month, opt => opt.Ignore())
                 .ForMember(dest => dest.year, opt => opt.Ignore())
                 .ForMember(dest => dest.answerQuestion1, opt => opt.Ignore())
