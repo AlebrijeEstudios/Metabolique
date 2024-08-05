@@ -26,7 +26,7 @@ namespace AppVidaSana.Services
             keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
         }
 
-        public CreateAccountReturn CreateAccount(CreateAccountProfileDto account)
+        public Guid CreateAccount(CreateAccountProfileDto account)
         {
             List<string?> er = new List<string?>();
 
@@ -34,28 +34,39 @@ namespace AppVidaSana.Services
 
             string vUsername = verifyUsername(account.username); 
             
-            if(vUsername != ""){ er.Add(vUsername); }
+            if(vUsername != "")
+            { 
+                er.Add(vUsername); 
+            }
 
             try
             {
                 string vEmail = verifyEmail(account.email);
                 
-                if(vEmail != ""){ er.Add(vEmail); }
+                if(vEmail != "")
+                { 
+                    er.Add(vEmail); 
+                }
 
             }catch(EmailValidationTimeoutException ex)
             {
                 message =  ex.Message;
+                er.Add(message);
             }
 
             try
             {
                 string vPassword = verifyPassword(account.password);
 
-                if (vPassword != "") { er.Add(vPassword); }
+                if (vPassword != "") 
+                { 
+                    er.Add(vPassword); 
+                }
 
             }catch(PasswordValidationTimeoutException ex)
             {
                 message =  ex.Message;
+                er.Add(message);
             }
 
             if(er.Count > 0) 
@@ -98,13 +109,10 @@ namespace AppVidaSana.Services
                 throw new UserNotFoundException();
             }
 
-            CreateAccountReturn result = new CreateAccountReturn
-            {
-                accountID = user.accountID,
-                messageException = message
-            };
 
-            return result;
+            Guid accountID = user.accountID;
+
+            return accountID;
 
         }
 
@@ -131,6 +139,89 @@ namespace AppVidaSana.Services
             };
 
             return infoAccount;
+        }
+
+        public ReturnProfileDto UpdateAccount(ReturnAccountDto infoAccount)
+        {
+            List<string?> er = new List<string?>();
+            string message = "";
+
+            var user = _bd.Accounts.Find(infoAccount.accountID);
+
+            if (user == null) 
+            { 
+                throw new UserNotFoundException(); 
+            }
+
+            if (user.username == infoAccount.username)
+            { 
+                user.username = infoAccount.username; 
+            }
+
+            if (user.email == infoAccount.email)
+            { 
+                user.email = infoAccount.email; 
+            }
+
+            string vUsername = verifyUsername(infoAccount.username);
+
+            if (vUsername != "")
+            { 
+                er.Add(vUsername); 
+            }
+
+            try
+            {
+                string vEmail = verifyEmail(infoAccount.email);
+
+                if (vEmail != "")
+                { 
+                    er.Add(vEmail); 
+                }
+
+            }
+            catch (EmailValidationTimeoutException ex)
+            {
+                message = ex.Message;
+                er.Add(message);
+            }
+
+            if (er.Count > 0)
+            {
+                throw new ValuesInvalidException(er);
+            }
+
+            var validationResults = new List<ValidationResult>();
+            var validationContext = new ValidationContext(user, null, null);
+
+            if (!Validator.TryValidateObject(user, validationContext, validationResults, true))
+            {
+                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
+            }
+
+            _bd.Accounts.Update(user);
+
+            if (!Save())
+            {
+                throw new UnstoredValuesException();
+            }
+
+            ReturnProfileDto result = new ReturnProfileDto
+            {
+                accountID = infoAccount.accountID,
+                birthDate = infoAccount.birthDate,
+                sex = infoAccount.sex,
+                stature = infoAccount.stature,
+                weight = infoAccount.weight,
+                protocolToFollow = infoAccount.protocolToFollow
+            };
+
+            return result;
         }
 
         public TokenUserDto LoginAccount(LoginAccountDto login)
@@ -176,58 +267,6 @@ namespace AppVidaSana.Services
             };
 
             return ut;
-        }
-
-        public ReturnProfileDto UpdateAccount(ReturnAccountDto infoAccount)
-        {
-            var user = _bd.Accounts.Find(infoAccount.accountID);
-
-            if (user == null)
-            {
-                throw new UserNotFoundException();
-            }
-
-            if(user.username != infoAccount.username)
-            {
-               user.username = infoAccount.username;
-            }
-
-            if (user.email != infoAccount.email)
-            {
-                user.email = infoAccount.email;
-            }
-
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(user, null, null);
-
-            if (!Validator.TryValidateObject(user, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
-
-            _bd.Accounts.Update(user);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            ReturnProfileDto result = new ReturnProfileDto
-            {
-                accountID = infoAccount.accountID,
-                birthDate = infoAccount.birthDate,
-                sex = infoAccount.sex,
-                stature = infoAccount.stature,
-                weight = infoAccount.weight,
-                protocolToFollow = infoAccount.protocolToFollow
-            };
-
-            return result;
         }
 
         public bool ResetPassword(ResetPasswordDto model)
@@ -360,7 +399,6 @@ namespace AppVidaSana.Services
 
         }
 
-
         private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         {
             var key = Encoding.ASCII.GetBytes(keyToken);
@@ -380,6 +418,7 @@ namespace AppVidaSana.Services
             var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
 
             var jwtSecurityToken = securityToken as JwtSecurityToken;
+
             if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new SecurityTokenException("Invalid token");

@@ -3,9 +3,9 @@ using AppVidaSana.Models;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
 using AppVidaSana.Models.Habitos;
-using AppVidaSana.Models.Graphics;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
+using AppVidaSana.Models.Exercises;
 
 namespace AppVidaSana.Data
 {
@@ -19,7 +19,7 @@ namespace AppVidaSana.Data
         public DbSet<Exercise> Exercises { get; set; }
 
         public DbSet<MFUsExercise> MFUsExercise { get; set; }
-        public DbSet<GraphicsValuesExercise> graphicsValuesExercise {  get; set; }
+        public DbSet<minutesConsumed> graphicsValuesExercise {  get; set; }
         
         public DbSet<DrinkHabit> habitsDrink { get; set; }
         public DbSet<DrugsHabit> habitsDrugs { get; set; }
@@ -39,6 +39,17 @@ namespace AppVidaSana.Data
                 .WithOne(profile => profile.account)
                 .HasForeignKey<Profiles>(profile => profile.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Roles>().HasData(
+                new Roles { roleID = Guid.NewGuid(), role = "User" },
+                new Roles { roleID = Guid.NewGuid(), role = "Admin" }
+            );
+
+            modelBuilder.Entity<Roles>()
+                .HasOne(rol => rol.account)
+                .WithOne(account => account.roles)
+                .HasForeignKey<Account>(account => account.roleID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             //Ejercicio y SegMenEjercicio
             modelBuilder.Entity<Account>()

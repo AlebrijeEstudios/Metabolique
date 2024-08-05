@@ -4,7 +4,9 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos.Drugs
 {
     public class GetDrugsConsumedDto
     {
-        [JsonRequired] public Guid drugsHabitID { get; set; } 
+        [JsonRequired] public Guid drugsHabitID { get; set; }
+
+        [JsonRequired] public DateOnly drugsDateHabit { get; set; }
 
         [JsonRequired] public int cigarettesSmoked { get; set; }
 

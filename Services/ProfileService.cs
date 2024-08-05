@@ -33,8 +33,7 @@ namespace AppVidaSana.Services
                 sex = profile.sex,
                 stature = profile.stature,
                 weight = profile.weight,
-                protocolToFollow  = profile.protocolToFollow,
-                account = null
+                protocolToFollow  = profile.protocolToFollow
             };
 
             var validationResults = new List<ValidationResult>();
@@ -58,7 +57,6 @@ namespace AppVidaSana.Services
             }
 
             return Save();
-
         }
 
         public string UpdateProfile(ReturnProfileDto profile)

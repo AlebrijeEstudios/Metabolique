@@ -2,10 +2,9 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
-using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
-using AppVidaSana.Models.Graphics;
+using AppVidaSana.Models.Exercises;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
 using System.ComponentModel.DataAnnotations;
@@ -231,6 +230,18 @@ namespace AppVidaSana.Services
             return exercises;
 
         }
+        public bool Save()
+        {
+            try
+            {
+                return _bd.SaveChanges() >= 0;
+            }
+            catch (Exception)
+            {
+                return false;
+
+            }
+        }
 
         private void totalTimeSpentforDay(Guid id, DateOnly dateInitial, int timeSpent)
         {
@@ -251,7 +262,7 @@ namespace AppVidaSana.Services
             }
             else
             {
-                GraphicsValuesExercise dates = new GraphicsValuesExercise
+                minutesConsumed dates = new minutesConsumed
                 {
                     accountID = id,
                     dateExercise = dateInitial,
@@ -266,17 +277,5 @@ namespace AppVidaSana.Services
                 }
             }
         } 
-        public bool Save()
-        {
-            try
-            {
-                return _bd.SaveChanges() >= 0;
-            }
-            catch (Exception)
-            {
-                return false;
-
-            }
-        }
     }
 }

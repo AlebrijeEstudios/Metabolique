@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models;
-using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
+﻿using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
@@ -7,7 +6,7 @@ using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
-using AppVidaSana.Models.Graphics;
+using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
@@ -22,9 +21,10 @@ namespace AppVidaSana.Mappers
         {
             CreateMap<Exercise, ExerciseListDto>().ReverseMap();
             CreateMap<MFUsExercise, RetrieveResponsesExerciseDto>().ReverseMap();
-            CreateMap<GraphicsValuesExercise, GraphicsValuesExerciseDto>().ReverseMap();
+            CreateMap<minutesConsumed, GraphicsValuesExerciseDto>().ReverseMap();
             CreateMap<DrinkHabit, GetDrinksConsumedDto>().ReverseMap();
             CreateMap<SleepHabit, GetSleepingHoursDto>().ReverseMap();
+            CreateMap<SleepHabit, GetUpdateSleepingHoursDto>().ReverseMap();
             CreateMap<DrugsHabit, GetDrugsConsumedDto>().ReverseMap();
 
             CreateMap<MFUsHabits, RetrieveResponsesHabitsDto>()

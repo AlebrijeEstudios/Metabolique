@@ -46,7 +46,7 @@ namespace AppVidaSana.Controllers.Habits
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetSleepingHours))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
-        [HttpGet("hours-sleep")]
+        [HttpGet("sleeping-hours")]
         [Produces("application/json")]
         public IActionResult GetSleepingHours([FromQuery] Guid id, [FromQuery] DateOnly date)
         {
@@ -57,7 +57,7 @@ namespace AppVidaSana.Controllers.Habits
                 hoursSleep = info
             };
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.hoursSleep });
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, hoursSleep = response.hoursSleep });
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace AppVidaSana.Controllers.Habits
                     sleepHours = res
                 };
 
-                return StatusCode(StatusCodes.Status201Created, new { message = response.message, status = response.sleepHours });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, sleepHours = response.sleepHours });
             }
             catch (UnstoredValuesException ex)
             {
@@ -165,7 +165,7 @@ namespace AppVidaSana.Controllers.Habits
                     sleepHours = res
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.sleepHours });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, sleepHours = response.sleepHours });
             }
             catch (UnstoredValuesException ex)
             {

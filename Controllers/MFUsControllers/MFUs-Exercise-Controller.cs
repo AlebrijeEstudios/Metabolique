@@ -116,7 +116,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
                 responsesAnswers = res
             };
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.responsesAnswers });
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, responsesAnswers = response.responsesAnswers });
 
         }
     }

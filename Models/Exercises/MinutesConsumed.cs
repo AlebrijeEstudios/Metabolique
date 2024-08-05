@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace AppVidaSana.Models.Graphics
+namespace AppVidaSana.Models.Exercises
 {
-    public class GraphicsValuesExercise
+    public class minutesConsumed
     {
         [Key]
         public Guid timeSpentID { get; set; } = Guid.NewGuid();

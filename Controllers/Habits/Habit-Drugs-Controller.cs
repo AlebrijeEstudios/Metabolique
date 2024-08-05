@@ -64,7 +64,7 @@ namespace AppVidaSana.Controllers.Habits
                     drugsConsumed = res
                 };
 
-                return StatusCode(StatusCodes.Status201Created, new { message = response.message, status = response.drugsConsumed });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, drugsConsumed = response.drugsConsumed });
             }
             catch (UnstoredValuesException ex)
             {
@@ -133,7 +133,7 @@ namespace AppVidaSana.Controllers.Habits
                     drugsConsumed = res
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.drugsConsumed });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, drugsConsumed = response.drugsConsumed });
             }
             
             catch (UnstoredValuesException ex)

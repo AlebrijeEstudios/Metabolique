@@ -1,7 +1,6 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
-using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;

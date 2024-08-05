@@ -27,24 +27,11 @@ namespace AppVidaSana.Services.Habits
 
             var habitDrugs = _bd.habitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
 
-            List<GetDrinksConsumedDto> listDrinks;
-
-            if (habitsDrink.Count == 0)
-            {
-                listDrinks = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink);
-            }
-
-            listDrinks = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink);
-
             ReturnInfoHabitsDto info = new ReturnInfoHabitsDto
             {
-                drinkConsumed = listDrinks,
-                sleepHabitID = habitSleep.sleepHabitID,
-                sleepHours = habitSleep.sleepHours,
-                perceptionOfRelaxation = habitSleep.perceptionOfRelaxation,
-                drugsHabitID = habitDrugs.drugsHabitID,
-                cigarettesSmoked = habitDrugs.cigarettesSmoked,
-                predominantEmotionalState = habitDrugs.predominantEmotionalState
+                drinkConsumed = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink),
+                hoursSleep = _mapper.Map<GetSleepingHoursDto>(habitSleep),
+                drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs)
             };
 
             return info;

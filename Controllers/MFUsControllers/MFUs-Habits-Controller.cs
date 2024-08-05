@@ -2,12 +2,9 @@
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesReponseType;
-using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
@@ -130,7 +127,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                 responsesAnswers = res
             };
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.responsesAnswers });
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, responsesAnswers = response.responsesAnswers });
         }
     }
 }

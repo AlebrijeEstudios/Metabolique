@@ -7,7 +7,6 @@ using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
 using AutoMapper;
-using Azure;
 using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Services.Monthly_Follows_Ups
@@ -178,7 +177,6 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 return false;
             }
         }
-
 
         private static byte component2(byte response2, byte response5a)
         {

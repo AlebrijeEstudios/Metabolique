@@ -22,6 +22,7 @@ using AppVidaSana.Services.Habits;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
 using AppVidaSana.Services.Monthly_Follows_Ups;
 using AppVidaSana.JsonFormat;
+using AppVidaSana.Services.IServices.IHabits;
 
 Env.Load();
 
@@ -87,6 +88,7 @@ builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
 builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
+builder.Services.AddScoped<IHabitsGeneral, HabitGeneralService>();
 builder.Services.AddScoped<IDrinkHabit, DrinkHabitService>();
 builder.Services.AddScoped<ISleepHabit, SleepHabitService>();
 builder.Services.AddScoped<IDrugsHabit, DrugsHabitService>();

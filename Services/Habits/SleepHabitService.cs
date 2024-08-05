@@ -2,12 +2,10 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Habits;
-using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Services.IServices.IHabits.IHabits;
 using AutoMapper;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Services.Habits
@@ -68,7 +66,7 @@ namespace AppVidaSana.Services.Habits
 
             var habitSleep = _mapper.Map<GetUpdateSleepingHoursDto>(_bd.habitsSleep.FirstOrDefault(
                                                                     e => e.accountID == sleepingHours.accountID
-                                                                    && e.sleepDateHabit == sleepingHours.sleepDateHabit));
+                                                                    && e.sleepDateHabit == sleepingHours.sleepDateHabit)); 
 
             return habitSleep;
         }

@@ -1,9 +1,10 @@
-﻿using AppVidaSana.Models.Graphics;
+﻿using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models
 {
@@ -22,7 +23,10 @@ namespace AppVidaSana.Models
         [Required(ErrorMessage = "El campo contraseña es obligatoria.")]
         public string password { get; set; } = null!;
 
-        public string role { get; set; } = "User";
+        [ForeignKey("Roles")]
+        public Guid roleID { get; set; }
+
+        public Roles? roles { get; set; }
 
         public Profiles? profile { get; set; }
 
@@ -30,7 +34,7 @@ namespace AppVidaSana.Models
 
         public ICollection<MFUsExercise> MFUsExercise { get; set; } = new List<MFUsExercise>();
 
-        public ICollection<GraphicsValuesExercise> graphicsValuesExercise { get; set; } = new List<GraphicsValuesExercise>();
+        public ICollection<minutesConsumed> graphicsValuesExercise { get; set; } = new List<minutesConsumed>();
 
         public ICollection<DrinkHabit> habitsDrink { get; set; } = new List<DrinkHabit>();
 

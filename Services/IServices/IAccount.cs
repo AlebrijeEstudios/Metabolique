@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models;
-using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+﻿using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 
 namespace AppVidaSana.Services.IServices
@@ -8,15 +7,14 @@ namespace AppVidaSana.Services.IServices
     {
         ReturnAccountDto GetAccount(Guid accountid);
 
-        CreateAccountReturn CreateAccount(CreateAccountProfileDto account);
+        Guid CreateAccount(CreateAccountProfileDto account);
 
         ReturnProfileDto UpdateAccount(ReturnAccountDto infoAccount);
 
         string DeleteAccount(Guid userid);
+        TokenUserDto LoginAccount(LoginAccountDto login);
 
         TokenUserDto RequestPasswordResetToken(ForgotPasswordDto request);
-
-        TokenUserDto LoginAccount(LoginAccountDto login);
 
         bool ResetPassword(ResetPasswordDto model);
 
