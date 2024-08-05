@@ -22,24 +22,6 @@ namespace AppVidaSana.Services
             _mapper = mapper;
         }
 
-        public List<ExerciseListDto> GetExercises(Guid id, DateOnly date)
-        {
-            var exercise = _bd.Exercises
-            .Where(e => e.accountID == id && e.dateExercise == date)
-            .ToList();
-
-            List<ExerciseListDto> exercises;
-
-            if (exercise.Count == 0)
-            {
-                exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
-            }
-
-            exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
-
-            return exercises;
-        }
-
         public List<GraphicsValuesExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date)
         {
             DateOnly dateFinal = date.AddDays(-6);
@@ -167,6 +149,24 @@ namespace AppVidaSana.Services
             }
 
             List<ExerciseListDto> exercises = GetExercises(exercise.accountID, exercise.dateExercise);
+
+            return exercises;
+        }
+
+        public List<ExerciseListDto> GetExercises(Guid id, DateOnly date)
+        {
+            var exercise = _bd.Exercises
+            .Where(e => e.accountID == id && e.dateExercise == date)
+            .ToList();
+
+            List<ExerciseListDto> exercises;
+
+            if (exercise.Count == 0)
+            {
+                exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
+            }
+
+            exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
 
             return exercises;
         }

@@ -156,43 +156,42 @@ namespace AppVidaSana.Services
                 throw new UserNotFoundException(); 
             }
 
-            if (user.username == infoAccount.username)
-            { 
-                user.username = infoAccount.username; 
-            }
-
-            if (user.email == infoAccount.email)
-            { 
-                user.email = infoAccount.email; 
-            }
-
-            string vUsername = verifyUsername(infoAccount.username);
-
-            if (vUsername != "")
-            { 
-                er.Add(vUsername); 
-            }
-
-            try
+            if (user.username != infoAccount.username)
             {
-                string vEmail = verifyEmail(infoAccount.email);
+                string vUsername = verifyUsername(infoAccount.username);
 
-                if (vEmail != "")
-                { 
-                    er.Add(vEmail); 
+                if (vUsername != "")
+                {
+                    er.Add(vUsername);
                 }
-
             }
-            catch (EmailValidationTimeoutException ex)
+
+            if (user.email != infoAccount.email)
             {
-                message = ex.Message;
-                er.Add(message);
+                try
+                {
+                    string vEmail = verifyEmail(infoAccount.email);
+
+                    if (vEmail != "")
+                    {
+                        er.Add(vEmail);
+                    }
+
+                }
+                catch (EmailValidationTimeoutException ex)
+                {
+                    message = ex.Message;
+                    er.Add(message);
+                }
             }
 
             if (er.Count > 0)
             {
                 throw new ValuesInvalidException(er);
             }
+
+            user.username = infoAccount.username; 
+            user.email = infoAccount.email;
 
             var validationResults = new List<ValidationResult>();
             var validationContext = new ValidationContext(user, null, null);

@@ -108,7 +108,28 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             string classificationPSQI = classification(total);
 
-            var answers = _mapper.Map<MFUsHabits>(res);
+            MFUsHabits answers = new MFUsHabits
+            {
+                accountID = res.accountID,
+                monthID = monthID,
+                answerQuestion1 = res.answerQuestion1,
+                answerQuestion2 = res.answerQuestion2,
+                answerQuestion3 = res.answerQuestion3,
+                answerQuestion4 = res.answerQuestion4,
+                answerQuestion5a = res.answerQuestion5a,
+                answerQuestion5b= res.answerQuestion5b,
+                answerQuestion5c = res.answerQuestion5c,
+                answerQuestion5d = res.answerQuestion5d,
+                answerQuestion5e = res.answerQuestion5e,
+                answerQuestion5f = res.answerQuestion5f,
+                answerQuestion5h = res.answerQuestion5h,
+                answerQuestion5i = res.answerQuestion5i,
+                answerQuestion5j = res.answerQuestion5j,
+                answerQuestion6 = res.answerQuestion6,
+                answerQuestion7 = res.answerQuestion7,
+                answerQuestion8 = res.answerQuestion8,
+                answerQuestion9 = res.answerQuestion9
+            };
 
             var validationResults = new List<ValidationResult>();
             var validationContext = new ValidationContext(answers, null, null);
