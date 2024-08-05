@@ -53,7 +53,7 @@ namespace AppVidaSana.Controllers
                 exercises = exercises
             };
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.exercises });
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercises = response.exercises });
         }
 
 
@@ -86,7 +86,7 @@ namespace AppVidaSana.Controllers
                 timeSpentsforDay = values
             };
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.timeSpentsforDay });
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, timeSpentsforDay = response.timeSpentsforDay });
             
         }
 
@@ -126,7 +126,7 @@ namespace AppVidaSana.Controllers
                     exercises = exercises
                 };
 
-                return StatusCode(StatusCodes.Status201Created, new { message = response.message, status = response.exercises });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, exercises = response.exercises });
             }
             catch (UnstoredValuesException ex)
             {
@@ -195,7 +195,7 @@ namespace AppVidaSana.Controllers
                     exercises = exercises
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.exercises });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercises = response.exercises });
             }
             catch (UnstoredValuesException ex)
             {
@@ -251,7 +251,7 @@ namespace AppVidaSana.Controllers
                     exercises = exercises
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.exercises });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercises = response.exercises });
             }
             catch (UnstoredValuesException ex)
             {

@@ -57,7 +57,7 @@ namespace AppVidaSana.Controllers.Habits
                 hoursSleep = info
             };
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, hoursSleep = response.hoursSleep });
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, hoursSleeping = response.hoursSleep });
         }
 
         /// <summary>
