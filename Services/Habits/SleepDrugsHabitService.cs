@@ -71,7 +71,7 @@ namespace AppVidaSana.Services.Habits
             var habitSleep = _bd.HabitsSleep.FirstOrDefault(e => e.accountID == values.accountID
                                                             && e.sleepDateHabit == values.dateRegister);
 
-            var habitDrug = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == values.accountID 
+            var habitDrug = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == values.accountID
                                                             && e.drugsDateHabit == values.dateRegister);
 
             if (habitSleep == null || habitDrug == null)
@@ -80,6 +80,7 @@ namespace AppVidaSana.Services.Habits
             }
 
             habits = _mapper.Map<ReturnSleepHoursAndDrugsConsumedDto>(habitSleep);
+            habits.dateRegister = values.dateRegister;
             habits = _mapper.Map(habitDrug, habits);
 
             return habits;
@@ -123,6 +124,7 @@ namespace AppVidaSana.Services.Habits
             }
 
             habits = _mapper.Map<ReturnSleepHoursAndDrugsConsumedDto>(sleep);
+            habits.dateRegister = values.dateRegister;
             habits = _mapper.Map(drugs, habits);
 
             return habits;

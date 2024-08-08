@@ -33,17 +33,16 @@ namespace AppVidaSana.Services.Habits
                 .Where(e => e.sleepDateHabit >= dateFinal && e.sleepDateHabit <= date && e.accountID == idAccount)
                 .ToList();
 
-            List<GetSleepingHoursDto> habitsSleep = _mapper.Map<List<GetSleepingHoursDto>>(habits);
+            var habitsSleep = _mapper.Map<List<GetSleepingHoursDto>>(habits);
 
-            habitsSleep = habitsSleep.OrderBy(x => x.sleepDateHabit).ToList();
-
+            var hoursSleep = habitsSleep.OrderBy(x => x.sleepDateHabit).ToList();
 
             ReturnInfoHabitsDto info = new ReturnInfoHabitsDto
             {
                 drinkConsumed = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink),
                 hoursSleepConsumed = _mapper.Map<GetSleepingHoursDto>(habitSleep),
                 drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
-                hoursSleep = habitsSleep
+                hoursSleep = hoursSleep
             };
 
             return info;

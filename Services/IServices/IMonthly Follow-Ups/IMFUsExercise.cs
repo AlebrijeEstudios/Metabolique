@@ -7,7 +7,7 @@ namespace AppVidaSana.Services.IServices.ISeguimientos_Mensuales
     {
         SaveResultsExerciseDto SaveAnswers(SaveResponsesExerciseDto res);
 
-        RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, string month, int year);
+        RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, int month, int year);
 
         public string SaveResults(SaveResultsExerciseDto res);
 

@@ -8,7 +8,7 @@ namespace AppVidaSana.Services.IServices.IMonthly_Follow_Ups
 
         public string SaveResults(SaveResultsHabitsDto res);
 
-        RetrieveResponsesHabitsDto RetrieveAnswers(Guid id, string month, int year);
+        RetrieveResponsesHabitsDto RetrieveAnswers(Guid id, int month, int year);
 
         bool Save();
 

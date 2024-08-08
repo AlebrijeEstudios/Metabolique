@@ -55,10 +55,10 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public IActionResult GetExercises([FromQuery] Guid id, [FromQuery] DateOnly date)
+        public IActionResult GetExercises([FromQuery] Guid accountID, [FromQuery] DateOnly date)
         {
 
-            ExerciseAndValuesGraphicDto infoExercises = _ExerciseService.ExercisesAndValuesGraphic(id, date);
+            ExerciseAndValuesGraphicDto infoExercises = _ExerciseService.ExercisesAndValuesGraphic(accountID, date);
 
             ReturnGetExercise response = new ReturnGetExercise
             {
@@ -217,13 +217,13 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
-        [HttpDelete("{id:guid}")]
+        [HttpDelete("{exerciseID:guid}")]
         [Produces("application/json")]
-        public IActionResult DeleteExercise(Guid id)
+        public IActionResult DeleteExercise(Guid exerciseID)
         {
             try
             {
-                List<ExerciseListDto> exercises = _ExerciseService.DeleteExercise(id);
+                List<ExerciseListDto> exercises = _ExerciseService.DeleteExercise(exerciseID);
 
                 ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
                 {

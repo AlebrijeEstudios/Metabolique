@@ -11,7 +11,7 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos
         public GetSleepingHoursDto hoursSleepConsumed { get; set; } = null!;
 
         public GetDrugsConsumedDto drugsConsumed { get; set; } = null!;
-
+         
         public List<GetSleepingHoursDto> hoursSleep { get; set; } = null!;
 
     }

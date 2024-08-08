@@ -56,7 +56,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = res
                 };
 
-                return StatusCode(StatusCodes.Status201Created, new { message = response.message, status = response.status });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
             }
             catch (UnstoredValuesException ex)
             {
@@ -65,7 +65,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
             }
             catch (RepeatRegistrationException ex)
             {
@@ -74,7 +74,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
             }
             catch (UserNotFoundException ex)
             {
@@ -83,7 +83,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
             }
             catch (HabitNotFoundException ex)
             {
@@ -92,7 +92,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -101,33 +101,51 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
             }
         }
 
         /// <summary>
-        /// This controller returns responses from the monthly Habits tracking questionnaire..
+        /// This controller returns responses from the monthly Habits tracking questionnaire.
         /// </summary>
         /// <response code="200">Return the answers of the questionnaire that was made in such month and such year.</response>
-        /// <response code="404">Returns an error message if the user is not found or if a record with the survey results is not found.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnRetrieveResponsesHabits))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public IActionResult RetrieveResponsesHabits([FromQuery] Guid id, [FromQuery] string month, [FromQuery] int year)
+        public IActionResult RetrieveResponsesHabits([FromQuery] Guid accountID, [FromQuery] int month, [FromQuery] int year)
         {
-
-            RetrieveResponsesHabitsDto res = _MFUsHabitsService.RetrieveAnswers(id, month, year);
-
-            ReturnRetrieveResponsesHabits response = new ReturnRetrieveResponsesHabits
+            try
             {
-                responsesAnswers = res
-            };
+                RetrieveResponsesHabitsDto res = _MFUsHabitsService.RetrieveAnswers(accountID, month, year);
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, responsesAnswers = response.responsesAnswers });
+                ReturnRetrieveResponsesHabits response = new ReturnRetrieveResponsesHabits
+                {
+                    responsesAnswers = res
+                };
+
+                if (res.month == null)
+                {
+                    return StatusCode(StatusCodes.Status200OK, new { message = response.message, actionStatus = false });
+                }
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, actionStatus = response.actionStatus, responsesAnswers = response.responsesAnswers });
+
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
+            }
+
         }
     }
 }

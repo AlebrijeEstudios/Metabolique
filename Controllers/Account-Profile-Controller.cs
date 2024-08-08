@@ -49,13 +49,13 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
-        [HttpGet("{id:guid}")]
+        [HttpGet("{accountID:guid}")]
         [Produces("application/json")]
-        public IActionResult GetAccount(Guid id)
+        public IActionResult GetAccount(Guid accountID)
         {
             try
             {
-                ReturnAccountDto info = _AccountService.GetAccount(id);
+                ReturnAccountDto info = _AccountService.GetAccount(accountID);
 
                 ReturnGetAccount response = new ReturnGetAccount
                 {
@@ -269,13 +269,13 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
-        [HttpDelete("{id:guid}")]
+        [HttpDelete("{accountID:guid}")]
         [Produces("application/json")]
-        public IActionResult DeleteAccount(Guid id)
+        public IActionResult DeleteAccount(Guid accountID)
         {
             try
             {
-                var res = _AccountService.DeleteAccount(id);
+                var res = _AccountService.DeleteAccount(accountID);
 
                 ReturnUpdateDeleteAccount response = new ReturnUpdateDeleteAccount
                 {
