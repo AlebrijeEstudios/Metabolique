@@ -15,6 +15,8 @@ using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using AppVidaSana.Models.Dtos.Exercise_Dtos;
+using AppVidaSana.Models.Exercises;
 
 namespace AppVidaSana.Controllers
 {
@@ -34,31 +36,7 @@ namespace AppVidaSana.Controllers
         }
 
         /// <summary>
-        /// This controller returns the exercises performed by the user during the day.
-        /// </summary>
-        /// <response code="200">Returns an array with all the exercises performed by the user during the day or an empty array.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetExercise))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet]
-        [Produces("application/json")]
-        public IActionResult GetExercises([FromQuery] Guid id, [FromQuery] DateOnly date)
-        {
-
-            List<ExerciseListDto> exercises = _ExerciseService.GetExercises(id, date);
-
-            ReturnGetExercise response = new ReturnGetExercise
-            {
-                exercises = exercises
-            };
-
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercises = response.exercises });
-        }
-
-
-        /// <summary>
-        /// This controller obtains the total minutes spent exercising in the last 7 days.
+        /// This controller returns the exercises performed by the user during the day and obtains the total minutes spent exercising in the last 7 days.
         /// </summary>
         /// <remarks>
         /// Sample Request:
@@ -69,25 +47,26 @@ namespace AppVidaSana.Controllers
         ///     }
         ///     
         /// </remarks>
-        /// <response code="200">Returns an array with the last 7 days including the total minutes consumed or an empty array.</response>
+        /// <response code="200">Returns two arrays, one with all the exercises performed by the user during the day and 
+        /// another with the active minutes during the last 7 days, otherwise, an empty array will be returned for both cases.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetValuesGraphic))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetExercise))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
-        [HttpGet("minutes-consumed")]
+        [HttpGet]
         [Produces("application/json")]
-        public IActionResult GetValuesGraphic([FromQuery] Guid id, [FromQuery] DateOnly date)
+        public IActionResult GetExercises([FromQuery] Guid id, [FromQuery] DateOnly date)
         {
 
-            List<GraphicsValuesExerciseDto> values = _ExerciseService.ValuesGraphicExercises(id,date);
+            ExerciseAndValuesGraphicDto infoExercises = _ExerciseService.ExercisesAndValuesGraphic(id, date);
 
-            ReturnGetValuesGraphic response = new ReturnGetValuesGraphic
+            ReturnGetExercise response = new ReturnGetExercise
             {
-                timeSpentsforDay = values
+                exercises = infoExercises.exercises,
+                activeMinutes = infoExercises.activeMinutes
             };
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, timeSpentsforDay = response.timeSpentsforDay });
-            
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercises = response.exercises, ActiveMinutes = response.activeMinutes });
         }
 
         /// <summary>

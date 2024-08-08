@@ -1,8 +1,6 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.ProducesResponseType.Habits;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Services.IServices.IHabits.IHabits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -27,9 +25,18 @@ namespace AppVidaSana.Controllers.Habits
         }
 
         /// <summary>
-        /// This controller contains all the information in the habits section.
+        /// This controller contains all the information in the habits section and returns the hours of sleep in the last 7 days..
         /// </summary>
-        /// <response code="200">Returns all information from the Habits section on a given day.</response>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The sleepDateHabit property must have the following structure:   
+        ///     {
+        ///        "sleepDateHabit": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="200">Returns all the information from the Habits section for a given day and the hours of sleep for the last 7 days.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnHabitsInfo))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]

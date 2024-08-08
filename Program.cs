@@ -90,8 +90,7 @@ builder.Services.AddScoped<IExercise, ExerciseService>();
 builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
 builder.Services.AddScoped<IHabitsGeneral, HabitGeneralService>();
 builder.Services.AddScoped<IDrinkHabit, DrinkHabitService>();
-builder.Services.AddScoped<ISleepHabit, SleepHabitService>();
-builder.Services.AddScoped<IDrugsHabit, DrugsHabitService>();
+builder.Services.AddScoped<ISleepDrugsHabit, SleepDrugsHabitService>();
 builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
 
 builder.Services.AddControllersWithViews();

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Models.Exercises
 {
-    public class minutesConsumed
+    public class ActiveMinutes
     {
         [Key]
         public Guid timeSpentID { get; set; } = Guid.NewGuid();

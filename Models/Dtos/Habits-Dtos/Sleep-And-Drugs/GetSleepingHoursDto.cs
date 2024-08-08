@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace AppVidaSana.Models.Dtos.Habits_Dtos
+namespace AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs
 {
     public class GetSleepingHoursDto
     {
