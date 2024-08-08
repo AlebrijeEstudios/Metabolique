@@ -3,6 +3,7 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
+using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Exercises;
 using AppVidaSana.Services.IServices;
@@ -22,26 +23,52 @@ namespace AppVidaSana.Services
             _mapper = mapper;
         }
 
-        public List<GraphicsValuesExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date)
+        public List<ExerciseListDto> GetExercises(Guid id, DateOnly date)
         {
+            var exercise = _bd.Exercises
+            .Where(e => e.accountID == id && e.dateExercise == date)
+            .ToList();
+
+            List<ExerciseListDto> exercises;
+
+            if (exercise.Count == 0)
+            {
+                exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
+            }
+
+            exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
+
+            return exercises;
+        }
+
+        public ExerciseAndValuesGraphicDto ExercisesAndValuesGraphic(Guid id, DateOnly date)
+        {
+            List<ExerciseListDto> exercises = GetExercises(id, date);
+
             DateOnly dateFinal = date.AddDays(-6);
 
-            var events = _bd.MinutesConsumed
+            var records = _bd.ActiveMinutes
                 .Where(e => e.dateExercise >= dateFinal && e.dateExercise <= date && e.accountID == id)
                 .ToList();
 
-            List<GraphicsValuesExerciseDto> gExercises;
+            List<GraphicsValuesExerciseDto> graphicValues;
 
-            if (events.Count == 0)
+            if (records.Count == 0)
             {
-                gExercises = _mapper.Map<List<GraphicsValuesExerciseDto>>(events);
+                graphicValues = _mapper.Map<List<GraphicsValuesExerciseDto>>(records);
             }
 
-            gExercises = _mapper.Map<List<GraphicsValuesExerciseDto>>(events);
+            graphicValues = _mapper.Map<List<GraphicsValuesExerciseDto>>(records);
 
-            gExercises = gExercises.OrderBy(x => x.dateExercise).ToList();
+            graphicValues = graphicValues.OrderBy(x => x.dateExercise).ToList();
 
-            return gExercises;
+            ExerciseAndValuesGraphicDto info = new ExerciseAndValuesGraphicDto
+            {
+                exercises = exercises,
+                activeMinutes = graphicValues
+            };
+
+            return info;
         }
 
         public List<ExerciseListDto> AddExercises(AddExerciseDto exercise)
@@ -109,14 +136,14 @@ namespace AppVidaSana.Services
 
             if(ex.timeSpent < exercise.timeSpent || ex.timeSpent > exercise.timeSpent)
             {
-                var previousTotal = _bd.MinutesConsumed.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
+                var previousTotal = _bd.ActiveMinutes.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
 
                 int currentTotal = previousTotal.totalTimeSpent - ex.timeSpent;
                 int newTotal = currentTotal + exercise.timeSpent;
 
                 previousTotal.totalTimeSpent = newTotal;
 
-                _bd.MinutesConsumed.Update(previousTotal);
+                _bd.ActiveMinutes.Update(previousTotal);
 
                 if (!Save())
                 {
@@ -153,24 +180,6 @@ namespace AppVidaSana.Services
             return exercises;
         }
 
-        public List<ExerciseListDto> GetExercises(Guid id, DateOnly date)
-        {
-            var exercise = _bd.Exercises
-            .Where(e => e.accountID == id && e.dateExercise == date)
-            .ToList();
-
-            List<ExerciseListDto> exercises;
-
-            if (exercise.Count == 0)
-            {
-                exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
-            }
-
-            exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
-
-            return exercises;
-        }
-
         public List<ExerciseListDto> DeleteExercise(Guid idexercise)
         {
             var ex = _bd.Exercises.Find(idexercise);
@@ -184,7 +193,7 @@ namespace AppVidaSana.Services
             DateOnly date = ex.dateExercise;
 
             var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == ex.dateExercise);
-            var previousTotal = _bd.MinutesConsumed.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
+            var previousTotal = _bd.ActiveMinutes.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
 
             if (exerciseExisting >= 2)
             {
@@ -195,7 +204,7 @@ namespace AppVidaSana.Services
 
                     previousTotal.totalTimeSpent = newTotal;
 
-                    _bd.MinutesConsumed.Update(previousTotal);
+                    _bd.ActiveMinutes.Update(previousTotal);
 
                     if (!Save())
                     {
@@ -208,7 +217,7 @@ namespace AppVidaSana.Services
             {
                 if (previousTotal != null)
                 {
-                    _bd.MinutesConsumed.Remove(previousTotal);
+                    _bd.ActiveMinutes.Remove(previousTotal);
 
                     if (!Save())
                     {
@@ -245,7 +254,7 @@ namespace AppVidaSana.Services
 
         private void totalTimeSpentforDay(Guid id, DateOnly dateInitial, int timeSpent)
         {
-            var infoGraphics = _bd.MinutesConsumed.FirstOrDefault(c => c.accountID == id && c.dateExercise == dateInitial);
+            var infoGraphics = _bd.ActiveMinutes.FirstOrDefault(c => c.accountID == id && c.dateExercise == dateInitial);
 
             if(infoGraphics != null)
             {            
@@ -253,7 +262,7 @@ namespace AppVidaSana.Services
 
                 infoGraphics.totalTimeSpent = value + timeSpent;
 
-                _bd.MinutesConsumed.Update(infoGraphics);
+                _bd.ActiveMinutes.Update(infoGraphics);
 
                 if (!Save())
                 {
@@ -262,14 +271,14 @@ namespace AppVidaSana.Services
             }
             else
             {
-                minutesConsumed dates = new minutesConsumed
+                ActiveMinutes dates = new ActiveMinutes
                 {
                     accountID = id,
                     dateExercise = dateInitial,
                     totalTimeSpent = timeSpent
                 };
 
-                _bd.MinutesConsumed.Add(dates);
+                _bd.ActiveMinutes.Add(dates);
 
                 if (!Save())
                 {

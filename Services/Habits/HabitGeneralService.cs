@@ -2,7 +2,7 @@
 using AppVidaSana.Mappers;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
-using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
+using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs;
 using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
 
@@ -27,11 +27,22 @@ namespace AppVidaSana.Services.Habits
 
             var habitDrugs = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
 
+            DateOnly dateFinal = date.AddDays(-6);
+
+            var habits = _bd.HabitsSleep
+                .Where(e => e.sleepDateHabit >= dateFinal && e.sleepDateHabit <= date && e.accountID == idAccount)
+                .ToList();
+
+            var habitsSleep = _mapper.Map<List<GetSleepingHoursDto>>(habits);
+
+            var hoursSleep = habitsSleep.OrderBy(x => x.sleepDateHabit).ToList();
+
             ReturnInfoHabitsDto info = new ReturnInfoHabitsDto
             {
                 drinkConsumed = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink),
-                hoursSleep = _mapper.Map<GetSleepingHoursDto>(habitSleep),
-                drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs)
+                hoursSleepConsumed = _mapper.Map<GetSleepingHoursDto>(habitSleep),
+                drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
+                hoursSleep = hoursSleep
             };
 
             return info;

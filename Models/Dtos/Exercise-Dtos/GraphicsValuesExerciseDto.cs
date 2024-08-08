@@ -8,7 +8,7 @@ namespace AppVidaSana.Models.Dtos.Graphics_Dtos
 
         [JsonRequired]  public DateOnly dateExercise { get; set; }
 
-        [JsonRequired]  public int totalTimeSpent { get; set; }
+        [JsonRequired]  public int totalTimeSpent { get; set; } 
 
     }
 }

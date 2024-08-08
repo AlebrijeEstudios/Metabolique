@@ -23,11 +23,37 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             _mapper = mapper;
         }
 
-        public RetrieveResponsesHabitsDto RetrieveAnswers(Guid id, string month, int year)
+        public RetrieveResponsesHabitsDto RetrieveAnswers(Guid id, int month, int year)
         {
+            var responseMapping = new Dictionary<int, string>
+            {
+                { 1, "Enero" },
+                { 2, "Febrero" },
+                { 3, "Marzo" },
+                { 4, "Abril" },
+                { 5, "Mayo" },
+                { 6, "Junio" },
+                { 7, "Julio" },
+                { 8, "Agosto" },
+                { 9, "Septiembre" },
+                { 10, "Octubre" },
+                { 11, "Noviembre" },
+                { 12, "Diciembre" }
+            };
+
+            var existDate = responseMapping.ContainsKey(month)
+                ? responseMapping[month] : "Mes no existente";
+
+
+            if (existDate == "Mes no existente")
+            {
+                throw new UnstoredValuesException();
+
+            }
+
             RetrieveResponsesHabitsDto response;
 
-            var monthRecord = _bd.Months.FirstOrDefault(e => e.month == month && e.year == year);
+            var monthRecord = _bd.Months.FirstOrDefault(e => e.month == responseMapping[month] && e.year == year);
 
             if (monthRecord == null)
             {
@@ -60,13 +86,38 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         public SaveResultsHabitsDto SaveAnswers(SaveResponsesHabitsDto res)
         {
-            var existDate = _bd.Months.Any(e => e.month == res.month && e.year == res.year);
+            var responseMapping = new Dictionary<int, string>
+            {
+                { 1, "Enero" },
+                { 2, "Febrero" },
+                { 3, "Marzo" },
+                { 4, "Abril" },
+                { 5, "Mayo" },
+                { 6, "Junio" },
+                { 7, "Julio" },
+                { 8, "Agosto" },
+                { 9, "Septiembre" },
+                { 10, "Octubre" },
+                { 11, "Noviembre" },
+                { 12, "Diciembre" }
+            };
 
-            if (!existDate)
+            var existDate = responseMapping.ContainsKey(res.month)
+               ? responseMapping[res.month] : "Mes no existente";
+
+            if (existDate == "Mes no existente")
+            {
+                throw new UnstoredValuesException();
+
+            }
+
+            var existRecord = _bd.Months.Any(e => e.month == responseMapping[res.month] && e.year == res.year);
+
+            if (!existRecord)
             {
                 MFUsMonths month = new MFUsMonths
                 {
-                    month = res.month,
+                    month = responseMapping[res.month],
                     year = res.year
                 };
 
@@ -78,7 +129,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 }
             }
 
-            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == res.month && e.year == res.year).monthID;
+            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == responseMapping[res.month] && e.year == res.year).monthID;
 
             var answersExisting = _bd.MFUsHabits.Any(e => e.accountID == res.accountID &&
                                     e.monthID == monthID);
@@ -154,7 +205,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             SaveResultsHabitsDto results = new SaveResultsHabitsDto
             {
                 accountID = res.accountID,
-                month = res.month,
+                month = responseMapping[res.month],
                 year = res.year,
                 resultComponent1 = resultComponent1,
                 resultComponent2 = resultComponent2,

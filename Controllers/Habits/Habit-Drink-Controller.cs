@@ -176,13 +176,13 @@ namespace AppVidaSana.Controllers.Habits
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
-        [HttpDelete("{id:guid}")]
+        [HttpDelete("{drinkHabitID:guid}")]
         [Produces("application/json")]
-        public IActionResult DeleteDrinkConsumed(Guid id)
+        public IActionResult DeleteDrinkConsumed(Guid drinkHabitID)
         {
             try
             {
-                var res = _DrinkHabitService.DeleteDrinksConsumed(id);
+                var res = _DrinkHabitService.DeleteDrinksConsumed(drinkHabitID);
 
                 ReturnDeleteDrinkConsumed response = new ReturnDeleteDrinkConsumed
                 {

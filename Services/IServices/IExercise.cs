@@ -1,4 +1,5 @@
 ﻿using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
+using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
 
 namespace AppVidaSana.Services.IServices
@@ -7,13 +8,13 @@ namespace AppVidaSana.Services.IServices
     {
         List<ExerciseListDto> GetExercises(Guid id, DateOnly date);
 
-        List<GraphicsValuesExerciseDto> ValuesGraphicExercises(Guid id, DateOnly date);
+        ExerciseAndValuesGraphicDto ExercisesAndValuesGraphic(Guid id, DateOnly date);
 
         List<ExerciseListDto> AddExercises(AddExerciseDto exercise);
 
         List<ExerciseListDto> UpdateExercises(ExerciseListDto exercise);
 
-        List<ExerciseListDto> DeleteExercise(Guid idexercise);
+        List<ExerciseListDto> DeleteExercise(Guid idexercise); 
 
         bool Save();
     }

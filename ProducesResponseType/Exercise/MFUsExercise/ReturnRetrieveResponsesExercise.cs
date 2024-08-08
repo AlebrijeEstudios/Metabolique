@@ -6,6 +6,8 @@ namespace AppVidaSana.ProducesResponseType.Exercise.MFUsExercise
     {
         public string message { get; set; } = "Ok.";
 
+        public bool actionStatus { get; set; } = true;
+
         public RetrieveResponsesExerciseDto responsesAnswers { get; set; } = null!;
     }
 }

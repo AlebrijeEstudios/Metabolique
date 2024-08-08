@@ -1,14 +1,13 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.ProducesResponseType.Habits;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Services.IServices.IHabits.IHabits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.Services.IServices.IHabits;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
+using NuGet.Packaging.Core;
 
 namespace AppVidaSana.Controllers.Habits
 {
@@ -27,26 +26,42 @@ namespace AppVidaSana.Controllers.Habits
         }
 
         /// <summary>
-        /// This controller contains all the information in the habits section.
+        /// This controller contains all the information in the habits section and returns the hours of sleep in the last 7 days..
         /// </summary>
-        /// <response code="200">Returns all information from the Habits section on a given day.</response>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The sleepDateHabit,drugDateHabit and drinkDateHabit property must have the following structure:   
+        ///     {
+        ///        "drinkDateHabit": "0000-00-00" (YEAR-MOUNTH-DAY),
+        ///        "sleepDateHabit": "0000-00-00" (YEAR-MOUNTH-DAY),
+        ///        "drugDateHabit": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="200">Returns all the information from the Habits section for a given day and the hours of sleep for the last 7 days.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnHabitsInfo))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public IActionResult GetHabitsInfoGeneral([FromQuery] Guid id, [FromQuery] DateOnly date)
+        public IActionResult GetHabitsInfoGeneral([FromQuery] Guid accountID, [FromQuery] DateOnly date)
         {
 
-            ReturnInfoHabitsDto info = _HabitsInfoService.GetInfoGeneralHabits(id, date);
+            ReturnInfoHabitsDto info = _HabitsInfoService.GetInfoGeneralHabits(accountID, date);
 
             ReturnHabitsInfo response = new ReturnHabitsInfo
             {
-                habits = info
+                drinkConsumed = info.drinkConsumed,
+                hoursSleep = info.hoursSleep,
+                drugsConsumed = info.drugsConsumed,
+                hoursSleepConsumed = info.hoursSleepConsumed
             };
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, habits = response.habits });
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, drinkConsumed = response.drinkConsumed,
+                                                             hoursSleepConsumed = response.hoursSleepConsumed, drugsConsumed = response.drugsConsumed,
+                                                             hoursSleep = response.hoursSleep});
 
         }
     }

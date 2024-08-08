@@ -6,6 +6,8 @@ namespace AppVidaSana.ProducesResponseType.Habits.MFUsHabits
     {
         public string message { get; set; } = "Ok.";
 
+        public bool actionStatus { get; set; } = true;
+
         public RetrieveResponsesHabitsDto responsesAnswers { get; set; } = null!;
     }
 }
