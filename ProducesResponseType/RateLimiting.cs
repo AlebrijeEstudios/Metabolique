@@ -2,7 +2,7 @@
 {
     public class RateLimiting
     {
-        public string message { get; set; } = "Exceso de llamadas al servidor, por favor prueba mas tarde.";
+        public bool message { get; set; } = false;
 
         public string status { get; set; } = "Alcanzo el limite de peticiones permitidas, espere un lapso de 10 segundos para continuar.";
     }

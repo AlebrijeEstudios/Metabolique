@@ -56,7 +56,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = res
                 };
 
-                return StatusCode(StatusCodes.Status201Created, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, status = response.status });
             }
             catch (UnstoredValuesException ex)
             {
@@ -65,7 +65,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch (RepeatRegistrationException ex)
             {
@@ -74,7 +74,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch (UserNotFoundException ex)
             {
@@ -83,7 +83,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
             catch (HabitNotFoundException ex)
             {
@@ -92,7 +92,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -101,7 +101,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
         }
 
@@ -130,10 +130,10 @@ namespace AppVidaSana.Controllers.MFUsControllers
 
                 if (res.month == null)
                 {
-                    return StatusCode(StatusCodes.Status200OK, new { message = response.message, actionStatus = false });
+                    return StatusCode(StatusCodes.Status200OK, new { message = false, responsesAnswers = response.responsesAnswers });
                 }
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, actionStatus = response.actionStatus, responsesAnswers = response.responsesAnswers });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, responsesAnswers = response.responsesAnswers });
 
             }
             catch (UnstoredValuesException ex)
@@ -143,7 +143,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, actionStatus = response.actionStatus, status = response.status });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
 
         }

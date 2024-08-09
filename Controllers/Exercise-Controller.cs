@@ -8,15 +8,11 @@ using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Api;
 using AppVidaSana.Models;
 using AppVidaSana.ProducesReponseType;
-using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.ProducesResponseType.Exercise;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Exceptions;
-using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using AppVidaSana.Models.Dtos.Exercise_Dtos;
-using AppVidaSana.Models.Exercises;
 
 namespace AppVidaSana.Controllers
 {
@@ -65,6 +61,11 @@ namespace AppVidaSana.Controllers
                 exercises = infoExercises.exercises,
                 activeMinutes = infoExercises.activeMinutes
             };
+
+            if(!infoExercises.exercises.Any() && !infoExercises.activeMinutes.Any())
+            {
+                return StatusCode(StatusCodes.Status200OK, new { message = false, exercises = response.exercises, ActiveMinutes = response.activeMinutes });
+            }
 
             return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercises = response.exercises, ActiveMinutes = response.activeMinutes });
         }

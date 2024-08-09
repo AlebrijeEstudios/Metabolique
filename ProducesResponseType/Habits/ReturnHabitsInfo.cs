@@ -6,7 +6,7 @@ namespace AppVidaSana.ProducesResponseType.Habits
 {
     public class ReturnHabitsInfo
     {
-        public string message { get; set; } = "Ok.";
+        public bool message { get; set; } = true;
 
         public List<GetDrinksConsumedDto> drinkConsumed { get; set; } = null!;
 

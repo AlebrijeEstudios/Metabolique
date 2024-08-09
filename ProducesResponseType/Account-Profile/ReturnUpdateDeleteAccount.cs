@@ -2,7 +2,7 @@
 {
     public class ReturnUpdateDeleteAccount
     {
-        public string message { get; set; } = "Ok.";
+        public bool message { get; set; } = true;
 
         public string status { get; set; } = null!;
     }

@@ -4,7 +4,7 @@ namespace AppVidaSana.ProducesResponseType.Exercise
 {
     public class ReturnAddUpdateDeleteExercises
     {
-        public string message { get; set; } = "Ok.";
+        public bool message { get; set; } = true;
 
         public List<ExerciseListDto> exercises { get; set; } = null!;
     }

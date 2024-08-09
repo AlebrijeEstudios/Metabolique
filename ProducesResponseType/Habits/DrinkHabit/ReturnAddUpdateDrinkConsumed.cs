@@ -4,7 +4,7 @@ namespace AppVidaSana.ProducesResponseType.Habits.DrinkHabit
 {
     public class ReturnAddUpdateDrinkConsumed
     {
-        public string message { get; set; } = "Ok.";
+        public bool message { get; set; } = true;
 
         public GetDrinksConsumedDto drinksConsumed { get; set; } = null!;
     }
