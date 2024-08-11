@@ -20,6 +20,8 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
 
         [JsonRequired] public int dailyFrec { get; set; }
 
-        [JsonRequired] public List<TimeOnly> times { get; set; } = null!;
+        [JsonRequired] public List<TimeListDto> timesPrevious { get; set; } = null!;
+
+        [JsonRequired] public List<TimeOnly> times { get; set; } = new List<TimeOnly>();
     }
 }

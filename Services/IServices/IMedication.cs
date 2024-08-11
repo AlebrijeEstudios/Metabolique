@@ -11,6 +11,8 @@ namespace AppVidaSana.Services.IServices
 
         public List<InfoMedicationDto> UpdateMedication(UpdateMedicationUseDto values);
 
+        public void UpdateStatusMedication(UpdateMedicationStatusDto value);
+
         public List<InfoMedicationDto> DeleteAMedication(Guid id, DateOnly date);
 
         bool Save();
