@@ -277,7 +277,7 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDeleteExercises))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnMedications))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
