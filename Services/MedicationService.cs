@@ -246,6 +246,13 @@ namespace AppVidaSana.Services
 
         public List<InfoMedicationDto> DeleteAMedication(Guid id, DateOnly date)
         {
+            Action<Guid, DateOnly> processRecords = (medicationID, dateRecord) =>
+            {
+                var records = _bd.Times.Where(e => e.medicationID == medicationID && e.dateMedication == dateRecord).ToList();
+
+                _bd.Times.RemoveRange(records);
+            };
+
             var recordInfoMedication = _bd.Medications.FirstOrDefault(e => e.medicationID == id);
 
             List<DateOnly> currentListDates = GetDatesInRange(recordInfoMedication.initialFrec, 
@@ -261,19 +268,16 @@ namespace AppVidaSana.Services
 
             if(currentListDates.Count() == 1)
             {
+                processRecords(id, date);
+
                 _bd.Medications.Remove(recordInfoMedication);
             }
             else
             {
-                var recordsTimes = _bd.Times.Where(e => e.medicationID == id && e.dateMedication == date).ToList();
-
-                _bd.Times.RemoveRange(recordsTimes);
+                processRecords(id, date);
             }
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
+ 
+            if (!Save()) { throw new UnstoredValuesException(); }
 
             var medicationsList = InfoMedicationJustAddUpdateDelete(id, date);
 
@@ -344,10 +348,7 @@ namespace AppVidaSana.Services
 
                     _bd.Times.Add(register);
 
-                    if (!Save())
-                    {
-                        throw new UnstoredValuesException();
-                    }
+                    if (!Save()) { throw new UnstoredValuesException(); }
                 }
             }
         }

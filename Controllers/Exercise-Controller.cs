@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Api;
-using AppVidaSana.Models;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType.Exercise;
 using Microsoft.AspNetCore.RateLimiting;
