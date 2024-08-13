@@ -512,23 +512,20 @@ namespace AppVidaSana.Services
                 if (!Save()) { throw new UnstoredValuesException(); }
             };
 
-            processRecords(medication, newInitialDate);
+            
 
             if (newInitialDate < medication.initialFrec)
             {
+                List<TimeOnly> timesPrevious = new List<TimeOnly>();
+
                 var newRecordsToAList = GetDatesInRange(newInitialDate, medication.initialFrec);
 
-                var timesExamples = _bd.Times.Where(e => e.medicationID == medication.medicationID).ToList();
+                var recordsExamples = _bd.Times.Where(e => e.medicationID == medication.medicationID
+                                                    && e.dateMedication == medication.initialFrec).ToList();
 
-                var groupByTimes = timesExamples.GroupBy(e => e.dateMedication)
-                                   .ToDictionary(g => g.Key, g => g.Select(e => e.time).ToList());
+                timesPrevious.AddRange(recordsExamples.Select(e => e.time));
 
-
-                var times = groupByTimes.ContainsKey(medication.initialFrec)
-                ? _mapper.Map<List<TimeOnly>>(groupByTimes[medication.initialFrec])
-                : new List<TimeOnly>();
-
-                AddTimes(medication.medicationID, medication.accountID, newRecordsToAList, times);
+                AddTimes(medication.medicationID, medication.accountID, newRecordsToAList, timesPrevious);
 
                 medication.initialFrec = newInitialDate;
 
@@ -536,6 +533,10 @@ namespace AppVidaSana.Services
 
                 if (!Save()) { throw new UnstoredValuesException(); }
 
+            }
+            else
+            {
+                processRecords(medication, newInitialDate);
             }
         }
 
