@@ -8,5 +8,7 @@ namespace AppVidaSana.ProducesResponseType.Medications
         public bool message { get; set; } = true;
 
         public List<InfoMedicationDto> medications { get; set; } = null!;
+
+        public List<WeeklyAttachmentDto> weeklyAttachments { get; set; } = null!;
     }
 }

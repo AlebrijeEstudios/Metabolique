@@ -56,19 +56,20 @@ namespace AppVidaSana.Controllers
         [Produces("application/json")]
         public IActionResult GetMedications([FromQuery] Guid accountID, [FromQuery] DateOnly date)
         {
-            List<InfoMedicationDto> infoMedications = _MedicationService.GetMedications(accountID, date);
+            MedicationsAndValuesGraphicDto infoMedications = _MedicationService.GetMedications(accountID, date);
 
             ReturnMedications response = new ReturnMedications
             {
-                medications = infoMedications
+                medications = infoMedications.medications,
+                weeklyAttachments = infoMedications.weeklyAttachments
             };
 
-            if (!infoMedications.Any())
+            if (!infoMedications.medications.Any() && !infoMedications.weeklyAttachments.Any())
             {
                 return StatusCode(StatusCodes.Status200OK, new { message = false, medications = response.medications });
             }
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, medications = response.medications });
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, medications = response.medications, weeklyAttachments = response.weeklyAttachments });
         }
 
         /// <summary>
@@ -119,6 +120,15 @@ namespace AppVidaSana.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch (RepeatRegistrationException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (ListTimesVoidException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
@@ -196,6 +206,15 @@ namespace AppVidaSana.Controllers
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, medications = response.medications });
             }
             catch (UnstoredValuesException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (ListTimesVoidException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {

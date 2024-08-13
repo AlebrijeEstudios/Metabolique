@@ -5,7 +5,7 @@ namespace AppVidaSana.Services.IServices
     public interface IMedication
     {
 
-        public List<InfoMedicationDto> GetMedications(Guid id, DateOnly date);
+        public MedicationsAndValuesGraphicDto GetMedications(Guid id, DateOnly date);
 
         public List<InfoMedicationDto> AddMedication(AddMedicationUseDto medication);
 
