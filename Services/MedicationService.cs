@@ -133,7 +133,7 @@ namespace AppVidaSana.Services
                             if (l.medicationStatus){ countStatus++; }
                         }
 
-                        statusGeneral = (countStatus == med.dailyFrec) ? true : statusGeneral;
+                        statusGeneral = (countStatus == list.Count()) ? true : statusGeneral;
 
                         MedicationDigestDto medDigest = new MedicationDigestDto
                         {
@@ -261,7 +261,12 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            if(med.dailyFrec == values.dailyFrec)
+            if (med.dailyFrec != values.dailyFrec)
+            {
+                UpdateForNewDailyFrec(med, values);
+            }
+
+            if (med.dailyFrec == values.dailyFrec)
             {
                 UpdateTimes(values.medicationID, values.timesPrevious);
             }
@@ -274,11 +279,6 @@ namespace AppVidaSana.Services
             if(med.finalFrec != values.finalFrec)
             {
                 UpdateForNewDateFinal(med, values.finalFrec);
-            }
-
-            if(med.dailyFrec != values.dailyFrec)
-            {
-                UpdateForNewDailyFrec(med, values);
             }
 
             med.nameMedication = values.nameMedication;
@@ -647,15 +647,15 @@ namespace AppVidaSana.Services
             List<Guid> IdsPrevious = new List<Guid>();
             List<Guid> Ids = new List<Guid>();
 
-
-            Action<List<TimeListDto>> processRecords = (list) =>
+            Action<List<TimeListDto>, DateOnly> processRecords = (list, date) =>
             {
                 foreach (var id in list)
                 {
                     var record = _bd.Times.Find(id.timeID);
 
                     var recordsToUpdate = _bd.Times.Where(e => e.medicationID == medication.medicationID
-                                                          && e.time == record.time).ToList();
+                                                          && e.time == record.time
+                                                          && e.dateMedication >= date).ToList();
 
                     foreach (var val in recordsToUpdate)
                     {
@@ -671,7 +671,7 @@ namespace AppVidaSana.Services
 
             if (!values.times.Any())
             {
-                processRecords(values.timesPrevious);
+                processRecords(values.timesPrevious, values.dateRecord);
 
                 var recordsTimes = _bd.Times.Where(e => e.dateMedication == values.dateRecord
                                           && e.medicationID == values.medicationID
@@ -702,7 +702,7 @@ namespace AppVidaSana.Services
             }
             else
             {
-                processRecords(values.timesPrevious);
+                processRecords(values.timesPrevious, values.dateRecord);
 
                 List<DateOnly> dates = GetDatesInRange(medication.initialFrec, medication.finalFrec);
 
