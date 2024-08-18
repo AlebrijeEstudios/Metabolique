@@ -71,7 +71,7 @@ namespace AppVidaSana.Services
             return info;
         }
 
-        public List<ExerciseListDto> AddExercises(AddExerciseDto exercise)
+        public ExerciseListDto AddExercises(AddExerciseDto exercise)
         {
             var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == exercise.dateExercise && e.typeExercise == exercise.typeExercise &&
                                 e.intensityExercise == exercise.intensityExercise && e.timeSpent == exercise.timeSpent);
@@ -120,12 +120,12 @@ namespace AppVidaSana.Services
 
             totalTimeSpentforDay(exercise.accountID, exercise.dateExercise, exercise.timeSpent);
 
-            List<ExerciseListDto> exercises = GetExercises(exercise.accountID, exercise.dateExercise);
+            ExerciseListDto info = GetExercise(exercise.accountID, exercise.dateExercise);
 
-            return exercises;
+            return info;
         }
 
-        public List<ExerciseListDto> UpdateExercises(ExerciseListDto exercise)
+        public ExerciseListDto UpdateExercises(ExerciseListDto exercise)
         {
             var ex = _bd.Exercises.Find(exercise.exerciseID);
 
@@ -175,12 +175,12 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            List<ExerciseListDto> exercises = GetExercises(exercise.accountID, exercise.dateExercise);
+            ExerciseListDto info = GetExercise(exercise.accountID, exercise.dateExercise);
 
-            return exercises;
+            return info;
         }
 
-        public List<ExerciseListDto> DeleteExercise(Guid idexercise)
+        public string DeleteExercise(Guid idexercise)
         {
             var ex = _bd.Exercises.Find(idexercise);
 
@@ -233,12 +233,10 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-
-            List<ExerciseListDto> exercises = GetExercises(id, date);
-
-            return exercises;
+            return "Se ha eliminado correctamente.";
 
         }
+
         public bool Save()
         {
             try
@@ -285,6 +283,23 @@ namespace AppVidaSana.Services
                     throw new UnstoredValuesException();
                 }
             }
-        } 
+        }
+
+        private ExerciseListDto GetExercise(Guid id, DateOnly date)
+        {
+            var exercise = _bd.Exercises
+            .FirstOrDefault(e => e.accountID == id && e.dateExercise == date);
+
+            ExerciseListDto ex;
+
+            if (exercise == null)
+            {
+                ex = _mapper.Map<ExerciseListDto>(exercise);
+            }
+
+            ex = _mapper.Map<ExerciseListDto>(exercise);
+
+            return ex;
+        }
     }
 }

@@ -86,7 +86,7 @@ namespace AppVidaSana.Controllers
         /// <response code="404">Return an error message if the user is not found.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddUpdateDeleteExercises))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddUpdateExercises))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
@@ -98,14 +98,14 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                List<ExerciseListDto> exercises = _ExerciseService.AddExercises(exercise);
+                ExerciseListDto ex = _ExerciseService.AddExercises(exercise);
 
-                ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
+                ReturnAddUpdateExercises response = new ReturnAddUpdateExercises
                 {
-                    exercises = exercises
+                    exercise = ex
                 };
 
-                return StatusCode(StatusCodes.Status201Created, new { message = response.message, exercises = response.exercises });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, exercise = response.exercise });
             }
             catch (UnstoredValuesException ex)
             {
@@ -155,7 +155,7 @@ namespace AppVidaSana.Controllers
         /// <response code="404">Returns a message indicating that no record(s) were found for a certain exercise.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDeleteExercises))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateExercises))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
@@ -167,14 +167,14 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                List<ExerciseListDto> exercises = _ExerciseService.UpdateExercises(listExercises);
+                ExerciseListDto ex = _ExerciseService.UpdateExercises(listExercises);
 
-                ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
+                ReturnAddUpdateExercises response = new ReturnAddUpdateExercises
                 {
-                    exercises = exercises
+                    exercise = ex
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercises = response.exercises });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercise = response.exercise });
             }
             catch (UnstoredValuesException ex)
             {
@@ -212,7 +212,7 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Returns a message indicating that an exercise does not exist in the Exercises table.</response>     
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDeleteExercises))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnDeleteExercise))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
@@ -223,14 +223,14 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                List<ExerciseListDto> exercises = _ExerciseService.DeleteExercise(exerciseID);
+                string res = _ExerciseService.DeleteExercise(exerciseID);
 
-                ReturnAddUpdateDeleteExercises response = new ReturnAddUpdateDeleteExercises
+                ReturnDeleteExercise response = new ReturnDeleteExercise
                 {
-                    exercises = exercises
+                    status = res
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercises = response.exercises });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
             }
             catch (UnstoredValuesException ex)
             {

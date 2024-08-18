@@ -2,10 +2,10 @@
 
 namespace AppVidaSana.ProducesResponseType.Exercise
 {
-    public class ReturnAddUpdateDeleteExercises
+    public class ReturnAddUpdateExercises
     {
         public bool message { get; set; } = true;
 
-        public List<ExerciseListDto> exercises { get; set; } = null!;
+        public ExerciseListDto exercise { get; set; } = null!;
     }
 }

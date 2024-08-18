@@ -167,11 +167,9 @@ namespace AppVidaSana.Data
                 .HasForeignKey(sideEffects => sideEffects.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Medication>()
-                .HasMany(medication => medication.sideEffects)
-                .WithOne(sideEffects => sideEffects.medication)
-                .HasForeignKey(sideEffects => sideEffects.medicationID)
-                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Times>()
+              .Property(e => e.time)
+              .HasColumnType("TIME(0)");
         }
     }
 }
