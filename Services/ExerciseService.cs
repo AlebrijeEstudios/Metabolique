@@ -120,7 +120,12 @@ namespace AppVidaSana.Services
 
             totalTimeSpentforDay(exercise.accountID, exercise.dateExercise, exercise.timeSpent);
 
-            ExerciseListDto info = GetExercise(exercise.accountID, exercise.dateExercise);
+            var exerciseRecently = _bd.Exercises.FirstOrDefault(e => e.accountID == exercise.accountID && e.dateExercise == exercise.dateExercise 
+                                                                && e.typeExercise == exercise.typeExercise 
+                                                                && e.intensityExercise == exercise.intensityExercise 
+                                                                && e.timeSpent == exercise.timeSpent);
+
+            ExerciseListDto info = GetExercise(exerciseRecently.exerciseID, exercise.dateExercise);
 
             return info;
         }
@@ -175,7 +180,7 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            ExerciseListDto info = GetExercise(exercise.accountID, exercise.dateExercise);
+            ExerciseListDto info = GetExercise(exercise.exerciseID, exercise.dateExercise);
 
             return info;
         }
@@ -288,7 +293,7 @@ namespace AppVidaSana.Services
         private ExerciseListDto GetExercise(Guid id, DateOnly date)
         {
             var exercise = _bd.Exercises
-            .FirstOrDefault(e => e.accountID == id && e.dateExercise == date);
+            .FirstOrDefault(e => e.exerciseID == id && e.dateExercise == date);
 
             ExerciseListDto ex;
 

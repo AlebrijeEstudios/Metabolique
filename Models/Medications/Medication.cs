@@ -23,9 +23,6 @@ namespace AppVidaSana.Models.Medications
         [Required(ErrorMessage = "El campo frecuencia final es obligatorio.")]
         public DateOnly finalFrec { get; set; }
 
-        [Required(ErrorMessage = "El campo frecuencia diaria es obligatorio.")]
-        public int dailyFrec { get; set; }
-
         public bool isActive { get; set; }
 
         public Account? account { get; set; }

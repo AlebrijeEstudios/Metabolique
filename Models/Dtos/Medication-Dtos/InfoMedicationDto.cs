@@ -16,8 +16,6 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
 
         [JsonRequired] public DateOnly finalFrec { get; set; } 
 
-        [JsonRequired] public int dailyFrec { get; set; }
-
         [JsonRequired] public List<TimeListDto> times { get; set; } = null!;
 
     }

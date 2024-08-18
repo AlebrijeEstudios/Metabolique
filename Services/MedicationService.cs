@@ -30,7 +30,7 @@ namespace AppVidaSana.Services
             var medicationExisting = _bd.Medications.Any(e => e.accountID == medication.accountID 
                                         && e.nameMedication == medication.nameMedication
                                         && e.dose == medication.dose && e.initialFrec == medication.initialFrec
-                                        && e.finalFrec == medication.finalFrec && e.dailyFrec == medication.dailyFrec);
+                                        && e.finalFrec == medication.finalFrec);
 
             if (medicationExisting)
             {
@@ -51,7 +51,6 @@ namespace AppVidaSana.Services
                 dose = medication.dose,
                 initialFrec = medication.initialFrec,
                 finalFrec = medication.finalFrec,
-                dailyFrec = medication.dailyFrec,
                 isActive = true
             };
 
@@ -80,7 +79,7 @@ namespace AppVidaSana.Services
             var recentlyMedication = _bd.Medications.FirstOrDefault(e => e.accountID == medication.accountID
                                         && e.nameMedication == medication.nameMedication
                                         && e.dose == medication.dose && e.initialFrec == medication.initialFrec
-                                        && e.finalFrec == medication.finalFrec && e.dailyFrec == medication.dailyFrec);
+                                        && e.finalFrec == medication.finalFrec);
 
             AddTimes(recentlyMedication.medicationID, medication.accountID, dates, medication.times);
 
@@ -195,7 +194,6 @@ namespace AppVidaSana.Services
                         dose = infoMed.dose,
                         initialFrec = infoMed.initialFrec,
                         finalFrec = infoMed.finalFrec,
-                        dailyFrec = infoMed.dailyFrec,
                         times = list
                     };
 
@@ -220,37 +218,23 @@ namespace AppVidaSana.Services
             {
                 throw new UnstoredValuesException();
             }
-
-            if (values.dailyFrec != values.timesPrevious.Count() + values.times.Count())
-            {
-                throw new UnstoredValuesException();
-            }
             
-            if (med.dailyFrec == values.dailyFrec)
-            {
-                UpdateTimes(values.medicationID, values.dateRecord, values.timesPrevious);
-            }
-
-            if (med.dailyFrec != values.dailyFrec)
-            {
-                UpdateForNewDailyFrec(med, values);
-            }
-
+            UpdateForNewDailyFrec(med, values);
+            
             if (med.initialFrec != values.initialFrec)
             {
-                UpdateForNewDateInitial(med, values.initialFrec, values.dailyFrec);
+                UpdateForNewDateInitial(med, values.initialFrec);
             }
 
             if (med.finalFrec != values.finalFrec)
             {
-                UpdateForNewDateFinal(med, values.finalFrec, values.dailyFrec);
+                UpdateForNewDateFinal(med, values.finalFrec);
             }
 
             med.nameMedication = values.nameMedication;
             med.dose = values.dose;
             med.initialFrec = values.initialFrec;
             med.finalFrec = values.finalFrec;
-            med.dailyFrec = values.dailyFrec;
 
             var valResults = new List<ValidationResult>();
             var valContext = new ValidationContext(med, null, null);
@@ -375,7 +359,6 @@ namespace AppVidaSana.Services
                     dose = infoMed.dose,
                     initialFrec = infoMed.initialFrec,
                     finalFrec = infoMed.finalFrec,
-                    dailyFrec = infoMed.dailyFrec,
                     times = list
                 };
 
@@ -445,26 +428,6 @@ namespace AppVidaSana.Services
             }
         }
 
-        private void UpdateTimes(Guid medicationID, DateOnly date, List<TimeListDto> times)
-        {
-            var medication = _bd.Medications.Find(medicationID);
-
-            var recordsTimes = _bd.Times.Where(e => date <= e.dateMedication
-                                          && e.medicationID == medication.medicationID
-                                          && e.accountID == medication.accountID).ToList();
-
-            _bd.Times.RemoveRange(recordsTimes);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
-
-            List<TimeOnly> newTimes = times.Select(e => e.time).ToList();
-
-            List<DateOnly> newDates = GetDatesInRange(medication.initialFrec, medication.finalFrec);
-
-            AddTimes(medication.medicationID, medication.accountID, newDates, newTimes);
-
-        }
-
         public void UpdateStatusMedication(UpdateMedicationStatusDto value)
         {
             var record = _bd.Times.Find(value.timeID);
@@ -476,7 +439,7 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private void UpdateForNewDateInitial(Medication medication, DateOnly newInitialDate, int dailyFrec)
+        private void UpdateForNewDateInitial(Medication medication, DateOnly newInitialDate)
         {
             List<Times> records,recordsSample;
             List<DateOnly> newInitialDateInTime = new List<DateOnly>();
@@ -494,7 +457,7 @@ namespace AppVidaSana.Services
                 throw new NewInitialDateAfterFinalDateException();
             }
 
-            Action<Medication, DateOnly, int> processRecords = (medication, date, frec) =>
+            Action<Medication, DateOnly> processRecords = (medication, date) =>
             {
                 Medication medicationOld = new Medication
                 {
@@ -503,7 +466,6 @@ namespace AppVidaSana.Services
                     dose = medication.dose,
                     initialFrec = medication.initialFrec,
                     finalFrec = date.AddDays(-1),
-                    dailyFrec = frec,
                     isActive = false
                 };
 
@@ -514,7 +476,7 @@ namespace AppVidaSana.Services
                 var recentlyMedication = _bd.Medications.FirstOrDefault(e => e.accountID == medicationOld.accountID
                                         && e.nameMedication == medicationOld.nameMedication
                                         && e.dose == medicationOld.dose && e.initialFrec == medicationOld.initialFrec
-                                        && e.finalFrec == date.AddDays(-1) && e.dailyFrec == medicationOld.dailyFrec);
+                                        && e.finalFrec == date.AddDays(-1));
 
                 records = _bd.Times.Where(e => e.dateMedication < date
                                     && e.medicationID == medication.medicationID).ToList();
@@ -556,11 +518,11 @@ namespace AppVidaSana.Services
             }
             else
             {
-                processRecords(medication, newInitialDate, dailyFrec);
+                processRecords(medication, newInitialDate);
             }
         }
 
-        private void UpdateForNewDateFinal(Medication medication, DateOnly newFinalDate, int dailyFrec)
+        private void UpdateForNewDateFinal(Medication medication, DateOnly newFinalDate)
         {
             if (newFinalDate < medication.initialFrec)
             {
@@ -574,7 +536,7 @@ namespace AppVidaSana.Services
                 throw new NotEditingException();
             }
 
-            Action<Medication, DateOnly, int> processRecords = (medication, date, frec) =>
+            Action<Medication, DateOnly> processRecords = (medication, date) =>
             {
                 DateOnly newDateInitial = date.AddDays(1);
 
@@ -585,7 +547,6 @@ namespace AppVidaSana.Services
                     dose = medication.dose,
                     initialFrec = newDateInitial,
                     finalFrec = medication.finalFrec,
-                    dailyFrec = frec,
                     isActive = false
                 };
 
@@ -596,7 +557,7 @@ namespace AppVidaSana.Services
                 var recentlyMedication = _bd.Medications.FirstOrDefault(e => e.accountID == medicationActive.accountID
                                             && e.nameMedication == medicationActive.nameMedication
                                             && e.dose == medicationActive.dose && e.initialFrec == newDateInitial
-                                            && e.finalFrec == medicationActive.finalFrec && e.dailyFrec == medicationActive.dailyFrec);
+                                            && e.finalFrec == medicationActive.finalFrec);
 
                 var records = _bd.Times.Where(e => date < e.dateMedication
                                     && e.medicationID == medication.medicationID).ToList();
@@ -637,7 +598,7 @@ namespace AppVidaSana.Services
             }
             else
             {
-                processRecords(medication, newFinalDate, dailyFrec);
+                processRecords(medication, newFinalDate);
             }
         }
 
