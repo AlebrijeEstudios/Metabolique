@@ -89,7 +89,7 @@ namespace AppVidaSana.Controllers
         /// <response code="404">Return an error message if the user is not found.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnMedications))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddUpdateMedication))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
@@ -101,14 +101,14 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                List<InfoMedicationDto> medications = _MedicationService.AddMedication(medication);
+                InfoMedicationDto med = _MedicationService.AddMedication(medication);
 
-                ReturnMedications response = new ReturnMedications
+                ReturnAddUpdateMedication response = new ReturnAddUpdateMedication
                 {
-                    medications = medications
+                    medication = med
                 };
 
-                return StatusCode(StatusCodes.Status201Created, new { message = response.message, medications = response.medications });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, medication = response.medication });
             }
             catch (UnstoredValuesException ex)
             {
@@ -184,7 +184,7 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>    
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnMedications))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateMedication))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
@@ -196,14 +196,14 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                List<InfoMedicationDto> medications = _MedicationService.UpdateMedication(medication);
+                InfoMedicationDto med = _MedicationService.UpdateMedication(medication);
 
-                ReturnMedications response = new ReturnMedications
+                ReturnAddUpdateMedication response = new ReturnAddUpdateMedication
                 {
-                    medications = medications
+                    medication = med
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, medications = response.medications });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, medication = response.medication });
             }
             catch (UnstoredValuesException ex)
             {
@@ -305,7 +305,7 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnMedications))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnDeleteMedication))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
@@ -315,14 +315,14 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                List<InfoMedicationDto> medications = _MedicationService.DeleteAMedication(medicationID, date);
+                string res = _MedicationService.DeleteAMedication(medicationID, date);
 
-                ReturnMedications response = new ReturnMedications
+                ReturnDeleteMedication response = new ReturnDeleteMedication
                 {
-                    medications = medications
+                    status = res
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, medications = response.medications });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
             }
             catch (UnstoredValuesException ex)
             {
