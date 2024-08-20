@@ -216,6 +216,8 @@ namespace AppVidaSana.Services
 
         public InfoMedicationDto UpdateMedication(UpdateMedicationUseDto values)
         {
+            InfoMedicationDto info = new InfoMedicationDto();
+
             var med = _bd.Medications.Find(values.medicationID);
 
             if (med == null)
@@ -235,7 +237,7 @@ namespace AppVidaSana.Services
             
             if (period.initialFrec != values.initialFrec || period.finalFrec != values.finalFrec)
             {
-                UpdateForNewDateInitialAndFinal(med, period, values.initialFrec, values.finalFrec);
+                info =  UpdateForNewDateInitialAndFinal(med, period, values.dateRecord, values.initialFrec, values.finalFrec);
             }
 
             med.nameMedication = values.nameMedication;
@@ -247,18 +249,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            period.initialFrec = values.initialFrec;
-            period.finalFrec = values.finalFrec;
-
-            ValidationAddPeriodsMedications(period);
-
-            _bd.PeriodsMedications.Update(period);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
-
-            var medication = InfoMedicationJustAddUpdateDelete(period.periodID, values.dateRecord);
-
-            return medication;
+            return info;
 
         }
 
@@ -481,38 +472,40 @@ namespace AppVidaSana.Services
             }
         }
 
-        private void UpdateForNewDateInitialAndFinal(Medication medication, PeriodsMedications periods, DateOnly newInitialDate, DateOnly newFinalDate)
+        private InfoMedicationDto UpdateForNewDateInitialAndFinal(Medication medication, PeriodsMedications periods, DateOnly dateRecord, DateOnly newInitialDate, DateOnly newFinalDate)
         {
-            if (newInitialDate < periods.initialFrec)
+            var idsPeriodsInactive = _bd.PeriodsMedications.Where(e => e.medicationID == medication.medicationID
+                                                                  && e.isActive == false).ToList();
+
+            List<Guid> idsToRemove = new List<Guid>();
+
+            idsToRemove.AddRange(idsPeriodsInactive.Select(e => e.periodID));
+
+            foreach(var id in idsToRemove)
             {
-                List<TimeOnly> timesPrevious = new List<TimeOnly>();
+                var existingRecords = _bd.Times.Any(e => e.periodID == id);
 
-                var newRecordsToAList = GetDatesInRange(newInitialDate, periods.initialFrec.AddDays(-1));
+                if (!existingRecords)
+                {
+                    var recordToDelete = _bd.PeriodsMedications.Find(id);
 
-                var recordsExamples = _bd.Times.Where(e => e.periodID == periods.periodID
-                                                    && e.dateMedication == periods.initialFrec).ToList();
+                    _bd.PeriodsMedications.Remove(recordToDelete);
 
-                timesPrevious.AddRange(recordsExamples.Select(e => e.time));
+                    if (!Save()) { throw new UnstoredValuesException(); }
 
-                AddTimes(periods.periodID, medication.accountID, newRecordsToAList, timesPrevious);
+                }
+            }
+            
+            var recordExisting = _bd.PeriodsMedications.Any(e => e.medicationID ==  periods.medicationID
+                                                            && e.initialFrec == newInitialDate
+                                                            && e.finalFrec ==  newFinalDate && e.isActive == false);
+
+            if (recordExisting)
+            {
+                throw new NotRepeatPeriodException();
             }
 
-            if (periods.finalFrec < newFinalDate)
-            {
-                List<TimeOnly> timesPrevious = new List<TimeOnly>();
-
-                var newRecordsToAList = GetDatesInRange(periods.finalFrec.AddDays(1), newFinalDate);
-
-                var timesExamples = _bd.Times.Where(e => e.periodID == periods.periodID
-                                                    && e.dateMedication == periods.finalFrec).ToList();
-
-                timesPrevious.AddRange(timesExamples.Select(e => e.time));
-
-                AddTimes(periods.periodID, medication.accountID, newRecordsToAList, timesPrevious);
-            }
-
-
-            if(periods.initialFrec < newInitialDate || newFinalDate < periods.finalFrec)
+            if (periods.initialFrec < newInitialDate || newFinalDate < periods.finalFrec)
             {
                 periods.isActive = false;
 
@@ -543,7 +536,7 @@ namespace AppVidaSana.Services
 
                 var records = _bd.Times.Where(e => e.dateMedication >= newInitialDate
                                               && e.dateMedication <= newFinalDate
-                                              && e.periodID == recentlyPeriodMedication.periodID).ToList();
+                                              && e.periodID == periods.periodID).ToList();
 
                 foreach (var item in records)
                 {
@@ -555,7 +548,174 @@ namespace AppVidaSana.Services
                 _bd.Medications.Update(medication);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
+
+                return InfoMedicationJustAddUpdateDelete(recentlyPeriodMedication.periodID, dateRecord);
             }
+
+            if(periods.initialFrec == newInitialDate && newFinalDate != periods.finalFrec)
+            {
+                periods.isActive = false;
+
+                ValidationAddPeriodsMedications(periods);
+
+                _bd.PeriodsMedications.Update(periods);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                PeriodsMedications newPeriod = new PeriodsMedications
+                {
+                    medicationID = medication.medicationID,
+                    initialFrec = newInitialDate,
+                    finalFrec = newFinalDate,
+                    isActive = true
+                };
+
+                ValidationAddPeriodsMedications(newPeriod);
+
+                _bd.PeriodsMedications.Add(newPeriod);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                var recentlyPeriodMedication = _bd.PeriodsMedications.
+                                                FirstOrDefault(e => e.medicationID == medication.medicationID
+                                                               && e.initialFrec == newInitialDate
+                                                               && e.finalFrec == newFinalDate && e.isActive == true);
+
+                var records = _bd.Times.Where(e => e.dateMedication >= newInitialDate.AddDays(1)
+                                              && e.dateMedication <= newFinalDate
+                                              && e.periodID == periods.periodID).ToList();
+
+                foreach (var item in records)
+                {
+                    item.periodID = recentlyPeriodMedication.periodID;
+                }
+
+                _bd.Times.UpdateRange(records);
+
+                _bd.Medications.Update(medication);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                return InfoMedicationJustAddUpdateDelete(recentlyPeriodMedication.periodID, dateRecord);
+            }
+
+            if (periods.initialFrec != newInitialDate && newFinalDate == periods.finalFrec)
+            {
+                periods.isActive = false;
+
+                ValidationAddPeriodsMedications(periods);
+
+                _bd.PeriodsMedications.Update(periods);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                PeriodsMedications newPeriod = new PeriodsMedications
+                {
+                    medicationID = medication.medicationID,
+                    initialFrec = newInitialDate,
+                    finalFrec = newFinalDate,
+                    isActive = true
+                };
+
+                ValidationAddPeriodsMedications(newPeriod);
+
+                _bd.PeriodsMedications.Add(newPeriod);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                var recentlyPeriodMedication = _bd.PeriodsMedications.
+                                                FirstOrDefault(e => e.medicationID == medication.medicationID
+                                                               && e.initialFrec == newInitialDate
+                                                               && e.finalFrec == newFinalDate && e.isActive == true);
+
+                var records = _bd.Times.Where(e => e.dateMedication >= newInitialDate
+                                              && e.dateMedication <= newFinalDate.AddDays(-1)
+                                              && e.periodID == periods.periodID).ToList();
+
+                foreach (var item in records)
+                {
+                    item.periodID = recentlyPeriodMedication.periodID;
+                }
+
+                _bd.Times.UpdateRange(records);
+
+                _bd.Medications.Update(medication);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                return InfoMedicationJustAddUpdateDelete(recentlyPeriodMedication.periodID, dateRecord);
+            }
+
+            if (newInitialDate < periods.initialFrec)
+            {
+                foreach (var id in idsToRemove) 
+                {
+                    var recordsToDelete = _bd.Times.Where(e => e.periodID == id
+                                                          && e.dateMedication >= newInitialDate
+                                                          && e.dateMedication <= periods.initialFrec.AddDays(-1)).ToList();
+
+                    _bd.Times.RemoveRange(recordsToDelete);
+
+                    if (!Save()) { throw new UnstoredValuesException(); }
+
+                }
+
+                var recordToUpdate = _bd.PeriodsMedications.Find(periods.periodID);
+
+                List<TimeOnly> timesPrevious = new List<TimeOnly>();
+
+                var newRecordsToAList = GetDatesInRange(newInitialDate, periods.initialFrec.AddDays(-1));
+
+                var recordsExamples = _bd.Times.Where(e => e.periodID == periods.periodID
+                                                    && e.dateMedication == periods.initialFrec).ToList();
+
+                timesPrevious.AddRange(recordsExamples.Select(e => e.time));
+
+                AddTimes(periods.periodID, medication.accountID, newRecordsToAList, timesPrevious);
+
+                recordToUpdate.initialFrec = newInitialDate;
+
+                _bd.PeriodsMedications.Update(recordToUpdate);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+            }
+
+            if (periods.finalFrec < newFinalDate)
+            {
+                foreach (var id in idsToRemove)
+                {
+                    var recordsToDelete = _bd.Times.Where(e => e.periodID == id
+                                                          && e.dateMedication >= periods.finalFrec.AddDays(1)
+                                                          && e.dateMedication <= newFinalDate).ToList();
+
+                    _bd.Times.RemoveRange(recordsToDelete);
+
+                    if (!Save()) { throw new UnstoredValuesException(); }
+
+                }
+
+                var recordToUpdate = _bd.PeriodsMedications.Find(periods.periodID);
+
+                List<TimeOnly> timesPrevious = new List<TimeOnly>();
+
+                var newRecordsToAList = GetDatesInRange(periods.finalFrec.AddDays(1), newFinalDate);
+
+                var timesExamples = _bd.Times.Where(e => e.periodID == periods.periodID
+                                                    && e.dateMedication == periods.finalFrec).ToList();
+
+                timesPrevious.AddRange(timesExamples.Select(e => e.time));
+
+                AddTimes(periods.periodID, medication.accountID, newRecordsToAList, timesPrevious);
+
+                recordToUpdate.finalFrec = newFinalDate;
+
+                _bd.PeriodsMedications.Update(recordToUpdate);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+            }
+
+            return InfoMedicationJustAddUpdateDelete(periods.periodID, dateRecord); ;
         }
 
         private void UpdateForNewDailyFrec(Medication medication, PeriodsMedications periods, UpdateMedicationUseDto values)
