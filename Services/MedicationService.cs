@@ -702,7 +702,7 @@ namespace AppVidaSana.Services
                 var newRecordsToAList = GetDatesInRange(periods.finalFrec.AddDays(1), newFinalDate);
 
                 var timesExamples = _bd.Times.Where(e => e.periodID == periods.periodID
-                                                    && e.dateMedication == periods.finalFrec).ToList();
+                                                    && e.dateMedication == periods.finalFrec.AddDays(-1)).ToList();
 
                 timesPrevious.AddRange(timesExamples.Select(e => e.time));
 
