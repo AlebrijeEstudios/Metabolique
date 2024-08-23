@@ -214,15 +214,6 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
-            catch (NotEditingException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
-            }
             catch (ListTimesVoidException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage

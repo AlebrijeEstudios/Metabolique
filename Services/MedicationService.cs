@@ -6,7 +6,6 @@ using AppVidaSana.Models.Dtos.Medication_Dtos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
-using NuGet.Packaging.Signing;
 using Sprache;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
@@ -123,6 +122,8 @@ namespace AppVidaSana.Services
             {
                 foreach (var time in groupObjectsByID)
                 {
+                    countStatus = 0;
+
                     var period = _bd.PeriodsMedications.Find(time.Key);
 
                     var med = _bd.Medications.Find(period.medicationID);
@@ -135,10 +136,13 @@ namespace AppVidaSana.Services
 
                         foreach (var l in list)
                         {
-                            if (l.medicationStatus){ countStatus++; }
+                            if (l.medicationStatus)
+                            {
+                                countStatus++;
+                            }
                         }
 
-                        statusGeneral = (countStatus == list.Count()) ? true : statusGeneral;
+                        statusGeneral = (countStatus == list.Count()) ? true : false;
 
                         if (statusGeneral)
                         {
@@ -227,11 +231,6 @@ namespace AppVidaSana.Services
             }
 
             var period = _bd.PeriodsMedications.FirstOrDefault(e => e.medicationID == med.medicationID && e.isActive == true);
-
-            if (period == null)
-            {
-                throw new NotEditingException();
-            }
 
             info = UpdateForNewDailyFrec(med, period, values);
             
