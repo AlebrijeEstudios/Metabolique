@@ -8,7 +8,6 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
 
         [JsonRequired] public int totalMedications { get; set; }
 
-        [JsonRequired] public List<MedicationDigestDto> listMedications { get; set; } = null!;
-
+        [JsonRequired] public int medicationsConsumed { get; set; }
     }
 }

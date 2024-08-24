@@ -93,9 +93,8 @@ namespace AppVidaSana.Services
 
         public MedicationsAndValuesGraphicDto GetMedications(Guid id, DateOnly dateActual)
         {
-            int countStatus = 0, totalMedications = 0;
+            int countStatus = 0, totalMedications = 0, medicationsConsumed = 0;
             bool statusGeneral = false;
-            List<MedicationDigestDto> listMedications = new List<MedicationDigestDto>();
             List<WeeklyAttachmentDto> weeklyList = new List<WeeklyAttachmentDto>();
 
             DateOnly dateFinal = dateActual.AddDays(-6);
@@ -146,30 +145,22 @@ namespace AppVidaSana.Services
 
                         if (statusGeneral)
                         {
-                            --totalMedications;
+                            medicationsConsumed++;
                         }
-
-                        MedicationDigestDto medDigest = new MedicationDigestDto
-                        {
-                            medicationID = time.Key,
-                            statusGeneral = statusGeneral
-                        };
-
-                        listMedications.Add(medDigest);
                     }
                 }
 
                 WeeklyAttachmentDto obj = new WeeklyAttachmentDto
                 {
                     date = date,
-                    totalMedications = totalMedications,
-                    listMedications = listMedications
+                    medicationsConsumed = medicationsConsumed,
+                    totalMedications = totalMedications
                 };
 
                 weeklyList.Add(obj);
 
                 totalMedications = 0;
-                listMedications = new List<MedicationDigestDto>();
+                medicationsConsumed = 0;
             }
 
             var recordsTimesActual = _bd.Times
@@ -230,7 +221,8 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            var period = _bd.PeriodsMedications.FirstOrDefault(e => e.medicationID == med.medicationID && e.isActive == true);
+            var period = _bd.PeriodsMedications.FirstOrDefault(e => e.medicationID == med.medicationID 
+                                                               && e.isActive == true);
 
             info = UpdateForNewDailyFrec(med, period, values);
             
@@ -274,19 +266,27 @@ namespace AppVidaSana.Services
                 if (!Save()) { throw new UnstoredValuesException(); }
             };
 
+            var recordToDelete = _bd.PeriodsMedications.FirstOrDefault(e => e.medicationID == id
+                                                        && e.initialFrec < date && date < e.finalFrec);
+
             var updateInitialFrec = _bd.PeriodsMedications.Any(e => e.medicationID == id
-                                                               && e.initialFrec == date);
+                                                               && e.initialFrec == date && e.finalFrec != date);
 
             var updateFinalFrec = _bd.PeriodsMedications.Any(e => e.medicationID == id
-                                                               && e.finalFrec == date);
+                                                             && e.initialFrec != date && e.finalFrec == date);
 
             var lastRecord = _bd.PeriodsMedications.Any(e => e.medicationID == id
                                                         && e.initialFrec == date && e.finalFrec == date);
 
+            if(recordToDelete != null)
+            {
+                processRecords(recordToDelete.periodID, date);
+            }
+
             if (updateInitialFrec)
             {
                 var recordToUpdateInitialFrec = _bd.PeriodsMedications.FirstOrDefault(e => e.medicationID == id
-                                                                                      && e.initialFrec == date);
+                                                                                      && e.initialFrec == date && e.finalFrec != date);
 
                 recordToUpdateInitialFrec.initialFrec = recordToUpdateInitialFrec.initialFrec.AddDays(1);
 
@@ -300,7 +300,7 @@ namespace AppVidaSana.Services
             if (updateFinalFrec)
             {
                 var recordToUpdateFinalFrec = _bd.PeriodsMedications.FirstOrDefault(e => e.medicationID == id
-                                                                                      && e.finalFrec == date);
+                                                                                    && e.initialFrec != date && e.finalFrec == date);
 
                 recordToUpdateFinalFrec.finalFrec = recordToUpdateFinalFrec.finalFrec.AddDays(-1);
 
@@ -313,6 +313,8 @@ namespace AppVidaSana.Services
 
             if(lastRecord)
             {
+                var totalPeriods = _bd.PeriodsMedications.Count(e => e.medicationID == id);
+
                 var record = _bd.PeriodsMedications.FirstOrDefault(e => e.medicationID == id
                                                         && e.initialFrec == date && e.finalFrec == date);
 
@@ -321,19 +323,19 @@ namespace AppVidaSana.Services
                 var recordsToDelete = _bd.Times.Where(e => e.periodID == record.periodID).ToList();
 
                 _bd.Times.RemoveRange(recordsToDelete);
+                
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                _bd.PeriodsMedications.Remove(record);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
 
-                _bd.Medications.Remove(_bd.Medications.Find(record.medicationID));
+                if (totalPeriods == 1)
+                {
+                    _bd.Medications.Remove(_bd.Medications.Find(id));
 
-                if (!Save()) { throw new UnstoredValuesException(); }
-            }
-            else
-            {
-                var record = _bd.PeriodsMedications.FirstOrDefault(e => e.medicationID == id
-                                                        && e.initialFrec < date && date <  e.finalFrec);
-
-                processRecords(record.periodID, date);
+                    if (!Save()) { throw new UnstoredValuesException(); }
+                }
             }
 
             return "Se ha eliminado correctamente.";
@@ -481,21 +483,6 @@ namespace AppVidaSana.Services
             List<Guid> idsToRemove = new List<Guid>();
 
             idsToRemove.AddRange(idsPeriodsInactive.Select(e => e.periodID));
-
-            foreach(var id in idsToRemove)
-            {
-                var existingRecords = _bd.Times.Any(e => e.periodID == id);
-
-                if (!existingRecords)
-                {
-                    var recordToDelete = _bd.PeriodsMedications.Find(id);
-
-                    _bd.PeriodsMedications.Remove(recordToDelete);
-
-                    if (!Save()) { throw new UnstoredValuesException(); }
-
-                }
-            }
 
             Action<List<Guid>> processRecords = (listID) =>
             {
@@ -737,7 +724,22 @@ namespace AppVidaSana.Services
                 if (!Save()) { throw new UnstoredValuesException(); }
             }
 
-            return InfoMedicationJustAddUpdateDelete(periods.periodID, dateRecord); ;
+            foreach (var id in idsToRemove)
+            {
+                var existingRecords = _bd.Times.Any(e => e.periodID == id);
+
+                if (!existingRecords)
+                {
+                    var recordToDelete = _bd.PeriodsMedications.Find(id);
+
+                    _bd.PeriodsMedications.Remove(recordToDelete);
+
+                    if (!Save()) { throw new UnstoredValuesException(); }
+
+                }
+            }
+            
+            return InfoMedicationJustAddUpdateDelete(periods.periodID, dateRecord);
         }
 
         private InfoMedicationDto UpdateForNewDailyFrec(Medication medication, PeriodsMedications periods, 
