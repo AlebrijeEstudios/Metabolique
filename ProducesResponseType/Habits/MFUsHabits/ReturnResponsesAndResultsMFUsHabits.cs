@@ -2,10 +2,10 @@
 
 namespace AppVidaSana.ProducesResponseType.Habits.MFUsHabits
 {
-    public class ReturnRetrieveResponsesHabits
+    public class ReturnResponsesAndResultsMFUsHabits
     {
         public bool message { get; set; } = true;
 
-        public RetrieveResponsesHabitsDto responsesAnswers { get; set; } = null!;
+        public RetrieveResponsesHabitsDto mfus { get; set; } = null!;
     }
 }

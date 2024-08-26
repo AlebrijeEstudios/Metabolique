@@ -1,7 +1,6 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
-using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
 using AppVidaSana.Models.Monthly_Follow_Ups;
@@ -26,7 +25,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         public RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, int month, int year)
         {
-            var responseMapping = new Dictionary<int, string>
+            var months = new Dictionary<int, string>
             {
                 { 1, "Enero" },
                 { 2, "Febrero" },
@@ -42,53 +41,46 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 { 12, "Diciembre" }
             };
 
-            var existDate = responseMapping.ContainsKey(month)
-                ? responseMapping[month] : "Mes no existente";
+            var getMonth = months.ContainsKey(month) ? months[month] : "Mes no existente";
 
+            if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
 
-            if (existDate == "Mes no existente")
-            {
-                throw new UnstoredValuesException();
-
-            }
-
-            RetrieveResponsesExerciseDto response;
+            RetrieveResponsesExerciseDto responses;
             
-            var monthRecord = _bd.Months.FirstOrDefault(e => e.month == existDate && e.year == year);
+            var existMonth = _bd.Months.FirstOrDefault(e => e.month == getMonth && e.year == year);
 
-            if(monthRecord == null)
+            if(existMonth == null)
             {
-                response = new RetrieveResponsesExerciseDto();
-                return response;
+                responses = new RetrieveResponsesExerciseDto();
+                return responses;
             }
 
-            var records = _bd.MFUsExercise.FirstOrDefault(c => c.accountID == id && c.monthID == monthRecord.monthID);
+            var mfuExercise = _bd.MFUsExercise.FirstOrDefault(c => c.accountID == id && c.monthID == existMonth.monthID);
 
-            if (records == null)
+            if (mfuExercise == null)
             {
-                response = new RetrieveResponsesExerciseDto();
-                return response;
+                responses = new RetrieveResponsesExerciseDto();
+                return responses;
             }
 
-            var results = _bd.ResultsExercise.FirstOrDefault(c => c.monthlyFollowUpID == records.monthlyFollowUpID);
+            var mfuExerciseResults = _bd.ResultsExercise.FirstOrDefault(c => c.monthlyFollowUpID == mfuExercise.monthlyFollowUpID);
 
-            if (results == null)
+            if (mfuExerciseResults == null)
             {
-                response = new RetrieveResponsesExerciseDto();
-                return response;
+                responses = new RetrieveResponsesExerciseDto();
+                return responses;
             }
 
-            response = _mapper.Map<RetrieveResponsesExerciseDto>(records);
-            response = _mapper.Map(monthRecord, response);
-            _mapper.Map(results, response);
+            responses = _mapper.Map<RetrieveResponsesExerciseDto>(mfuExercise);
+            responses = _mapper.Map(existMonth, responses);
+            _mapper.Map(mfuExerciseResults, responses);
 
-            return response;
+            return responses;
         }
 
-        public SaveResultsExerciseDto SaveAnswers(SaveResponsesExerciseDto res)
+        public RetrieveResponsesExerciseDto SaveAnswers(SaveResponsesExerciseDto values)
         {
-
-            var responseMapping = new Dictionary<int, string>
+            var months = new Dictionary<int, string>
             {
                 { 1, "Enero" },
                 { 2, "Febrero" },
@@ -104,72 +96,57 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 { 12, "Diciembre" }
             };
 
-            var existDate = responseMapping.ContainsKey(res.month)
-               ? responseMapping[res.month] : "Mes no existente";
+            var getMonth = months.ContainsKey(values.month) ? months[values.month] : "Mes no existente";
 
-            if (existDate == "Mes no existente")
-            {
-                throw new UnstoredValuesException();
+            if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
 
-            }
+            var existMonth = _bd.Months.Any(e => e.month == months[values.month] && e.year == values.year);
 
-            var existRecord = _bd.Months.Any(e => e.month == responseMapping[res.month] && e.year == res.year);
-
-            if (!existRecord)
+            if (!existMonth)
             {
                 MFUsMonths month = new MFUsMonths
                 {
-                    month = responseMapping[res.month],
-                    year = res.year
+                    month = months[values.month],
+                    year = values.year
                 };
 
                 _bd.Months.Add(month);
 
-                if (!Save())
-                {
-                    throw new UnstoredValuesException();
-                }
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
 
-            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == responseMapping[res.month] && e.year == res.year).monthID;
+            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == months[values.month] && e.year == values.year).monthID;
 
-            var answersExisting = _bd.MFUsExercise.Any(e => e.accountID == res.accountID &&
-                                    e.monthID == monthID);
+            var answersExisting = _bd.MFUsExercise.Any(e => e.accountID == values.accountID && e.monthID == monthID);
 
-            if (answersExisting)
-            {
-                throw new RepeatRegistrationException();
-            }
+            if (answersExisting) { throw new RepeatRegistrationException(); }
 
-            var account = _bd.Accounts.Find(res.accountID);
+            var accountExisting = _bd.Accounts.Find(values.accountID);
 
-            if (account == null)
-            {
-                throw new UserNotFoundException();
-            }
+            if (accountExisting == null) { throw new UserNotFoundException(); }
 
             string LevelAF = "BAJO";
 
-            RetrieveResponsesExerciseDto response = new RetrieveResponsesExerciseDto
+            AnswersDto answers = new AnswersDto
             {
-                question1 = res.question1,
-                question2 = res.question2,
-                question3 = res.question3,
-                question4 = res.question4,
-                question5 = res.question5,
-                question6 = res.question6,
-                question7 = res.question7
+                question1 = values.question1,
+                question2 = values.question2,
+                question3 = values.question3,
+                question4 = values.question4,
+                question5 = values.question5,
+                question6 = values.question6,
+                question7 = values.question7
             }; 
 
-            float METactvigorous = actVigorous(res.question1, res.question2);
-            float METactmoderate = actModerate(res.question3, res.question4);
-            float METactwalking = actWalking(res.question5, res.question6);
+            float METactvigorous = actVigorous(values.question1, values.question2);
+            float METactmoderate = actModerate(values.question3, values.question4);
+            float METactwalking = actWalking(values.question5, values.question6);
             float TotalMET = totalMET(METactvigorous, METactmoderate, METactwalking);
 
-            string sedentary = sedentaryBehavior(res.question7);
+            string sedentary = sedentaryBehavior(values.question7);
 
-            bool levelHigh = levelActHigh(res.question1, METactvigorous, METactmoderate, METactwalking);
-            bool levelModerate = levelActModerate(response, METactvigorous, METactmoderate, METactwalking);
+            bool levelHigh = levelActHigh(values.question1, METactvigorous, METactmoderate, METactwalking);
+            bool levelModerate = levelActModerate(answers, METactvigorous, METactmoderate, METactwalking);
 
             if (levelHigh)
             {
@@ -185,17 +162,155 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
             MFUsExercise mfus = new MFUsExercise
             {
-                accountID = res.accountID,
+                accountID = values.accountID,
                 monthID = monthID,
-                question1 = res.question1,
-                question2 = res.question2,
-                question3 = res.question3,
-                question4 = res.question4,
-                question5 = res.question5,
-                question6 = res.question6,
-                question7 = res.question7
+                question1 = values.question1,
+                question2 = values.question2,
+                question3 = values.question3,
+                question4 = values.question4,
+                question5 = values.question5,
+                question6 = values.question6,
+                question7 = values.question7
             };
 
+            ValidationSaveAnswers(mfus);
+
+            _bd.MFUsExercise.Add(mfus);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            Guid monthlyFollowUpID = _bd.MFUsExercise.FirstOrDefault(e => e.monthID == monthID
+                                                                     && e.accountID == values.accountID).monthlyFollowUpID;
+
+            SaveResultsExerciseDto results = new SaveResultsExerciseDto
+            {
+                monthlyFollowUpID = monthlyFollowUpID,
+                actWalking = METactwalking,
+                actModerate = METactmoderate,
+                actVigorous = METactvigorous,
+                totalMET = TotalMET,
+                sedentaryBehavior = sedentary,
+                levelAF = LevelAF
+            };
+
+            SaveResults(results);
+
+            var responses = RetrieveAnswers(values.accountID, values.month, values.year);
+
+            return responses;
+        }
+
+
+        public RetrieveResponsesExerciseDto UpdateAnswers(UpdateResponsesExerciseDto values)
+        {
+            var mfuToUpdate = _bd.MFUsExercise.Find(values.monthlyFollowUpID);
+
+            if (mfuToUpdate == null) { throw new UnstoredValuesException(); }
+
+            mfuToUpdate.question1 = values.question1;
+            mfuToUpdate.question2 = values.question2;
+            mfuToUpdate.question3 = values.question3;
+            mfuToUpdate.question4 = values.question4;
+            mfuToUpdate.question5 = values.question5;
+            mfuToUpdate.question6 = values.question6;
+            mfuToUpdate.question7 = values.question7;
+
+            ValidationSaveAnswers(mfuToUpdate);
+
+            _bd.MFUsExercise.Update(mfuToUpdate);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            AnswersDto answers = new AnswersDto
+            {
+                question1 = values.question1,
+                question2 = values.question2,
+                question3 = values.question3,
+                question4 = values.question4,
+                question5 = values.question5,
+                question6 = values.question6,
+                question7 = values.question7
+            };
+
+            string LevelAF = "BAJO";
+
+            float METactvigorous = actVigorous(values.question1, values.question2);
+            float METactmoderate = actModerate(values.question3, values.question4);
+            float METactwalking = actWalking(values.question5, values.question6);
+            float TotalMET = totalMET(METactvigorous, METactmoderate, METactwalking);
+
+            string sedentary = sedentaryBehavior(values.question7);
+
+            bool levelHigh = levelActHigh(values.question1, METactvigorous, METactmoderate, METactwalking);
+            bool levelModerate = levelActModerate(answers, METactvigorous, METactmoderate, METactwalking);
+
+            if (levelHigh)
+            {
+                LevelAF = "ALTO";
+            }
+            else
+            {
+                if (levelModerate)
+                {
+                    LevelAF = "MODERADO";
+                }
+            }
+
+            var resultsToUpdate = _bd.ResultsExercise.FirstOrDefault(e => e.monthlyFollowUpID == values.monthlyFollowUpID);
+
+            resultsToUpdate.actWalking = METactwalking;
+            resultsToUpdate.actModerate = METactmoderate;
+            resultsToUpdate.actVigorous = METactmoderate;
+            resultsToUpdate.totalMET = TotalMET;
+            resultsToUpdate.sedentaryBehavior = sedentary;
+            resultsToUpdate.levelAF = LevelAF;
+
+            ValidationSaveResults(resultsToUpdate);
+
+            _bd.ResultsExercise.Update(resultsToUpdate);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            var responses = RetrieveAnswers(mfuToUpdate.accountID, values.month, values.year);
+
+            return responses;
+        }
+
+        public bool Save()
+        {
+            try
+            {
+                return _bd.SaveChanges() >= 0;
+            }
+            catch (Exception)
+            {
+                return false;
+
+            }
+        }
+
+        private void SaveResults(SaveResultsExerciseDto values)
+        {
+            ExerciseResults results = new ExerciseResults
+            {
+                monthlyFollowUpID = values.monthlyFollowUpID,
+                actWalking = values.actWalking,
+                actModerate = values.actModerate,
+                actVigorous = values.actVigorous,
+                totalMET = values.totalMET,
+                sedentaryBehavior = values.sedentaryBehavior,
+                levelAF = values.levelAF
+            };
+
+            ValidationSaveResults(results);
+
+            _bd.ResultsExercise.Add(results);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private void ValidationSaveAnswers(MFUsExercise mfus)
+        {
             var validationResults = new List<ValidationResult>();
             var validationContext = new ValidationContext(mfus, null, null);
 
@@ -208,54 +323,10 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                     throw new ErrorDatabaseException(errors);
                 }
             }
-
-            _bd.MFUsExercise.Add(mfus);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            SaveResultsExerciseDto results = new SaveResultsExerciseDto
-            {
-                accountID = res.accountID,
-                month = responseMapping[res.month],
-                year = res.year,
-                actWalking = METactwalking,
-                actModerate = METactmoderate,
-                actVigorous = METactvigorous,
-                totalMET = TotalMET,
-                sedentaryBehavior = sedentary,
-                levelAF = LevelAF
-            };
-
-            return results;
         }
 
-        public string SaveResults(SaveResultsExerciseDto res)
+        private void ValidationSaveResults(ExerciseResults results)
         {
-
-            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == res.month && e.year == res.year).monthID;
-
-            var mfusHabit = _bd.MFUsExercise.FirstOrDefault(c => c.accountID == res.accountID
-                            && c.monthID == monthID);
-
-            if (mfusHabit == null)
-            {
-                throw new HabitNotFoundException();
-            }
-
-            ExerciseResults results = new ExerciseResults
-            {
-                monthlyFollowUpID = mfusHabit.monthlyFollowUpID,
-                actWalking = res.actWalking,
-                actModerate = res.actModerate,
-                actVigorous = res.actVigorous,
-                totalMET = res.totalMET,
-                sedentaryBehavior = res.sedentaryBehavior,
-                levelAF = res.levelAF
-            };
-
             var validationResults = new List<ValidationResult>();
             var validationContext = new ValidationContext(results, null, null);
 
@@ -267,27 +338,6 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 {
                     throw new ErrorDatabaseException(errors);
                 }
-            }
-
-            _bd.ResultsExercise.Add(results);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            return "Sus respuestas han sido guardadas correctamente";
-        }
-        public bool Save()
-        {
-            try
-            {
-                return _bd.SaveChanges() >= 0;
-            }
-            catch (Exception)
-            {
-                return false;
-
             }
         }
 
@@ -341,23 +391,23 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             return criterion1 || criterion2;
         }
 
-        private static bool levelActModerate(RetrieveResponsesExerciseDto res, float MET_AFvigorous, float MET_AFmoderate, float MET_AFwalking)
+        private static bool levelActModerate(AnswersDto answers, float MET_AFvigorous, float MET_AFmoderate, float MET_AFwalking)
         {
             bool criterion1 = false;
             bool criterion2 = false;
             bool criterion3 = false;
 
-            if (res.question1 >= 3 && res.question2 >= 20)
+            if (answers.question1 >= 3 && answers.question2 >= 20)
             {
                 criterion1 = true;
             }
 
-            if ((res.question3 >= 5 && res.question4 >= 30) || (res.question5 >= 5 && res.question6 >=30))
+            if ((answers.question3 >= 5 && answers.question4 >= 30) || (answers.question5 >= 5 && answers.question6 >=30))
             {
                 criterion2 = true;
             }
 
-            if( ((res.question1 + res.question5) >= 5 && (int) (MET_AFvigorous + MET_AFwalking) >= 600) || ((res.question3 + res.question5) >= 5 && (int) (MET_AFmoderate + MET_AFwalking) >= 600))
+            if( ((answers.question1 + answers.question5) >= 5 && (int) (MET_AFvigorous + MET_AFwalking) >= 600) || ((answers.question3 + answers.question5) >= 5 && (int) (MET_AFmoderate + MET_AFwalking) >= 600))
             {
                 criterion3 = true;
             }

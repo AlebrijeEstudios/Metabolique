@@ -2,6 +2,7 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
+using AppVidaSana.Exceptions.Medication;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
@@ -9,6 +10,7 @@ using AppVidaSana.Models.Exercises;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace AppVidaSana.Services
 {
@@ -47,20 +49,37 @@ namespace AppVidaSana.Services
 
             DateOnly dateFinal = date.AddDays(-6);
 
-            var records = _bd.ActiveMinutes
-                .Where(e => e.dateExercise >= dateFinal && e.dateExercise <= date && e.accountID == id)
-                .ToList();
+            var dates = GetDatesInRange(dateFinal, date); 
+        
+            List<GraphicValuesExerciseDto> graphicValues = new List<GraphicValuesExerciseDto>();
 
-            List<GraphicsValuesExerciseDto> graphicValues;
-
-            if (records.Count == 0)
+            foreach (var item in dates)
             {
-                graphicValues = _mapper.Map<List<GraphicsValuesExerciseDto>>(records);
+                var activeMinutes = _bd.ActiveMinutes.FirstOrDefault(e => e.dateExercise == item && e.accountID == id);
+
+                if(activeMinutes != null)
+                {
+                    GraphicValuesExerciseDto value = new GraphicValuesExerciseDto
+                    {
+                        date = item,
+                        value = activeMinutes.totalTimeSpent
+                    };
+
+                    graphicValues.Add(value);
+                }
+                else
+                {
+                    GraphicValuesExerciseDto value = new GraphicValuesExerciseDto
+                    {
+                        date = item,
+                        value = 0
+                    };
+
+                    graphicValues.Add(value);
+                }
             }
 
-            graphicValues = _mapper.Map<List<GraphicsValuesExerciseDto>>(records);
-
-            graphicValues = graphicValues.OrderBy(x => x.dateExercise).ToList();
+            graphicValues = graphicValues.OrderBy(x => x.date).ToList();
 
             ExerciseAndValuesGraphicDto info = new ExerciseAndValuesGraphicDto
             {
@@ -305,6 +324,21 @@ namespace AppVidaSana.Services
             ex = _mapper.Map<ExerciseListDto>(exercise);
 
             return ex;
+        }
+
+        private static List<DateOnly> GetDatesInRange(DateOnly startDate, DateOnly endDate)
+        {
+            List<DateOnly> dates = new List<DateOnly>();
+
+            if (endDate >= startDate)
+            {
+                for (DateOnly date = startDate; date <= endDate; date = date.AddDays(1))
+                {
+                    dates.Add(date);
+                }
+            }
+
+            return dates;
         }
     }
 }

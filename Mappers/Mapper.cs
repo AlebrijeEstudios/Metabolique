@@ -23,9 +23,9 @@ namespace AppVidaSana.Mappers
         public Mapper()
         {
             CreateMap<Exercise, ExerciseListDto>().ReverseMap();
-            CreateMap<ActiveMinutes, GraphicsValuesExerciseDto>().ReverseMap();
+            CreateMap<ActiveMinutes, GraphicValuesExerciseDto>().ReverseMap();
             CreateMap<DrinkHabit, GetDrinksConsumedDto>().ReverseMap();
-            CreateMap<SleepHabit, GetSleepingHoursDto>().ReverseMap();
+            CreateMap<SleepHabit, GetHoursSleepConsumedDto>().ReverseMap();
             CreateMap<DrugsHabit, GetDrugsConsumedDto>().ReverseMap();
 
             CreateMap<SleepHabit, ReturnSleepHoursAndDrugsConsumedDto>()

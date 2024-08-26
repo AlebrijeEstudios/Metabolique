@@ -53,9 +53,9 @@ namespace AppVidaSana.Controllers.Habits
             ReturnHabitsInfo response = new ReturnHabitsInfo
             {
                 drinkConsumed = info.drinkConsumed,
-                hoursSleep = info.hoursSleep,
+                hoursSleepConsumed = info.hoursSleepConsumed,
                 drugsConsumed = info.drugsConsumed,
-                hoursSleepConsumed = info.hoursSleepConsumed
+                hoursSleep = info.hoursSleep
             };
 
             if(!info.drinkConsumed.Any() && info.hoursSleepConsumed == null && info.drugsConsumed == null && !info.hoursSleep.Any())

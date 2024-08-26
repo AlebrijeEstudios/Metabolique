@@ -1,4 +1,5 @@
 ﻿using AppVidaSana.Data;
+using AppVidaSana.Exceptions.Medication;
 using AppVidaSana.Mappers;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
@@ -27,25 +28,63 @@ namespace AppVidaSana.Services.Habits
 
             var habitDrugs = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
 
+            List<GraphicValuesHabitSleepDto> hoursSleep = new List<GraphicValuesHabitSleepDto>();
+            
             DateOnly dateFinal = date.AddDays(-6);
 
-            var habits = _bd.HabitsSleep
-                .Where(e => e.sleepDateHabit >= dateFinal && e.sleepDateHabit <= date && e.accountID == idAccount)
-                .ToList();
+            var dates = GetDatesInRange(dateFinal, date);
 
-            var habitsSleep = _mapper.Map<List<GetSleepingHoursDto>>(habits);
+            foreach(var item in dates)
+            {
+                var habits = _bd.HabitsSleep.FirstOrDefault(e => e.sleepDateHabit == item
+                                                            && e.accountID == idAccount);
 
-            var hoursSleep = habitsSleep.OrderBy(x => x.sleepDateHabit).ToList();
+                if(habits != null)
+                {
+                    GraphicValuesHabitSleepDto value = new GraphicValuesHabitSleepDto
+                    {
+                        date = item,
+                        value = habits.sleepHours
+                    };
+
+                    hoursSleep.Add(value);
+                }
+                else
+                {
+                    GraphicValuesHabitSleepDto value = new GraphicValuesHabitSleepDto
+                    {
+                        date = item,
+                        value = 0
+                    };
+
+                    hoursSleep.Add(value);
+                }
+            }
 
             ReturnInfoHabitsDto info = new ReturnInfoHabitsDto
             {
                 drinkConsumed = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink),
-                hoursSleepConsumed = _mapper.Map<GetSleepingHoursDto>(habitSleep),
+                hoursSleepConsumed = _mapper.Map<GetHoursSleepConsumedDto>(habitSleep),
                 drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
                 hoursSleep = hoursSleep
             };
 
             return info;
+        }
+
+        private static List<DateOnly> GetDatesInRange(DateOnly startDate, DateOnly endDate)
+        {
+            List<DateOnly> dates = new List<DateOnly>();
+
+            if (endDate >= startDate)
+            {
+                for (DateOnly date = startDate; date <= endDate; date = date.AddDays(1))
+                {
+                    dates.Add(date);
+                }
+            }
+
+            return dates;
         }
     }
 }

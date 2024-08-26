@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
 
-namespace AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos
+namespace AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos
 {
-    public class SaveResponsesExerciseDto
+    public class UpdateResponsesExerciseDto
     {
-        [JsonRequired] public Guid accountID { get; set; }
-         
-        [JsonRequired] public int month { get; set; } 
+        [JsonRequired] public Guid monthlyFollowUpID { get; set; }
+
+        [JsonRequired] public int month { get; set; }
 
         [JsonRequired] public int year { get; set; }
 
@@ -23,5 +23,6 @@ namespace AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos
         [JsonRequired] public int question6 { get; set; }
 
         [JsonRequired] public int question7 { get; set; }
+
     }
 }

@@ -9,6 +9,6 @@ namespace AppVidaSana.ProducesResponseType.Exercise
 
         public List<ExerciseListDto> exercises { get; set; } = null!;
 
-        public List<GraphicsValuesExerciseDto> activeMinutes { get; set; } = null!;
+        public List<GraphicValuesExerciseDto> activeMinutes { get; set; } = null!;
     }
 }
