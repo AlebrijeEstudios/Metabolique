@@ -17,20 +17,9 @@ namespace AppVidaSana.Models.Medications
         [Required(ErrorMessage = "El campo dosis es obligatorio.")]
         public int dose { get; set; }
 
-        [Required(ErrorMessage = "El campo frecuencia inicial es obligatorio.")]
-        public DateOnly initialFrec { get; set; } 
-
-        [Required(ErrorMessage = "El campo frecuencia final es obligatorio.")]
-        public DateOnly finalFrec { get; set; }
-
-        [Required(ErrorMessage = "El campo dosis es obligatorio.")]
-        public int dailyFrec { get; set; }
-
         public Account? account { get; set; }
 
-        public ICollection<Times> times { get; set; } = new List<Times>();
-
-        public ICollection<SideEffects> sideEffects { get; set; } = new List<SideEffects>();
+        public ICollection<PeriodsMedications> periods { get; set; } = new List<PeriodsMedications>();
 
     }
 }

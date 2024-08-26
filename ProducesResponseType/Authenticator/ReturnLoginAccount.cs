@@ -4,7 +4,7 @@ namespace AppVidaSana.ProducesResponseType.Authenticator
 {
     public class ReturnLoginAccount
     {
-        public string message { get; set; } = "Ok.";
+        public bool message { get; set; } = true;
 
         public TokenUserDto auth { get; set; } = null!;
     }

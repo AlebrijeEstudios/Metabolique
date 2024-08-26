@@ -5,7 +5,7 @@ namespace AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos
     public class RetrieveResponsesExerciseDto
     {
         [JsonRequired] public Guid monthlyFollowUpID { get; set; }
-
+         
         [JsonRequired] public string month { get; set; } = null!;
 
         [JsonRequired] public int year { get; set; }

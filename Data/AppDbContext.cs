@@ -29,6 +29,7 @@ namespace AppVidaSana.Data
         public DbSet<HabitsResults> ResultsHabits { get; set; }
         public DbSet<Medication> Medications { get; set; }
         public DbSet<MFUsMedication> MFUsMedication { get; set; }
+        public DbSet<PeriodsMedications> PeriodsMedications { get; set; }
         public DbSet<Times> Times { get; set; }
         public DbSet<SideEffects> SideEffects { get; set; }
 
@@ -136,16 +137,22 @@ namespace AppVidaSana.Data
                 .HasForeignKey(medications => medications.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Medication>()
+                .HasMany(med => med.periods)
+                .WithOne(periods => periods.medication)
+                .HasForeignKey(periods => periods.medicationID)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.times)
                 .WithOne(times => times.account)
                 .HasForeignKey(times => times.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Medication>()
-                .HasMany(medication => medication.times)
-                .WithOne(times => times.medication)
-                .HasForeignKey(times => times.medicationID)
+            modelBuilder.Entity<PeriodsMedications>()
+                .HasMany(periods => periods.times)
+                .WithOne(times => times.periods)
+                .HasForeignKey(times => times.periodID)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Account>()
@@ -167,11 +174,9 @@ namespace AppVidaSana.Data
                 .HasForeignKey(sideEffects => sideEffects.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Medication>()
-                .HasMany(medication => medication.sideEffects)
-                .WithOne(sideEffects => sideEffects.medication)
-                .HasForeignKey(sideEffects => sideEffects.medicationID)
-                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Times>()
+              .Property(e => e.time)
+              .HasColumnType("TIME(0)");
         }
     }
 }

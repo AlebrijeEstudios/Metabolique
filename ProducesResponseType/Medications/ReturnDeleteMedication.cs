@@ -1,9 +1,10 @@
-﻿namespace AppVidaSana.ProducesResponseType.Account
+﻿namespace AppVidaSana.ProducesResponseType.Medications
 {
-    public class ReturnUpdateDeleteAccount
+    public class ReturnDeleteMedication
     {
         public bool message { get; set; } = true;
 
         public string status { get; set; } = null!;
+
     }
 }

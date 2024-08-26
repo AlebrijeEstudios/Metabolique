@@ -5,10 +5,10 @@ namespace AppVidaSana.ProducesResponseType.Exercise
 {
     public class ReturnGetExercise
     {
-        public string message { get; set; } = "Ok.";
+        public bool message { get; set; } = true;
 
         public List<ExerciseListDto> exercises { get; set; } = null!;
 
-        public List<GraphicsValuesExerciseDto> activeMinutes { get; set; } = null!;
+        public List<GraphicValuesExerciseDto> activeMinutes { get; set; } = null!;
     }
 }

@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.Services.IServices.IHabits;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
-using NuGet.Packaging.Core;
 
 namespace AppVidaSana.Controllers.Habits
 {
@@ -54,15 +53,31 @@ namespace AppVidaSana.Controllers.Habits
             ReturnHabitsInfo response = new ReturnHabitsInfo
             {
                 drinkConsumed = info.drinkConsumed,
-                hoursSleep = info.hoursSleep,
+                hoursSleepConsumed = info.hoursSleepConsumed,
                 drugsConsumed = info.drugsConsumed,
-                hoursSleepConsumed = info.hoursSleepConsumed
+                hoursSleep = info.hoursSleep
             };
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, drinkConsumed = response.drinkConsumed,
-                                                             hoursSleepConsumed = response.hoursSleepConsumed, drugsConsumed = response.drugsConsumed,
-                                                             hoursSleep = response.hoursSleep});
+            if(!info.drinkConsumed.Any() && info.hoursSleepConsumed == null && info.drugsConsumed == null && !info.hoursSleep.Any())
+            {
+                return StatusCode(StatusCodes.Status200OK, new
+                {
+                    message = false,
+                    drinkConsumed = response.drinkConsumed,
+                    hoursSleepConsumed = response.hoursSleepConsumed,
+                    drugsConsumed = response.drugsConsumed,
+                    hoursSleep = response.hoursSleep
+                });
+            }
 
+            return StatusCode(StatusCodes.Status200OK, new 
+            { 
+                message = response.message, 
+                drinkConsumed = response.drinkConsumed,                                   
+                hoursSleepConsumed = response.hoursSleepConsumed, 
+                drugsConsumed = response.drugsConsumed,                                             
+                hoursSleep = response.hoursSleep
+            });
         }
     }
 }

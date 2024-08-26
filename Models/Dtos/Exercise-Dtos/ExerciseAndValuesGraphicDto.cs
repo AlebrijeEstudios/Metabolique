@@ -8,7 +8,7 @@ namespace AppVidaSana.Models.Dtos.Exercise_Dtos
     {
         [JsonRequired] public List<ExerciseListDto> exercises { get; set; } = null!;
 
-        [JsonRequired] public List<GraphicsValuesExerciseDto> activeMinutes { get; set; } = null!;
+        [JsonRequired] public List<GraphicValuesExerciseDto> activeMinutes { get; set; } = null!;
 
     }
 }

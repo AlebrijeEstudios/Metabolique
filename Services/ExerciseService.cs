@@ -2,6 +2,7 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
+using AppVidaSana.Exceptions.Medication;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
@@ -9,6 +10,7 @@ using AppVidaSana.Models.Exercises;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace AppVidaSana.Services
 {
@@ -47,20 +49,37 @@ namespace AppVidaSana.Services
 
             DateOnly dateFinal = date.AddDays(-6);
 
-            var records = _bd.ActiveMinutes
-                .Where(e => e.dateExercise >= dateFinal && e.dateExercise <= date && e.accountID == id)
-                .ToList();
+            var dates = GetDatesInRange(dateFinal, date); 
+        
+            List<GraphicValuesExerciseDto> graphicValues = new List<GraphicValuesExerciseDto>();
 
-            List<GraphicsValuesExerciseDto> graphicValues;
-
-            if (records.Count == 0)
+            foreach (var item in dates)
             {
-                graphicValues = _mapper.Map<List<GraphicsValuesExerciseDto>>(records);
+                var activeMinutes = _bd.ActiveMinutes.FirstOrDefault(e => e.dateExercise == item && e.accountID == id);
+
+                if(activeMinutes != null)
+                {
+                    GraphicValuesExerciseDto value = new GraphicValuesExerciseDto
+                    {
+                        date = item,
+                        value = activeMinutes.totalTimeSpent
+                    };
+
+                    graphicValues.Add(value);
+                }
+                else
+                {
+                    GraphicValuesExerciseDto value = new GraphicValuesExerciseDto
+                    {
+                        date = item,
+                        value = 0
+                    };
+
+                    graphicValues.Add(value);
+                }
             }
 
-            graphicValues = _mapper.Map<List<GraphicsValuesExerciseDto>>(records);
-
-            graphicValues = graphicValues.OrderBy(x => x.dateExercise).ToList();
+            graphicValues = graphicValues.OrderBy(x => x.date).ToList();
 
             ExerciseAndValuesGraphicDto info = new ExerciseAndValuesGraphicDto
             {
@@ -71,7 +90,7 @@ namespace AppVidaSana.Services
             return info;
         }
 
-        public List<ExerciseListDto> AddExercises(AddExerciseDto exercise)
+        public ExerciseListDto AddExercises(AddExerciseDto exercise)
         {
             var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == exercise.dateExercise && e.typeExercise == exercise.typeExercise &&
                                 e.intensityExercise == exercise.intensityExercise && e.timeSpent == exercise.timeSpent);
@@ -120,12 +139,17 @@ namespace AppVidaSana.Services
 
             totalTimeSpentforDay(exercise.accountID, exercise.dateExercise, exercise.timeSpent);
 
-            List<ExerciseListDto> exercises = GetExercises(exercise.accountID, exercise.dateExercise);
+            var exerciseRecently = _bd.Exercises.FirstOrDefault(e => e.accountID == exercise.accountID && e.dateExercise == exercise.dateExercise 
+                                                                && e.typeExercise == exercise.typeExercise 
+                                                                && e.intensityExercise == exercise.intensityExercise 
+                                                                && e.timeSpent == exercise.timeSpent);
 
-            return exercises;
+            ExerciseListDto info = GetExercise(exerciseRecently.exerciseID, exercise.dateExercise);
+
+            return info;
         }
 
-        public List<ExerciseListDto> UpdateExercises(ExerciseListDto exercise)
+        public ExerciseListDto UpdateExercises(ExerciseListDto exercise)
         {
             var ex = _bd.Exercises.Find(exercise.exerciseID);
 
@@ -175,12 +199,12 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-            List<ExerciseListDto> exercises = GetExercises(exercise.accountID, exercise.dateExercise);
+            ExerciseListDto info = GetExercise(exercise.exerciseID, exercise.dateExercise);
 
-            return exercises;
+            return info;
         }
 
-        public List<ExerciseListDto> DeleteExercise(Guid idexercise)
+        public string DeleteExercise(Guid idexercise)
         {
             var ex = _bd.Exercises.Find(idexercise);
 
@@ -233,12 +257,10 @@ namespace AppVidaSana.Services
                 throw new UnstoredValuesException();
             }
 
-
-            List<ExerciseListDto> exercises = GetExercises(id, date);
-
-            return exercises;
+            return "Se ha eliminado correctamente.";
 
         }
+
         public bool Save()
         {
             try
@@ -285,6 +307,38 @@ namespace AppVidaSana.Services
                     throw new UnstoredValuesException();
                 }
             }
-        } 
+        }
+
+        private ExerciseListDto GetExercise(Guid id, DateOnly date)
+        {
+            var exercise = _bd.Exercises
+            .FirstOrDefault(e => e.exerciseID == id && e.dateExercise == date);
+
+            ExerciseListDto ex;
+
+            if (exercise == null)
+            {
+                ex = _mapper.Map<ExerciseListDto>(exercise);
+            }
+
+            ex = _mapper.Map<ExerciseListDto>(exercise);
+
+            return ex;
+        }
+
+        private static List<DateOnly> GetDatesInRange(DateOnly startDate, DateOnly endDate)
+        {
+            List<DateOnly> dates = new List<DateOnly>();
+
+            if (endDate >= startDate)
+            {
+                for (DateOnly date = startDate; date <= endDate; date = date.AddDays(1))
+                {
+                    dates.Add(date);
+                }
+            }
+
+            return dates;
+        }
     }
 }

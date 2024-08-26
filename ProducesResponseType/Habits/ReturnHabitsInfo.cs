@@ -6,14 +6,14 @@ namespace AppVidaSana.ProducesResponseType.Habits
 {
     public class ReturnHabitsInfo
     {
-        public string message { get; set; } = "Ok.";
+        public bool message { get; set; } = true;
 
         public List<GetDrinksConsumedDto> drinkConsumed { get; set; } = null!;
 
-        public GetSleepingHoursDto hoursSleepConsumed { get; set; } = null!;
+        public GetHoursSleepConsumedDto hoursSleepConsumed { get; set; } = null!;
 
         public GetDrugsConsumedDto drugsConsumed { get; set; } = null!;
 
-        public List<GetSleepingHoursDto> hoursSleep { get; set; } = null!;
+        public List<GraphicValuesHabitSleepDto> hoursSleep { get; set; } = null!;
     }
 }

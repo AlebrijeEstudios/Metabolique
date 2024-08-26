@@ -5,13 +5,15 @@ namespace AppVidaSana.Services.IServices
     public interface IMedication
     {
 
-        public List<InfoMedicationDto> GetMedications(Guid id, DateOnly date);
+        public MedicationsAndValuesGraphicDto GetMedications(Guid id, DateOnly date);
 
-        public List<InfoMedicationDto> AddMedication(AddMedicationUseDto medication);
+        public InfoMedicationDto AddMedication(AddMedicationUseDto medication);
 
-        public List<InfoMedicationDto> UpdateMedication(UpdateMedicationUseDto values);
+        public InfoMedicationDto UpdateMedication(UpdateMedicationUseDto values);
 
-        public List<InfoMedicationDto> DeleteAMedication(Guid id, DateOnly date);
+        public void UpdateStatusMedication(UpdateMedicationStatusDto value);
+
+        public string DeleteAMedication(Guid id, DateOnly date);
 
         bool Save();
 

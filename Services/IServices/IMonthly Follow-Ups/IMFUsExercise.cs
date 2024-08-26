@@ -5,11 +5,11 @@ namespace AppVidaSana.Services.IServices.ISeguimientos_Mensuales
 {
     public interface IMFUsExercise
     {
-        SaveResultsExerciseDto SaveAnswers(SaveResponsesExerciseDto res);
+        RetrieveResponsesExerciseDto SaveAnswers(SaveResponsesExerciseDto res);
 
         RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, int month, int year);
 
-        public string SaveResults(SaveResultsExerciseDto res);
+        RetrieveResponsesExerciseDto UpdateAnswers(UpdateResponsesExerciseDto res);
 
         bool Save();
     }
