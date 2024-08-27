@@ -281,7 +281,7 @@ namespace AppVidaSana.Controllers
 
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    message = true,
+                    message = "Ok.",
                     status = "Se registro el seguimiento correctamente"
                 };
 

@@ -66,7 +66,6 @@ namespace AppVidaSana.Controllers
             }
             catch (UserNotFoundException ex)
             {
-
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
                     status = ex.Message

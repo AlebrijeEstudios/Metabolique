@@ -6,7 +6,7 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
     {
         [JsonRequired] public Guid accountID { get; set; }
 
-        [JsonRequired] public DateOnly dateRecord { get; set; }
+        [JsonRequired] public DateOnly date { get; set; }
 
         [JsonRequired] public string nameMedication { get; set; } = null!;
 
@@ -16,6 +16,6 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
 
         [JsonRequired] public DateOnly finalFrec { get; set; } 
 
-        [JsonRequired] public List<TimeOnly> times { get; set; } = null!;
+        [JsonRequired] public string times { get; set; } = null!;
     }
 }

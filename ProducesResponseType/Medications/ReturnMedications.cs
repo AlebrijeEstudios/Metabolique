@@ -5,7 +5,7 @@ namespace AppVidaSana.ProducesResponseType.Medications
 {
     public class ReturnMedications
     {
-        public bool message { get; set; } = true;
+        public string message { get; set; } = "Ok.";
 
         public List<InfoMedicationDto> medications { get; set; } = null!;
 

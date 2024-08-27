@@ -2,7 +2,7 @@
 {
     public class ReturnDeleteSleepHoursAndDrugsConsumed
     {
-        public bool message { get; set; } = true;
+        public string message { get; set; } = "Ok.";
 
         public string status { get; set; } = null!;
     }

@@ -132,28 +132,22 @@ namespace AppVidaSana.Data
 
             //Medications
             modelBuilder.Entity<Account>()
-                .HasMany(account => account.medications)
-                .WithOne(medications => medications.account)
-                .HasForeignKey(medications => medications.accountID)
+                .HasMany(account => account.periodsMedications)
+                .WithOne(periodsMedications => periodsMedications.account)
+                .HasForeignKey(periodsMedications => periodsMedications.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Medication>()
-                .HasMany(med => med.periods)
+                .HasMany(medication => medication.periods)
                 .WithOne(periods => periods.medication)
                 .HasForeignKey(periods => periods.medicationID)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Account>()
-                .HasMany(account => account.times)
-                .WithOne(times => times.account)
-                .HasForeignKey(times => times.accountID)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PeriodsMedications>()
                 .HasMany(periods => periods.times)
                 .WithOne(times => times.periods)
                 .HasForeignKey(times => times.periodID)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.MFUsMedications)

@@ -90,7 +90,7 @@ namespace AppVidaSana.Controllers
 
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    message = true,
+                    message = "Ok.",
                     status = "Se le envió un correo a su bandeja principal."
                 };
 
@@ -129,7 +129,7 @@ namespace AppVidaSana.Controllers
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
-                    message = false,
+                    message = "Hubo un error, inténtelo de nuevo.",
                     status = "No se cargo completamente la página"
                 };
 
@@ -161,7 +161,7 @@ namespace AppVidaSana.Controllers
                 {
                     ReturnExceptionMessage statusUpdate = new ReturnExceptionMessage
                     {
-                        message = false,
+                        message = "Hubo un error, inténtelo de nuevo.",
                         status = "Hubo un error al actualizar la contraseña, intentelo de nuevo."
                     };
 

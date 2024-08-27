@@ -4,7 +4,7 @@ namespace AppVidaSana.ProducesResponseType.Account
 {
     public class ReturnCreateAccount
     {
-        public bool message { get; set; } = true;
+        public string message { get; set; } = "Ok.";
 
         public TokenUserDto auth { get; set; } = null!;
     }

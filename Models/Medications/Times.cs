@@ -11,9 +11,6 @@ namespace AppVidaSana.Models.Medications
         [ForeignKey("PeriodsMedications")]
         public Guid periodID { get; set; }
 
-        [ForeignKey("Account")]
-        public Guid accountID { get; set; }
-
         [Required(ErrorMessage = "El campo fecha es obligatoria.")]
         public DateOnly dateMedication { get; set; }
 
@@ -24,8 +21,6 @@ namespace AppVidaSana.Models.Medications
         public bool medicationStatus { get; set; }
 
         public PeriodsMedications? periods { get; set; }
-
-        public Account? account { get; set; }
 
     }
 }

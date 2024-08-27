@@ -4,7 +4,7 @@ namespace AppVidaSana.ProducesResponseType.Medications
 {
     public class ReturnAddUpdateMedication
     {
-        public bool message { get; set; } = true;
+        public string message { get; set; } = "Ok.";
 
         public InfoMedicationDto medication { get; set; } = null!;
     }

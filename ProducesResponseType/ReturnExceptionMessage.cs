@@ -2,7 +2,7 @@
 {
     public class ReturnExceptionMessage
     {
-        public bool message { get; set; } = false;
+        public string message { get; set; } = "Hubo un error, inténtelo de nuevo.";
 
         public string status { get; set; } = null!;
 
