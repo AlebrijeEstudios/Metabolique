@@ -171,7 +171,7 @@ namespace AppVidaSana.Controllers.Habits
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Returns a message indicating that the record with the specified consumed beverages does not exist in the DrinkHabit table.</response>     
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateDrinkConsumed))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnDeleteDrinkConsumed))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
