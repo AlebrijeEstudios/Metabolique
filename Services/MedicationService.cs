@@ -7,6 +7,7 @@ using AppVidaSana.Models.Medications;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
 using Sprache;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 
@@ -44,6 +45,15 @@ namespace AppVidaSana.Services
 
             Guid medicationID = _bd.Medications.FirstOrDefault(e => e.nameMedication == medication.nameMedication).medicationID;
 
+            var periodExist = _bd.PeriodsMedications.Any(e => e.medicationID == medicationID
+                                                         && e.accountID == medication.accountID
+                                                         && e.initialFrec == medication.initialFrec
+                                                         && e.finalFrec == medication.finalFrec
+                                                         && e.dose == medication.dose
+                                                         && e.timesPeriod == medication.times);
+
+            if (periodExist) { throw new NotRepeatPeriodException(); }
+
             PeriodsMedications period = new PeriodsMedications
             {
                 medicationID = medicationID,
@@ -61,7 +71,8 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            Guid periodID = _bd.PeriodsMedications.FirstOrDefault(e => e.medicationID == medicationID
+            Guid periodID = _bd.PeriodsMedications.FirstOrDefault(e => e.accountID == medication.accountID
+                                                                  && e.medicationID == medicationID
                                                                   && e.initialFrec == medication.initialFrec
                                                                   && e.finalFrec == medication.finalFrec
                                                                   && e.isActive == true).periodID;
@@ -75,7 +86,7 @@ namespace AppVidaSana.Services
                 Times time = new Times
                 {
                     periodID = periodID,
-                    dateMedication = medication.date,
+                    dateMedication = medication.initialFrec,
                     time = TimeOnly.Parse(sub),
                     medicationStatus = false
                 };
@@ -89,7 +100,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var medicationsList = InfoMedicationJustAddUpdateDelete(medicationID, periodID, medication.date);
+            var medicationsList = InfoMedicationJustAddUpdateDelete(medicationID, periodID, medication.initialFrec);
 
             return medicationsList;
 
@@ -97,32 +108,80 @@ namespace AppVidaSana.Services
 
         public MedicationsAndValuesGraphicDto GetMedications(Guid accountID, DateOnly dateActual)
         {
-            int countStatus = 0, totalMedications = 0, medicationsConsumed = 0;
-            bool statusGeneral = false;
-            List<WeeklyAttachmentDto> weeklyList = new List<WeeklyAttachmentDto>();
-            DateOnly dateFinal = dateActual.AddDays(-6);
+            List<InfoMedicationDto> listMedications = new List<InfoMedicationDto>();
 
             var periods = _bd.PeriodsMedications.Where(e => e.accountID == accountID
                                                        && e.initialFrec <= dateActual
                                                        && dateActual <= e.finalFrec).ToList();
 
+            var groupPeriodsByMedicationID = periods.GroupBy(obj => obj.medicationID)
+                                                    .ToDictionary(
+                                                        g => g.Key,
+                                                        g => g.Where(e => e.medicationID == g.Key)
+                                                    );
+
+            foreach(var med in groupPeriodsByMedicationID)
+            {
+                var medication = _bd.Medications.Find(med.Key);
+
+                var periodsForMedication = med.Value;
+                
+                List<Times> timesForMedication = new List<Times>();
+
+                foreach (var period in periodsForMedication)
+                {
+                    var times = _bd.Times.Where(e => e.periodID == period.periodID
+                                                && e.dateMedication == dateActual).ToList();
+
+                    if (!times.Any())
+                    {
+                        times = _bd.Times.Where(e => e.periodID == period.periodID
+                                                && e.dateMedication == period.initialFrec).ToList();
+                    }
+
+                    timesForMedication.AddRange(times);
+
+                    var timesMapped = _mapper.Map<List<TimeListDto>>(timesForMedication);
+
+                    timesMapped = timesMapped.OrderBy(x => x.time).ToList();
+
+                    InfoMedicationDto infoMedication = new InfoMedicationDto
+                    {
+                        medicationID = med.Key,
+                        periodID = period.periodID,
+                        accountID = period.accountID,
+                        nameMedication = medication.nameMedication,
+                        dose = period.dose,
+                        initialFrec = period.initialFrec,
+                        finalFrec = period.finalFrec,
+                        times = timesMapped
+                    };
+
+                    listMedications.Add(infoMedication);
+
+                }
+            }
+
+            int countStatus = 0, totalMedications = 0, medicationsConsumed = 0;
+            bool statusGeneral = false;
+            List<WeeklyAttachmentDto> weeklyList = new List<WeeklyAttachmentDto>();
+            DateOnly dateFinal = dateActual.AddDays(-6);
+
             List<Guid> periodsID = new List<Guid>();
 
             periodsID.AddRange(periods.Select(e => e.periodID));
 
-            List<Times> times = new List<Times>();
+            List<Times> getTimes = new List<Times>();
 
-            foreach(var id in periodsID)
+            foreach (var id in periodsID)
             {
                 var recordsTime = _bd.Times.Where(e => e.periodID == id && e.dateMedication >= dateFinal
-                                            && e.dateMedication <= dateActual).ToList();
+                                                  && e.dateMedication <= dateActual).ToList();
 
-                times.AddRange(recordsTime);
+                getTimes.AddRange(recordsTime);
             }
 
-            List<InfoMedicationDto> listMedications = new List<InfoMedicationDto>();
-
-            var timeList = _mapper.Map<List<TimeListDto>>(times);
+            var timeList = _mapper.Map<List<TimeListDto>>(getTimes);
 
             timeList = timeList.OrderBy(x => x.time).ToList();
 
@@ -134,15 +193,11 @@ namespace AppVidaSana.Services
 
             List<DateOnly> dates = GetDatesInRange(dateFinal, dateActual);
 
-            foreach(var date in dates)
+            foreach (var date in dates)
             {
                 foreach (var time in groupObjectsByID)
                 {
                     countStatus = 0;
-
-                    var period = _bd.PeriodsMedications.Find(time.Key);
-
-                    var med = _bd.Medications.Find(period.medicationID);
 
                     var list = time.Value.Where(e => e.dateMedication == date).ToList();
 
@@ -174,10 +229,22 @@ namespace AppVidaSana.Services
                 medicationsConsumed = 0;
             }
 
-            /*var recordsTimesActual = _bd.Times.Where(e => e.accountID == id 
-                                                    && e.dateMedication == dateActual).ToList();
 
-            var listTimesActual = _mapper.Map<List<TimeListDto>>(recordsTimesActual);
+            /*List<Times> timesForMedication = new List<Times>();
+
+            foreach (var id in periodsID)
+            {
+                var recordsTime = _bd.Times.Where(e => e.periodID == id && e.dateMedication == dateActual).ToList();
+
+                if (recordsTime.Any())
+                {
+                    recordsTime = _bd.Times.Where(e => e.periodID == id).ToList();
+                }
+
+                timesForMedication.AddRange(recordsTime);
+            }
+
+            var listTimesActual = _mapper.Map<List<TimeListDto>>(timesForMedication);
 
             listTimesActual = listTimesActual.OrderBy(x => x.time).ToList();
 
@@ -190,26 +257,24 @@ namespace AppVidaSana.Services
             foreach (var time in groupObjectsByIDActual)
             {
                 var period = _bd.PeriodsMedications.Find(time.Key);
-                var list = time.Value;
 
                 var medication = _bd.Medications.Find(period.medicationID);
 
-                if (list.Any())
-                {
-                    InfoMedicationDto infoMedication = new InfoMedicationDto
-                    {
-                        medicationID = medication.medicationID,
-                        periodID = time.Key,
-                        accountID = medication.accountID,
-                        nameMedication = medication.nameMedication,
-                        dose = medication.dose,
-                        initialFrec = period.initialFrec,
-                        finalFrec = period.finalFrec,
-                        times = list
-                    };
+                var list = time.Value;
 
-                    listMedications.Add(infoMedication);
-                }
+                InfoMedicationDto infoMedication = new InfoMedicationDto
+                {
+                    medicationID = period.medicationID,
+                    periodID = time.Key,
+                    accountID = period.accountID,
+                    nameMedication = medication.nameMedication,
+                    dose = period.dose,
+                    initialFrec = period.initialFrec,
+                    finalFrec = period.finalFrec,
+                    times = list
+                };
+
+                listMedications.Add(infoMedication);
             }*/
 
             MedicationsAndValuesGraphicDto medications = new MedicationsAndValuesGraphicDto
