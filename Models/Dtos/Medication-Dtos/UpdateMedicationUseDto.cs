@@ -5,8 +5,6 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
     public class UpdateMedicationUseDto
     {
         [JsonRequired] public Guid periodID { get; set; }
-        
-        [JsonRequired] public Guid medicationID { get; set; }
 
         [JsonRequired] public DateOnly updateDate { get; set; }
 
