@@ -293,11 +293,11 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpDelete]
         [Produces("application/json")]
-        public IActionResult DeleteAMedication([FromQuery] Guid medicationID, [FromQuery] DateOnly date)
+        public IActionResult DeleteAMedication([FromQuery] Guid periodID, [FromQuery] DateOnly date)
         {
             try
             {
-                string res = _MedicationService.DeleteAMedication(medicationID, date);
+                string res = _MedicationService.DeleteAMedication(periodID, date);
 
                 ReturnDeleteMedication response = new ReturnDeleteMedication
                 {

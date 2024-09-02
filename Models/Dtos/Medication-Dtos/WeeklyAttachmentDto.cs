@@ -6,8 +6,8 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
     {
         [JsonRequired] public DateOnly date { get; set; }
 
-        [JsonRequired] public int totalMedications { get; set; }
+        [JsonRequired] public int limit { get; set; }
 
-        [JsonRequired] public int medicationsConsumed { get; set; }
+        [JsonRequired] public int value { get; set; }
     }
 }
