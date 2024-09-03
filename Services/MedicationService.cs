@@ -397,29 +397,22 @@ namespace AppVidaSana.Services
                 foreach (var time in times)
                 {
                     var timeExist = _bd.Times.Any(e => e.periodID == periodID
-                                                  && e.dateMedication == date
-                                                  && e.time == time);
+                                                  && e.dateMedication == date);
 
-                    if (timeExist) {
-                        var timeToDelete = _bd.Times.Where(e => e.periodID == periodID
-                                                          && e.dateMedication == date
-                                                          && e.time == time).ToList();
+                    if (!timeExist) {
 
-                        _bd.Times.RemoveRange(timeToDelete);
-                        if (!Save()) { throw new UnstoredValuesException(); }
+                        Times newTime = new Times
+                        {
+                            periodID = periodID,
+                            dateMedication = date,
+                            time = time,
+                            medicationStatus = false
+                        };
+
+                        ValidationTime(newTime);
+
+                        newTimes.Add(newTime);
                     }
-
-                    Times newTime = new Times
-                    {
-                        periodID = periodID,
-                        dateMedication = date,
-                        time = time,
-                        medicationStatus = false
-                    };
-
-                    ValidationTime(newTime);
-
-                    newTimes.Add(newTime);
                 }
             }
 
@@ -573,8 +566,13 @@ namespace AppVidaSana.Services
 
                         ValidationTime(time);
 
-                        newTimes.Add(time);
-                        
+                        newTimes.Add(time);     
+                    }
+
+                    string[] actualTimes = period.timesPeriod.Split(", ");
+
+                    if (!actualTimes.Contains(sub))
+                    {
                         period.timesPeriod = period.timesPeriod + ", " + sub;
                     }
                 }
@@ -582,6 +580,7 @@ namespace AppVidaSana.Services
                 _bd.Times.AddRange(newTimes);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
+
 
                 _bd.PeriodsMedications.Update(period);
 
