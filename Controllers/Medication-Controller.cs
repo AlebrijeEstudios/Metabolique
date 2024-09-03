@@ -119,25 +119,7 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
-            catch (RepeatRegistrationException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
-            }
-            catch (ListTimesVoidException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
-            }
-            catch (ErrorRangeDatesException ex)
+            catch (NotRepeatPeriodException ex)
             {
                 ReturnExceptionMessage response = new ReturnExceptionMessage
                 {
@@ -311,11 +293,11 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpDelete]
         [Produces("application/json")]
-        public IActionResult DeleteAMedication([FromQuery] Guid medicationID, [FromQuery] DateOnly date)
+        public IActionResult DeleteAMedication([FromQuery] Guid periodID, [FromQuery] DateOnly date)
         {
             try
             {
-                string res = _MedicationService.DeleteAMedication(medicationID, date);
+                string res = _MedicationService.DeleteAMedication(periodID, date);
 
                 ReturnDeleteMedication response = new ReturnDeleteMedication
                 {

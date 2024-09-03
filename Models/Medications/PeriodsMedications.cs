@@ -25,8 +25,6 @@ namespace AppVidaSana.Models.Medications
 
         public string timesPeriod { get; set; } = null!;
 
-        public bool isActive { get; set; }
-
         public Medication? medication { get; set; }
 
         public Account? account { get; set; }
