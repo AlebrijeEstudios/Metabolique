@@ -213,6 +213,11 @@ namespace AppVidaSana.Services
 
             var period = _bd.PeriodsMedications.Find(values.periodID);
 
+            if (!(period.initialFrec <= values.updateDate && values.updateDate <= period.finalFrec))
+            {
+                throw new UnstoredValuesException();
+            }
+
             var medication = _bd.Medications.Find(period.medicationID);
 
             if (medication == null) { throw new UnstoredValuesException(); }
@@ -281,10 +286,17 @@ namespace AppVidaSana.Services
 
         public string DeleteAMedication(Guid id, DateOnly date)
         {
+            var period = _bd.PeriodsMedications.Find(id);
+
+            if(!(period.initialFrec >= date && date <= period.finalFrec))
+            {
+                throw new UnstoredValuesException();
+            }
+
             var recordsToDelete = _bd.Times.Where(e => e.periodID == id && e.dateMedication >= date).ToList();
                
             _bd.Times.RemoveRange(recordsToDelete);
-
+            
             if (!Save()) { throw new UnstoredValuesException(); }
 
             return "Se ha eliminado correctamente.";
@@ -424,8 +436,8 @@ namespace AppVidaSana.Services
         private InfoMedicationDto UpdateForNewDateInitialAndFinal(PeriodsMedications periods, DateOnly dateRecord, 
                                                                   DateOnly newInitialDate, DateOnly newFinalDate)
         {
-
             if(newFinalDate < newInitialDate) { throw new UnstoredValuesException(); }
+            if (newFinalDate < dateRecord) { throw new UnstoredValuesException(); }
 
             if (newInitialDate < periods.initialFrec)
             {
@@ -510,7 +522,7 @@ namespace AppVidaSana.Services
                 }
 
                 var idsToKeep = idsPrevious.Intersect(ids).ToList();
-                var idsToKeepString = string.Join(",", idsToKeep.Select(id => _bd.Times.Find(id).time.ToString("HH:mm")));
+                var idsToKeepString = string.Join(", ", idsToKeep.Select(id => _bd.Times.Find(id).time.ToString("HH:mm")));
 
                 var findIdsToDelete = idsPrevious.Except(ids).ToList();
 
