@@ -21,7 +21,7 @@ namespace AppVidaSana.Models.Medications
         public DateOnly finalFrec { get; set; }
 
         [Required(ErrorMessage = "El campo dosis es obligatorio.")]
-        public int dose { get; set; }
+        public string dose { get; set; } = null!;
 
         public string timesPeriod { get; set; } = null!;
 
