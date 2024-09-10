@@ -10,6 +10,7 @@ using AppVidaSana.Models.Exercises;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Runtime.InteropServices.Marshalling;
 
 namespace AppVidaSana.Services
@@ -45,6 +46,8 @@ namespace AppVidaSana.Services
 
         public ExerciseAndValuesGraphicDto ExercisesAndValuesGraphic(Guid id, DateOnly date)
         {
+            ExerciseAndValuesGraphicDto info;
+
             List<ExerciseListDto> exercises = GetExercises(id, date);
 
             DateOnly dateFinal = date.AddDays(-6);
@@ -81,10 +84,43 @@ namespace AppVidaSana.Services
 
             graphicValues = graphicValues.OrderBy(x => x.date).ToList();
 
-            ExerciseAndValuesGraphicDto info = new ExerciseAndValuesGraphicDto
+            CultureInfo ci = new CultureInfo("es-ES");
+
+            var monthExist = _bd.Months.FirstOrDefault(e => e.month == date.ToString("MMMM", ci)
+                                                       && e.year == Convert.ToInt32(date.ToString("yyyy")));
+
+            if(monthExist == null)
+            {
+                info = new ExerciseAndValuesGraphicDto
+                {
+                    exercises = exercises,
+                    activeMinutes = graphicValues,
+                    mfuStatus = false
+                };
+
+                return info;
+            }
+
+            var mfuExist = _bd.MFUsExercise.Any(e => e.accountID == id
+                                                && e.monthID == monthExist.monthID);
+
+            if (!mfuExist)
+            {
+                info = new ExerciseAndValuesGraphicDto
+                {
+                    exercises = exercises,
+                    activeMinutes = graphicValues,
+                    mfuStatus = false
+                };
+
+                return info;
+            }
+
+            info = new ExerciseAndValuesGraphicDto
             {
                 exercises = exercises,
-                activeMinutes = graphicValues
+                activeMinutes = graphicValues,
+                mfuStatus = true
             };
 
             return info;

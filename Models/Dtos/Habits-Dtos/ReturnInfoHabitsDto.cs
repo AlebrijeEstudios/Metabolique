@@ -14,5 +14,7 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos
          
         public List<GraphicValuesHabitSleepDto> hoursSleep { get; set; } = null!;
 
+        public bool mfuStatus { get; set; }
+
     }
 }

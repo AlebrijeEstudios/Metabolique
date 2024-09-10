@@ -51,7 +51,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
             if(existMonth == null)
             {
-                responses = new RetrieveResponsesExerciseDto();
+                responses = null;
                 return responses;
             }
 
@@ -59,7 +59,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
             if (mfuExercise == null)
             {
-                responses = new RetrieveResponsesExerciseDto();
+                responses = null;
                 return responses;
             }
 
@@ -67,7 +67,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
             if (mfuExerciseResults == null)
             {
-                responses = new RetrieveResponsesExerciseDto();
+                responses = null;
                 return responses;
             }
 

@@ -14,7 +14,7 @@ namespace AppVidaSana.Controllers.Habits
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/habits")]
-    [EnableRateLimiting("sliding")]
+    [EnableRateLimiting("concurrency")]
     public class HabitsInfoGeneralController : ControllerBase
     {
         private readonly IHabitsGeneral _HabitsInfoService;
@@ -55,29 +55,19 @@ namespace AppVidaSana.Controllers.Habits
                 drinkConsumed = info.drinkConsumed,
                 hoursSleepConsumed = info.hoursSleepConsumed,
                 drugsConsumed = info.drugsConsumed,
-                hoursSleep = info.hoursSleep
+                hoursSleep = info.hoursSleep,
+                mfuStatus = info.mfuStatus
             };
 
-            if(!info.drinkConsumed.Any() && info.hoursSleepConsumed == null && info.drugsConsumed == null && !info.hoursSleep.Any())
-            {
-                return StatusCode(StatusCodes.Status200OK, new
+            return StatusCode(StatusCodes.Status200OK, new
                 {
-                    message = false,
+                    message = response.message,
                     drinkConsumed = response.drinkConsumed,
                     hoursSleepConsumed = response.hoursSleepConsumed,
                     drugsConsumed = response.drugsConsumed,
-                    hoursSleep = response.hoursSleep
+                    hoursSleep = response.hoursSleep,
+                    mfuStatus = response.mfuStatus
                 });
-            }
-
-            return StatusCode(StatusCodes.Status200OK, new 
-            { 
-                message = response.message, 
-                drinkConsumed = response.drinkConsumed,                                   
-                hoursSleepConsumed = response.hoursSleepConsumed, 
-                drugsConsumed = response.drugsConsumed,                                             
-                hoursSleep = response.hoursSleep
-            });
         }
     }
 }

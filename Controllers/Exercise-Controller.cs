@@ -19,7 +19,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/exercises")]
-    [EnableRateLimiting("sliding")]
+    [EnableRateLimiting("concurrency")]
     public class ExerciseController : ControllerBase
     {
         private readonly IExercise _ExerciseService;
@@ -58,15 +58,11 @@ namespace AppVidaSana.Controllers
             ReturnGetExercise response = new ReturnGetExercise
             {
                 exercises = infoExercises.exercises,
-                activeMinutes = infoExercises.activeMinutes
+                activeMinutes = infoExercises.activeMinutes,
+                mfuStatus = infoExercises.mfuStatus
             };
 
-            if(!infoExercises.exercises.Any() && !infoExercises.activeMinutes.Any())
-            {
-                return StatusCode(StatusCodes.Status200OK, new { message = false, exercises = response.exercises, ActiveMinutes = response.activeMinutes });
-            }
-
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercises = response.exercises, ActiveMinutes = response.activeMinutes });
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, exercises = response.exercises, ActiveMinutes = response.activeMinutes, mfuStatus = response.mfuStatus });
         }
 
         /// <summary>

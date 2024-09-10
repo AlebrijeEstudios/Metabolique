@@ -1,11 +1,13 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions.Medication;
 using AppVidaSana.Mappers;
+using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs;
 using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
+using System.Globalization;
 
 namespace AppVidaSana.Services.Habits
 {
@@ -22,6 +24,8 @@ namespace AppVidaSana.Services.Habits
 
         public ReturnInfoHabitsDto GetInfoGeneralHabits(Guid idAccount, DateOnly date)
         {
+            ReturnInfoHabitsDto info;
+
             var habitsDrink = _bd.HabitsDrink.Where(e => e.accountID == idAccount && e.drinkDateHabit == date).ToList();
 
             var habitSleep = _bd.HabitsSleep.FirstOrDefault(e => e.accountID == idAccount && e.sleepDateHabit == date);
@@ -61,12 +65,50 @@ namespace AppVidaSana.Services.Habits
                 }
             }
 
-            ReturnInfoHabitsDto info = new ReturnInfoHabitsDto
+            CultureInfo ci = new CultureInfo("es-ES");
+
+            var monthExist = _bd.Months.FirstOrDefault(e => e.month == date.ToString("MMMM", ci)
+                                                       && e.year == Convert.ToInt32(date.ToString("yyyy")));
+
+            if (monthExist == null)
+            {
+                info = new ReturnInfoHabitsDto
+                {
+                    drinkConsumed = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink),
+                    hoursSleepConsumed = _mapper.Map<GetHoursSleepConsumedDto>(habitSleep),
+                    drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
+                    hoursSleep = hoursSleep,
+                    mfuStatus = false
+                };
+
+                return info;
+            }
+
+            var mfuExist = _bd.MFUsHabits.Any(e => e.accountID == idAccount
+                                                && e.monthID == monthExist.monthID);
+
+            if (!mfuExist)
+            {
+                info = new ReturnInfoHabitsDto
+                {
+                    drinkConsumed = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink),
+                    hoursSleepConsumed = _mapper.Map<GetHoursSleepConsumedDto>(habitSleep),
+                    drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
+                    hoursSleep = hoursSleep,
+                    mfuStatus = false
+                };
+
+                return info;
+            }
+
+
+            info = new ReturnInfoHabitsDto
             {
                 drinkConsumed = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink),
                 hoursSleepConsumed = _mapper.Map<GetHoursSleepConsumedDto>(habitSleep),
                 drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
-                hoursSleep = hoursSleep
+                hoursSleep = hoursSleep,
+                mfuStatus = true
             };
 
             return info;

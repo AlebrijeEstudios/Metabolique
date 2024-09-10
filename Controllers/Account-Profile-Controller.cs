@@ -18,7 +18,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/accounts")]
-    [EnableRateLimiting("sliding")]
+    [EnableRateLimiting("concurrency")]
     public class AccountProfileController : ControllerBase
     {
         private readonly IAccount _AccountService;

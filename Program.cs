@@ -28,7 +28,7 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
 var key = Encoding.ASCII.GetBytes(token);
@@ -51,7 +51,7 @@ builder.Services.AddCors(opt =>
 
 var myOptions = new MyRateLimitOptions();
 builder.Configuration.GetSection("MyRateLimitOptions").Bind(myOptions);
-var slidingPolicy = "sliding";
+var slidingPolicy = "concurrency";
 RateLimiting response = new RateLimiting();
 var jsonResponse = JsonSerializer.Serialize(response);
 
@@ -66,13 +66,11 @@ builder.Services.AddRateLimiter(options =>
         await context.HttpContext.Response.WriteAsync(jsonResponse, token);
     };
 
-    options.AddSlidingWindowLimiter(policyName: slidingPolicy, op =>
+    options.AddConcurrencyLimiter(policyName: slidingPolicy, op =>
     {
         op.PermitLimit = myOptions.PermitLimit;
-        op.Window = TimeSpan.FromSeconds(myOptions.Window);
         op.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         op.QueueLimit = myOptions.QueueLimit;
-        op.SegmentsPerWindow = myOptions.SegmentsPerWindow;
     });
 });
 

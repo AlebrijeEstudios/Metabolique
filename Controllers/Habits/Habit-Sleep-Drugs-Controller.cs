@@ -21,7 +21,7 @@ namespace AppVidaSana.Controllers.Habits
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/habits-sleep-drugs")]
-    [EnableRateLimiting("sliding")]
+    [EnableRateLimiting("concurrency")]
     public class HabitSleepDrugsController : ControllerBase
     {
         private readonly ISleepDrugsHabit _SleepDrugsHabitService;

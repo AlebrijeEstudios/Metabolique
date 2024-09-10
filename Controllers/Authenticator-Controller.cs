@@ -16,7 +16,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/auth")]
-    [EnableRateLimiting("sliding")]
+    [EnableRateLimiting("concurrency")]
     public class AuthenticatorController : Controller
     {
         private readonly IAccount _AccountService;

@@ -18,7 +18,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/monthly-habits-monitoring")]
-    [EnableRateLimiting("sliding")]
+    [EnableRateLimiting("concurrency")]
     public class MFUsHabitsController : ControllerBase
     {
         private readonly IMFUsHabits _MFUsHabitsService;
