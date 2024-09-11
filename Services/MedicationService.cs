@@ -44,7 +44,6 @@ namespace AppVidaSana.Services
                                                          && e.timesPeriod == medication.times);
 
             if (periodExist) { throw new NotRepeatPeriodException(); }
-            if (medication.dateActual < medication.initialFrec) { throw new UnstoredValuesException(); }
             if (medication.finalFrec < medication.initialFrec) { throw new UnstoredValuesException(); }
 
             PeriodsMedications period = new PeriodsMedications
@@ -68,9 +67,15 @@ namespace AppVidaSana.Services
                                                                   && e.initialFrec == medication.initialFrec
                                                                   && e.finalFrec == medication.finalFrec).periodID;
 
+            if (!(period.initialFrec <= medication.dateActual && medication.dateActual <= period.finalFrec))
+            {
+                AddTimes(periodID, period.initialFrec, medication.times);
+
+                return null;
+            }
 
             AddTimes(periodID, medication.dateActual, medication.times);
-            
+
             var medicationsList = InfoMedicationJustAddUpdateDelete(medicationID, periodID, medication.dateActual);
 
             return medicationsList;
@@ -212,12 +217,7 @@ namespace AppVidaSana.Services
             InfoMedicationDto infoMedication = new InfoMedicationDto();
 
             var period = _bd.PeriodsMedications.Find(values.periodID);
-
-            if (!(period.initialFrec <= values.updateDate && values.updateDate <= period.finalFrec))
-            {
-                throw new UnstoredValuesException();
-            }
-
+            
             var medication = _bd.Medications.Find(period.medicationID);
 
             if (medication == null) { throw new UnstoredValuesException(); }
@@ -251,8 +251,6 @@ namespace AppVidaSana.Services
                 }
             }
 
-            if (values.updateDate < values.initialFrec) { throw new UnstoredValuesException(); }
-
             infoMedication = UpdateForNewDailyFrec(values, period.periodID);
             
             if (period.initialFrec != values.initialFrec || period.finalFrec != values.finalFrec)
@@ -268,6 +266,13 @@ namespace AppVidaSana.Services
             _bd.PeriodsMedications.Update(period);
 
             if (!Save()) { throw new UnstoredValuesException(); }
+
+            var periodWithUpdate = _bd.PeriodsMedications.Find(values.periodID);
+
+            if (!(periodWithUpdate.initialFrec <= values.updateDate && values.updateDate <= periodWithUpdate.finalFrec))
+            {
+                return null;
+            }
 
             return infoMedication;
 
@@ -287,11 +292,6 @@ namespace AppVidaSana.Services
         public string DeleteAMedication(Guid id, DateOnly date)
         {
             var period = _bd.PeriodsMedications.Find(id);
-
-            if(!(period.initialFrec >= date && date <= period.finalFrec))
-            {
-                throw new UnstoredValuesException();
-            }
 
             var recordsToDelete = _bd.Times.Where(e => e.periodID == id && e.dateMedication >= date).ToList();
                
@@ -437,7 +437,17 @@ namespace AppVidaSana.Services
                                                                   DateOnly newInitialDate, DateOnly newFinalDate)
         {
             if(newFinalDate < newInitialDate) { throw new UnstoredValuesException(); }
-            if (newFinalDate < dateRecord) { throw new UnstoredValuesException(); }
+            if (newFinalDate < dateRecord || dateRecord < newInitialDate) {
+
+                periods.initialFrec = newInitialDate;
+                periods.finalFrec = newFinalDate;
+
+                _bd.PeriodsMedications.Update(periods);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                return null;
+            }
 
             if (newInitialDate < periods.initialFrec)
             {
