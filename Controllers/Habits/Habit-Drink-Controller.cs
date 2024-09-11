@@ -18,7 +18,7 @@ namespace AppVidaSana.Controllers.Habits
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/habits-drink")]
-    [EnableRateLimiting("sliding")]
+    [EnableRateLimiting("concurrency")]
     public class HabitDrinkController : ControllerBase
     {
         private readonly IDrinkHabit _DrinkHabitService;

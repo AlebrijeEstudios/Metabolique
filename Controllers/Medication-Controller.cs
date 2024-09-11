@@ -24,7 +24,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/medication")]
-    [EnableRateLimiting("sliding")]
+    [EnableRateLimiting("concurrency")]
     public class MedicationController : ControllerBase
     {
         private readonly IMedication _MedicationService;

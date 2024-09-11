@@ -51,7 +51,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             if (existMonth == null)
             {
-                responses = new RetrieveResponsesHabitsDto();
+                responses = null;
                 return responses;
             }
 
@@ -59,7 +59,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             if (mfuHabits == null)
             {
-                responses = new RetrieveResponsesHabitsDto();
+                responses = null;
                 return responses;
             }
 
@@ -67,7 +67,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             if (mfuHabitsResults == null)
             {
-                responses = new RetrieveResponsesHabitsDto();
+                responses = null;
                 return responses;
             }
 

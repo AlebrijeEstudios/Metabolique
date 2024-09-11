@@ -15,5 +15,7 @@ namespace AppVidaSana.ProducesResponseType.Habits
         public GetDrugsConsumedDto drugsConsumed { get; set; } = null!;
 
         public List<GraphicValuesHabitSleepDto> hoursSleep { get; set; } = null!;
+
+        public bool mfuStatus { get; set; } 
     }
 }

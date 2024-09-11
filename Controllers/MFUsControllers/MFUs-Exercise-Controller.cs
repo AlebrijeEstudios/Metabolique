@@ -18,7 +18,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/monthly-exercise-monitoring")]
-    [EnableRateLimiting("sliding")]
+    [EnableRateLimiting("concurrency")]
     public class MFUsExerciseController : ControllerBase
     {
         private readonly IMFUsExercise _MFUsExerciseService;
@@ -117,11 +117,6 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
                 {
                     mfus = res
                 };
-
-                if (res.month == null)
-                {
-                    return StatusCode(StatusCodes.Status200OK, new { message = false, mfus = response.mfus });
-                }
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfus = response.mfus });
 
