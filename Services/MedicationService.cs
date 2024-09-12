@@ -137,11 +137,11 @@ namespace AppVidaSana.Services
 
                     listMedications.Add(infoMedication);
 
+                    timesForMedication.Clear();
                 }
             }
 
-            int countStatus = 0, totalMedications = 0, medicationsConsumed = 0;
-            bool statusGeneral = false;
+            int totalMedications = 0, medicationsConsumed = 0;
             List<WeeklyAttachmentDto> weeklyList = new List<WeeklyAttachmentDto>();
             DateOnly dateFinal = dateActual.AddDays(-6);
 
@@ -167,8 +167,6 @@ namespace AppVidaSana.Services
             {
                 foreach (var time in groupObjectsByID)
                 {
-                    countStatus = 0;
-
                     var period = _bd.PeriodsMedications.Find(time.Key);
 
                     var list = time.Value.Where(e => e.t.dateMedication == date
@@ -176,17 +174,13 @@ namespace AppVidaSana.Services
                                                 && e.t.dateMedication <= period.finalFrec).ToList();
 
                     if (list.Any())
-                    {
-                        totalMedications++;
-
+                    { 
                         foreach (var l in list)
                         {
-                            if (l.t.medicationStatus) { countStatus++; }
+                            totalMedications++;
+
+                            if (l.t.medicationStatus) { medicationsConsumed++; }
                         }
-
-                        statusGeneral = (countStatus == list.Count()) ? true : false;
-
-                        if (statusGeneral) { medicationsConsumed++; }
                     }
                 }
 
