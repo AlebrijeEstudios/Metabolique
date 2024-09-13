@@ -111,7 +111,18 @@ namespace AppVidaSana.Services
 
                     if (!times.Any())
                     {
-                        AddTimes(period.periodID, dateActual, period.timesPeriod);
+                        var days = GetDatesInRange(period.initialFrec, dateActual);
+
+                        foreach (var day in days)
+                        { 
+                            var existTimes = _bd.Times.Any(e => e.periodID == period.periodID
+                                                           && e.dateMedication == day);
+
+                            if (!existTimes)
+                            {
+                                AddTimes(period.periodID, day, period.timesPeriod);
+                            }
+                        }
 
                         times = _bd.Times.Where(e => e.periodID == period.periodID
                                                 && e.dateMedication == dateActual).ToList();
@@ -182,6 +193,7 @@ namespace AppVidaSana.Services
                             if (l.t.medicationStatus) { medicationsConsumed++; }
                         }
                     }
+
                 }
 
                 WeeklyAttachmentDto weeklyAttachment = new WeeklyAttachmentDto
