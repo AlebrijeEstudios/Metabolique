@@ -211,10 +211,16 @@ namespace AppVidaSana.Services
                 medicationsConsumed = 0;
             }
 
+            var sideEffects = _bd.SideEffects.Where(e => e.accountID == accountID
+                                                    && e.dateSideEffects == dateActual).ToList();
+
+            List<SideEffectsListDto> sideEffectsMapped = _mapper.Map<List<SideEffectsListDto>>(sideEffects);
+
             MedicationsAndValuesGraphicDto medications = new MedicationsAndValuesGraphicDto
             {
                 medications = listMedications,
-                weeklyAttachments = weeklyList
+                weeklyAttachments = weeklyList,
+                sideEffects = sideEffectsMapped
             };
 
             return medications;
@@ -310,53 +316,73 @@ namespace AppVidaSana.Services
             return "Se ha eliminado correctamente.";
         }
 
-        public SideEffectsListDto AddSideEffect(AddUpdateSideEffectDto values)
+        public SideEffectsListDto AddSideEffect(AddSideEffectDto values)
         {
             var sideEffectExist = _bd.SideEffects.FirstOrDefault(e => e.accountID == values.accountID
-                                                                 && e.dateSideEffects == values.dateSideEffects
+                                                                 && e.dateSideEffects == values.date
                                                                  && e.description == values.description);
 
-            SideEffectsListDto sideEffectMaped;
+            SideEffectsListDto sideEffectMapped;
 
-            if (sideEffectExist == null)
+            if (sideEffectExist != null) { throw new RepeatRegistrationException(); }
+
+            SideEffects sideEffects = new SideEffects
             {
-                SideEffects sideEffects = new SideEffects
-                {
-                    accountID = values.accountID,
-                    dateSideEffects = values.dateSideEffects,
-                    initialTime = values.initialTime,
-                    finalTime = values.finalTime,
-                    description = values.description
-                };
+                accountID = values.accountID,
+                dateSideEffects = values.date,
+                initialTime = values.initialTime,
+                finalTime = values.finalTime,
+                description = values.description
+            };
 
-                ValidationSideEffects(sideEffects);
+            ValidationSideEffects(sideEffects);
 
-                _bd.SideEffects.Add(sideEffects);
+            _bd.SideEffects.Add(sideEffects);
 
-                if (!Save()) { throw new UnstoredValuesException(); }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
-                var recentlySideEffect = _bd.SideEffects.FirstOrDefault(e => e.accountID == values.accountID
-                                                                        && e.dateSideEffects == values.dateSideEffects
-                                                                        && e.description == values.description);
+            var recentlySideEffect = _bd.SideEffects.FirstOrDefault(e => e.accountID == values.accountID
+                                                                    && e.dateSideEffects == values.date
+                                                                    && e.description == values.description);
 
-                sideEffectMaped = _mapper.Map<SideEffectsListDto>(recentlySideEffect);
+            sideEffectMapped = _mapper.Map<SideEffectsListDto>(recentlySideEffect);
 
-                return sideEffectMaped;
+            return sideEffectMapped;
+        }
+
+        public SideEffectsListDto UpdateSideEffect(SideEffectsListDto values)
+        {
+            var sideEffectToUpdate = _bd.SideEffects.Find(values.sideEffectID);
+
+            sideEffectToUpdate.initialTime = values.initialTime;
+            sideEffectToUpdate.finalTime = values.finalTime;
+            sideEffectToUpdate.description = values.description;
+
+            ValidationSideEffects(sideEffectToUpdate);
+
+            _bd.SideEffects.Update(sideEffectToUpdate);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            var sideEffectMapped = _mapper.Map<SideEffectsListDto>(sideEffectToUpdate);
+
+            return sideEffectMapped;
+        }
+
+        public string DeleteSideEffect(Guid id)
+        {
+            var sideEffectToDelete = _bd.SideEffects.Find(id);
+
+            if(sideEffectToDelete == null)
+            {
+                return "Este registro no existe, inténtelo de nuevo.";
             }
 
-            sideEffectMaped = _mapper.Map<SideEffectsListDto>(sideEffectExist);
+            _bd.SideEffects.Remove(sideEffectToDelete);
 
-            return sideEffectMaped;
-        }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
-        public void UpdateSideEffect(AddUpdateSideEffectDto values)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void DeleteSideEffect(Guid id)
-        {
-            throw new NotImplementedException();
+            return "Se ha eliminado correctamente.";
         }
 
         public bool Save()

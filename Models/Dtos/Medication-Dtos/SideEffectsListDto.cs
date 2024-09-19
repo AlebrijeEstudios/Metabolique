@@ -6,8 +6,6 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
     {
         [JsonRequired] public Guid sideEffectID { get; set; }
 
-        [JsonRequired] public DateOnly date { get; set; }
-
         [JsonRequired] public TimeOnly initialTime { get; set; }
 
         [JsonRequired] public TimeOnly finalTime { get; set; }

@@ -4,8 +4,10 @@ namespace AppVidaSana.Services.IServices
 {
     public interface ISideEffects
     {
-        public SideEffectsListDto AddSideEffect(AddUpdateSideEffectDto values);
-        public void UpdateSideEffect(AddUpdateSideEffectDto values);
-        public void DeleteSideEffect(Guid id);
+        public SideEffectsListDto AddSideEffect(AddSideEffectDto values);
+
+        public SideEffectsListDto UpdateSideEffect(SideEffectsListDto values);
+
+        public string DeleteSideEffect(Guid id);
     }
 }

@@ -17,6 +17,8 @@ using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.Exceptions.Medication;
 using AppVidaSana.Exceptions.Ejercicio;
+using AppVidaSana.Models.Medications;
+using AppVidaSana.ProducesResponseType.Medications.SideEffects;
 
 namespace AppVidaSana.Controllers
 {
@@ -28,11 +30,12 @@ namespace AppVidaSana.Controllers
     public class MedicationController : ControllerBase
     {
         private readonly IMedication _MedicationService;
+        private readonly ISideEffects _SideEffectsService;
 
-        public MedicationController(IMedication MedicationService)
+        public MedicationController(IMedication MedicationService, ISideEffects SideEffects)
         {
             _MedicationService = MedicationService;
-
+            _SideEffectsService = SideEffects;
         }
 
         /// <summary>
@@ -61,15 +64,14 @@ namespace AppVidaSana.Controllers
             ReturnMedications response = new ReturnMedications
             {
                 medications = infoMedications.medications,
-                weeklyAttachments = infoMedications.weeklyAttachments
+                weeklyAttachments = infoMedications.weeklyAttachments,
+                sideEffects = infoMedications.sideEffects
             };
 
-            if (!infoMedications.medications.Any() && !infoMedications.weeklyAttachments.Any())
-            {
-                return StatusCode(StatusCodes.Status200OK, new { message = false, medications = response.medications });
-            }
-
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, medications = response.medications, weeklyAttachments = response.weeklyAttachments });
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, 
+                                                             medications = response.medications, 
+                                                             weeklyAttachments = response.weeklyAttachments,
+                                                             sideEffects = response.sideEffects});
         }
 
         /// <summary>
@@ -279,8 +281,7 @@ namespace AppVidaSana.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
         }
-
-        
+ 
         /// <summary>
         /// This controller deletes a medication on a given day.
         /// </summary>
@@ -300,6 +301,157 @@ namespace AppVidaSana.Controllers
                 string res = _MedicationService.DeleteAMedication(periodID, date);
 
                 ReturnDeleteMedication response = new ReturnDeleteMedication
+                {
+                    status = res
+                };
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+        }
+
+        /// <summary>
+        /// This controller adds the side effects on a given day.
+        /// </summary>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The date property must have the following structure:   
+        ///     {
+        ///        "date": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        ///   
+        /// </remarks>
+        /// <response code="201">Returns a message that the information has been successfully stored.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnSideEffect))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ApiKeyAuthorizationFilter]
+        [HttpPost("side-effects")]
+        [Produces("application/json")]
+        public IActionResult AddSideEffects([FromBody] AddSideEffectDto values)
+        {
+            try
+            {
+                SideEffectsListDto sideEffect = _SideEffectsService.AddSideEffect(values);
+
+                ReturnSideEffect response = new ReturnSideEffect
+                {
+                    sideEffect = sideEffect
+                };
+
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, sideEffect = response.sideEffect });
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (RepeatRegistrationException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (ErrorDatabaseException ex)
+            {
+                ReturnExceptionList response = new ReturnExceptionList
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+
+            }
+        }
+
+        /// <summary>
+        /// This controller updates side effect records on a given day.
+        /// </summary>
+        /// <response code="200">Returns a message that the update has been successful.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnSideEffect))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ApiKeyAuthorizationFilter]
+        [HttpPut("side-effects")]
+        [Produces("application/json")]
+        public IActionResult UpdateSideEffects([FromBody] SideEffectsListDto values)
+        {
+            try
+            {
+                SideEffectsListDto sideEffect = _SideEffectsService.UpdateSideEffect(values);
+
+                ReturnSideEffect response = new ReturnSideEffect
+                {
+                    sideEffect = sideEffect
+                };
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, sideEffect = response.sideEffect });
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (ErrorDatabaseException ex)
+            {
+                ReturnExceptionList response = new ReturnExceptionList
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+
+            }
+        }
+
+
+        /// <summary>
+        /// This controller deletes side effect records on a given day.
+        /// </summary>
+        /// <response code="200">Returns a message that the elimination has been successful.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnDeleteSideEffect))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ApiKeyAuthorizationFilter]
+        [HttpDelete("side-effects")]
+        [Produces("application/json")]
+        public IActionResult DeleteASideEffects([FromQuery] Guid sideEffectID)
+        {
+            try
+            {
+                string res = _SideEffectsService.DeleteSideEffect(sideEffectID);
+
+                ReturnDeleteSideEffect response = new ReturnDeleteSideEffect
                 {
                     status = res
                 };

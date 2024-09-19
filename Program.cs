@@ -91,6 +91,7 @@ builder.Services.AddScoped<IDrinkHabit, DrinkHabitService>();
 builder.Services.AddScoped<ISleepDrugsHabit, SleepDrugsHabitService>();
 builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
 builder.Services.AddScoped<IMedication, MedicationService>();
+builder.Services.AddScoped<ISideEffects, MedicationService>();
 
 builder.Services.AddControllersWithViews();
 
