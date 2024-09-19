@@ -147,6 +147,7 @@ namespace AppVidaSana.Mappers
             CreateMap<MFUsHabits, SaveResponsesHabitsDto>().ReverseMap();
             CreateMap<HabitsResults, SaveResultsHabitsDto>().ReverseMap();
             CreateMap<Times, TimeListDto>().ReverseMap();
+            CreateMap<SideEffects, SideEffectsListDto>().ReverseMap();
 
         }
     }

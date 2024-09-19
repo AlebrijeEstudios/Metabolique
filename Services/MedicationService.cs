@@ -2,7 +2,9 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Medication;
+using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
+using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
@@ -14,7 +16,7 @@ using System.Data;
 
 namespace AppVidaSana.Services
 {
-    public class MedicationService : IMedication
+    public class MedicationService : IMedication, ISideEffects
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
@@ -306,6 +308,55 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
 
             return "Se ha eliminado correctamente.";
+        }
+
+        public SideEffectsListDto AddSideEffect(AddUpdateSideEffectDto values)
+        {
+            var sideEffectExist = _bd.SideEffects.FirstOrDefault(e => e.accountID == values.accountID
+                                                                 && e.dateSideEffects == values.dateSideEffects
+                                                                 && e.description == values.description);
+
+            SideEffectsListDto sideEffectMaped;
+
+            if (sideEffectExist == null)
+            {
+                SideEffects sideEffects = new SideEffects
+                {
+                    accountID = values.accountID,
+                    dateSideEffects = values.dateSideEffects,
+                    initialTime = values.initialTime,
+                    finalTime = values.finalTime,
+                    description = values.description
+                };
+
+                ValidationSideEffects(sideEffects);
+
+                _bd.SideEffects.Add(sideEffects);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                var recentlySideEffect = _bd.SideEffects.FirstOrDefault(e => e.accountID == values.accountID
+                                                                        && e.dateSideEffects == values.dateSideEffects
+                                                                        && e.description == values.description);
+
+                sideEffectMaped = _mapper.Map<SideEffectsListDto>(recentlySideEffect);
+
+                return sideEffectMaped;
+            }
+
+            sideEffectMaped = _mapper.Map<SideEffectsListDto>(sideEffectExist);
+
+            return sideEffectMaped;
+        }
+
+        public void UpdateSideEffect(AddUpdateSideEffectDto values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DeleteSideEffect(Guid id)
+        {
+            throw new NotImplementedException();
         }
 
         public bool Save()
@@ -656,6 +707,22 @@ namespace AppVidaSana.Services
             var valContext = new ValidationContext(time, null, null);
 
             if (!Validator.TryValidateObject(time, valContext, valResults, true))
+            {
+                var errors = valResults.Select(vr => vr.ErrorMessage).ToList();
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
+            }
+        }
+
+        private void ValidationSideEffects(SideEffects sideEffects)
+        {
+            var valResults = new List<ValidationResult>();
+            var valContext = new ValidationContext(sideEffects, null, null);
+
+            if (!Validator.TryValidateObject(sideEffects, valContext, valResults, true))
             {
                 var errors = valResults.Select(vr => vr.ErrorMessage).ToList();
 

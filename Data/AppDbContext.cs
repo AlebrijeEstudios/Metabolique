@@ -32,6 +32,7 @@ namespace AppVidaSana.Data
         public DbSet<PeriodsMedications> PeriodsMedications { get; set; }
         public DbSet<Times> Times { get; set; }
         public DbSet<SideEffects> SideEffects { get; set; }
+        public DbSet<StatusAdherence> StatusAdherence { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -148,7 +149,27 @@ namespace AppVidaSana.Data
                 .WithOne(times => times.periods)
                 .HasForeignKey(times => times.periodID)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<Times>()
+              .Property(e => e.time)
+              .HasColumnType("TIME(0)");
 
+            //SideEffects
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.sideEffects)
+                .WithOne(sideEffects => sideEffects.account)
+                .HasForeignKey(sideEffects => sideEffects.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SideEffects>()
+              .Property(e => e.initialTime)
+              .HasColumnType("TIME(0)");
+
+            modelBuilder.Entity<SideEffects>()
+              .Property(e => e.finalTime)
+              .HasColumnType("TIME(0)");
+
+            //MFUsMedications
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.MFUsMedications)
                 .WithOne(MFUsMedications => MFUsMedications.account)
@@ -161,16 +182,17 @@ namespace AppVidaSana.Data
                .HasForeignKey(medications => medications.monthID)
                .OnDelete(DeleteBehavior.Restrict);
 
-            //SideEffects
-            modelBuilder.Entity<Account>()
-                .HasMany(account => account.sideEffects)
-                .WithOne(sideEffects => sideEffects.account)
-                .HasForeignKey(sideEffects => sideEffects.accountID)
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<StatusAdherence>().HasData(
+                new StatusAdherence { statusID = Guid.NewGuid(), statusAdherence = "Positivo" },
+                new StatusAdherence { statusID = Guid.NewGuid(), statusAdherence = "Negativo" }
+            );
 
-            modelBuilder.Entity<Times>()
-              .Property(e => e.time)
-              .HasColumnType("TIME(0)");
+            modelBuilder.Entity<StatusAdherence>()
+                .HasMany(status => status.mfuMed)
+                .WithOne(mfuMed => mfuMed.status)
+                .HasForeignKey(mfuMed => mfuMed.statusID)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }
