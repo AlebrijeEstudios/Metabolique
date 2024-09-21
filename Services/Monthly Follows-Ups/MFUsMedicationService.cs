@@ -64,6 +64,8 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             responses = new RetrieveResponsesMedicationsDto
             {
                 monthlyFollowUpID = mfuMedications.monthlyFollowUpID,
+                month = existMonth.month,
+                year = existMonth.year,
                 answerQuestion1 = mfuMedications.answerQuestion1,
                 answerQuestion2 = mfuMedications.answerQuestion2,
                 answerQuestion3 = mfuMedications.answerQuestion3,
@@ -131,6 +133,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             MFUsMedication answers = new MFUsMedication
             {
                 accountID = values.accountID,
+                monthID = monthID,
                 answerQuestion1 = values.answerQuestion1,
                 answerQuestion2 =  values.answerQuestion2,
                 answerQuestion3 = values.answerQuestion3,
@@ -158,9 +161,13 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             if (mfuToUpdate == null) { throw new UnstoredValuesException(); }
 
-            var statusID = _bd.StatusAdherence.FirstOrDefault(e => e.statusAdherence == "Negativo").statusID;
+            Guid statusID = mfuToUpdate.statusID;
 
-            if (!(!values.answerQuestion1 && values.answerQuestion2 && !values.answerQuestion3 && !values.answerQuestion4))
+            if (!values.answerQuestion1 && values.answerQuestion2 && !values.answerQuestion3 && !values.answerQuestion4)
+            {
+                statusID = _bd.StatusAdherence.FirstOrDefault(e => e.statusAdherence == "Positivo").statusID;
+            }
+            else
             {
                 statusID = _bd.StatusAdherence.FirstOrDefault(e => e.statusAdherence == "Negativo").statusID;
             }

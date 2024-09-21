@@ -81,7 +81,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
 });
 
-
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
@@ -92,6 +91,7 @@ builder.Services.AddScoped<ISleepDrugsHabit, SleepDrugsHabitService>();
 builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
 builder.Services.AddScoped<IMedication, MedicationService>();
 builder.Services.AddScoped<ISideEffects, MedicationService>();
+builder.Services.AddScoped<IMFUsMedications, MFUsMedicationService>();
 
 builder.Services.AddControllersWithViews();
 
