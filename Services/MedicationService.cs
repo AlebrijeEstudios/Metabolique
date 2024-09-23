@@ -2,7 +2,9 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Medication;
+using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
+using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
@@ -14,7 +16,7 @@ using System.Data;
 
 namespace AppVidaSana.Services
 {
-    public class MedicationService : IMedication
+    public class MedicationService : IMedication, ISideEffects
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
@@ -25,7 +27,7 @@ namespace AppVidaSana.Services
             _mapper = mapper;
         }
 
-        public InfoMedicationDto AddMedication(AddMedicationUseDto medication)
+        public InfoMedicationDto? AddMedication(AddMedicationUseDto medication)
         {
             if (!_bd.Accounts.Any(e => e.accountID == medication.accountID)) { throw new UserNotFoundException(); }
 
@@ -34,9 +36,12 @@ namespace AppVidaSana.Services
                 CreateMedication(medication.nameMedication);
             }
 
-            Guid medicationID = _bd.Medications.FirstOrDefault(e => e.nameMedication == medication.nameMedication).medicationID;
+            var findMedication = _bd.Medications.FirstOrDefault(e => e.nameMedication == medication.nameMedication);
 
-            var periodExist = _bd.PeriodsMedications.Any(e => e.medicationID == medicationID
+            if (findMedication == null) { throw new UnstoredValuesException(); }
+
+
+            var periodExist = _bd.PeriodsMedications.Any(e => e.medicationID == findMedication.medicationID
                                                          && e.accountID == medication.accountID
                                                          && e.initialFrec == medication.initialFrec
                                                          && e.finalFrec == medication.finalFrec
@@ -48,7 +53,7 @@ namespace AppVidaSana.Services
 
             PeriodsMedications period = new PeriodsMedications
             {
-                medicationID = medicationID,
+                medicationID = findMedication.medicationID,
                 accountID = medication.accountID,
                 initialFrec = medication.initialFrec,
                 finalFrec = medication.finalFrec,
@@ -62,21 +67,23 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            Guid periodID = _bd.PeriodsMedications.FirstOrDefault(e => e.accountID == medication.accountID
-                                                                  && e.medicationID == medicationID
+            var findPeriod = _bd.PeriodsMedications.FirstOrDefault(e => e.accountID == medication.accountID
+                                                                  && e.medicationID == findMedication.medicationID
                                                                   && e.initialFrec == medication.initialFrec
-                                                                  && e.finalFrec == medication.finalFrec).periodID;
+                                                                  && e.finalFrec == medication.finalFrec);
+
+            if (findPeriod == null) { throw new UnstoredValuesException(); }
 
             if (!(period.initialFrec <= medication.dateActual && medication.dateActual <= period.finalFrec))
             {
-                AddTimes(periodID, period.initialFrec, medication.times);
+                AddTimes(findPeriod.periodID, period.initialFrec, medication.times);
 
                 return null;
             }
 
-            AddTimes(periodID, medication.dateActual, medication.times);
+            AddTimes(findPeriod.periodID, medication.dateActual, medication.times);
 
-            var medicationsList = InfoMedicationJustAddUpdateDelete(medicationID, periodID, medication.dateActual);
+            var medicationsList = InfoMedicationJustAddUpdateDelete(findMedication.medicationID, findPeriod.periodID, medication.dateActual);
 
             return medicationsList;
 
@@ -100,6 +107,8 @@ namespace AppVidaSana.Services
             {
                 var medication = _bd.Medications.Find(med.Key);
 
+                if (medication == null) { throw new UnstoredValuesException(); }
+
                 var periodsForMedication = med.Value;
 
                 List<Times> timesForMedication = new List<Times>();
@@ -109,7 +118,7 @@ namespace AppVidaSana.Services
                     var times = _bd.Times.Where(e => e.periodID == period.periodID
                                                 && e.dateMedication == dateActual).ToList();
 
-                    if (!times.Any())
+                    if (!(times.Count() > 0))
                     {
                         var days = GetDatesInRange(period.initialFrec, dateActual);
 
@@ -164,7 +173,7 @@ namespace AppVidaSana.Services
 
             var timeList = getTimes.ToList();
 
-            timeList.OrderBy(x => x.t.time).ToList();
+            timeList = timeList.OrderBy(x => x.t.time).ToList();
 
             var groupObjectsByID = timeList.GroupBy(obj => obj.t.periodID)
                                             .ToDictionary(
@@ -180,11 +189,13 @@ namespace AppVidaSana.Services
                 {
                     var period = _bd.PeriodsMedications.Find(time.Key);
 
+                    if (period == null) { throw new UnstoredValuesException(); }
+
                     var list = time.Value.Where(e => e.t.dateMedication == date
                                                 && period.initialFrec <= e.t.dateMedication 
                                                 && e.t.dateMedication <= period.finalFrec).ToList();
 
-                    if (list.Any())
+                    if (list.Count() > 0)
                     { 
                         foreach (var l in list)
                         {
@@ -209,21 +220,29 @@ namespace AppVidaSana.Services
                 medicationsConsumed = 0;
             }
 
+            var sideEffects = _bd.SideEffects.Where(e => e.accountID == accountID
+                                                    && e.dateSideEffects == dateActual).ToList();
+
+            List<SideEffectsListDto> sideEffectsMapped = _mapper.Map<List<SideEffectsListDto>>(sideEffects);
+
             MedicationsAndValuesGraphicDto medications = new MedicationsAndValuesGraphicDto
             {
                 medications = listMedications,
-                weeklyAttachments = weeklyList
+                weeklyAttachments = weeklyList,
+                sideEffects = sideEffectsMapped
             };
 
             return medications;
         }
 
-        public InfoMedicationDto UpdateMedication(UpdateMedicationUseDto values)
+        public InfoMedicationDto? UpdateMedication(UpdateMedicationUseDto values)
         {
             InfoMedicationDto infoMedication = new InfoMedicationDto();
 
             var period = _bd.PeriodsMedications.Find(values.periodID);
-            
+
+            if (period == null) { throw new UnstoredValuesException(); }
+
             var medication = _bd.Medications.Find(period.medicationID);
 
             if (medication == null) { throw new UnstoredValuesException(); }
@@ -245,9 +264,13 @@ namespace AppVidaSana.Services
                 else
                 {
                     CreateMedication(values.nameMedication);
-                    Guid medicationID = _bd.Medications
-                                        .FirstOrDefault(e => e.nameMedication == values.nameMedication).medicationID;
-                    period.medicationID = medicationID;
+
+                    var findMedication = _bd.Medications
+                                        .FirstOrDefault(e => e.nameMedication == values.nameMedication);
+
+                    if (findMedication == null) { throw new UnstoredValuesException(); }
+
+                    period.medicationID = findMedication.medicationID;
 
                     ValidationPeriodMedication(period);
 
@@ -275,6 +298,8 @@ namespace AppVidaSana.Services
 
             var periodWithUpdate = _bd.PeriodsMedications.Find(values.periodID);
 
+            if (periodWithUpdate == null) { throw new UnstoredValuesException(); }
+
             if (!(periodWithUpdate.initialFrec <= values.updateDate && values.updateDate <= periodWithUpdate.finalFrec))
             {
                 return null;
@@ -288,6 +313,8 @@ namespace AppVidaSana.Services
         {
             var record = _bd.Times.Find(value.timeID);
 
+            if (record == null) { throw new UnstoredValuesException(); }
+
             record.medicationStatus = value.medicationStatus;
 
             _bd.Times.Update(record);
@@ -297,12 +324,86 @@ namespace AppVidaSana.Services
 
         public string DeleteAMedication(Guid id, DateOnly date)
         {
-            var period = _bd.PeriodsMedications.Find(id);
-
             var recordsToDelete = _bd.Times.Where(e => e.periodID == id && e.dateMedication >= date).ToList();
-               
+
+            if (recordsToDelete == null)
+            {
+                return "Este registro no existe, inténtelo de nuevo.";
+            }
+
             _bd.Times.RemoveRange(recordsToDelete);
             
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            return "Se ha eliminado correctamente.";
+        }
+
+        public SideEffectsListDto AddSideEffect(AddSideEffectDto values)
+        {
+            var sideEffectExist = _bd.SideEffects.FirstOrDefault(e => e.accountID == values.accountID
+                                                                 && e.dateSideEffects == values.date
+                                                                 && e.description == values.description);
+
+            SideEffectsListDto sideEffectMapped;
+
+            if (sideEffectExist != null) { throw new RepeatRegistrationException(); }
+
+            SideEffects sideEffects = new SideEffects
+            {
+                accountID = values.accountID,
+                dateSideEffects = values.date,
+                initialTime = values.initialTime,
+                finalTime = values.finalTime,
+                description = values.description
+            };
+
+            ValidationSideEffects(sideEffects);
+
+            _bd.SideEffects.Add(sideEffects);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            var recentlySideEffect = _bd.SideEffects.FirstOrDefault(e => e.accountID == values.accountID
+                                                                    && e.dateSideEffects == values.date
+                                                                    && e.description == values.description);
+
+            sideEffectMapped = _mapper.Map<SideEffectsListDto>(recentlySideEffect);
+
+            return sideEffectMapped;
+        }
+
+        public SideEffectsListDto UpdateSideEffect(SideEffectsListDto values)
+        {
+            var sideEffectToUpdate = _bd.SideEffects.Find(values.sideEffectID);
+
+            if (sideEffectToUpdate == null) { throw new UnstoredValuesException(); }
+
+            sideEffectToUpdate.initialTime = values.initialTime;
+            sideEffectToUpdate.finalTime = values.finalTime;
+            sideEffectToUpdate.description = values.description;
+
+            ValidationSideEffects(sideEffectToUpdate);
+
+            _bd.SideEffects.Update(sideEffectToUpdate);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            var sideEffectMapped = _mapper.Map<SideEffectsListDto>(sideEffectToUpdate);
+
+            return sideEffectMapped;
+        }
+
+        public string DeleteSideEffect(Guid id)
+        {
+            var sideEffectToDelete = _bd.SideEffects.Find(id);
+
+            if(sideEffectToDelete == null)
+            {
+                return "Este registro no existe, inténtelo de nuevo.";
+            }
+
+            _bd.SideEffects.Remove(sideEffectToDelete);
+
             if (!Save()) { throw new UnstoredValuesException(); }
 
             return "Se ha eliminado correctamente.";
@@ -333,6 +434,8 @@ namespace AppVidaSana.Services
             var medication = _bd.Medications.Find(medicationID);
 
             var period = _bd.PeriodsMedications.Find(periodID);
+            
+            if (medication == null || period == null) { throw new UnstoredValuesException(); }
 
             InfoMedicationDto infoMedication = new InfoMedicationDto
             {
@@ -656,6 +759,22 @@ namespace AppVidaSana.Services
             var valContext = new ValidationContext(time, null, null);
 
             if (!Validator.TryValidateObject(time, valContext, valResults, true))
+            {
+                var errors = valResults.Select(vr => vr.ErrorMessage).ToList();
+
+                if (errors.Count > 0)
+                {
+                    throw new ErrorDatabaseException(errors);
+                }
+            }
+        }
+
+        private void ValidationSideEffects(SideEffects sideEffects)
+        {
+            var valResults = new List<ValidationResult>();
+            var valContext = new ValidationContext(sideEffects, null, null);
+
+            if (!Validator.TryValidateObject(sideEffects, valContext, valResults, true))
             {
                 var errors = valResults.Select(vr => vr.ErrorMessage).ToList();
 

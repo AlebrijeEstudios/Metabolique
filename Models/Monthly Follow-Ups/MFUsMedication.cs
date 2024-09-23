@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using AppVidaSana.Models.Medications;
 
 namespace AppVidaSana.Models.Monthly_Follow_Ups
 {
@@ -26,8 +27,10 @@ namespace AppVidaSana.Models.Monthly_Follow_Ups
         [Required(ErrorMessage = "El campo respuesta de pregunta 4 es obligatorio")]
         public bool answerQuestion4 { get; set; }
 
-        [Required(ErrorMessage = "El campo status de adherencia es obligatorio")]
-        public bool statusAdherence { get; set; }
+        [ForeignKey("StatusAdherence")]
+        public Guid statusID { get; set; }
+
+        public StatusAdherence? status { get; set; }
 
         public Account? account { get; set; }
 

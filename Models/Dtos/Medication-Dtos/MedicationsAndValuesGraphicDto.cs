@@ -7,5 +7,7 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
         [JsonRequired] public List<InfoMedicationDto> medications { get; set; } = null!;
 
         [JsonRequired] public List<WeeklyAttachmentDto> weeklyAttachments { get; set; } = null!;
+
+        [JsonRequired] public List<SideEffectsListDto> sideEffects { get; set; } = null!;
     }
 }

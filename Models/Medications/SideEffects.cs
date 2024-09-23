@@ -21,10 +21,8 @@ namespace AppVidaSana.Models.Medications
         public TimeOnly finalTime { get; set; }
 
         [Required(ErrorMessage = "El campo descripción es obligatoria.")]
-        [MaxLength(255, ErrorMessage = "El máximo número de caráteres es de 255.")]
         public string description { get; set; } = null!;
 
         public Account? account { get; set; }
-
     }
 }
