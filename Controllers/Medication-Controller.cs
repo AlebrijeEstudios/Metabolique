@@ -51,27 +51,41 @@ namespace AppVidaSana.Controllers
         ///     
         /// </remarks>
         /// <response code="200">Returns an array of medications, where each one of them manages an array of schedules. These are for the last 7 days.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnMedications))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
         public IActionResult GetMedications([FromQuery] Guid accountID, [FromQuery] DateOnly date)
         {
-            MedicationsAndValuesGraphicDto infoMedications = _MedicationService.GetMedications(accountID, date);
-
-            ReturnMedications response = new ReturnMedications
+            try
             {
-                medications = infoMedications.medications,
-                weeklyAttachments = infoMedications.weeklyAttachments,
-                sideEffects = infoMedications.sideEffects
-            };
+                MedicationsAndValuesGraphicDto infoMedications = _MedicationService.GetMedications(accountID, date);
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, 
-                                                             medications = response.medications, 
-                                                             weeklyAttachments = response.weeklyAttachments,
-                                                             sideEffects = response.sideEffects});
+                ReturnMedications response = new ReturnMedications
+                {
+                    medications = infoMedications.medications,
+                    weeklyAttachments = infoMedications.weeklyAttachments,
+                    sideEffects = infoMedications.sideEffects
+                };
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, 
+                                                                    medications = response.medications, 
+                                                                    weeklyAttachments = response.weeklyAttachments,
+                                                                    sideEffects = response.sideEffects});
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ReturnExceptionMessage response = new ReturnExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
         }
 
         /// <summary>
@@ -103,7 +117,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                InfoMedicationDto med = _MedicationService.AddMedication(medication);
+                InfoMedicationDto? med = _MedicationService.AddMedication(medication);
 
                 ReturnAddUpdateMedication response = new ReturnAddUpdateMedication
                 {
@@ -180,7 +194,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                InfoMedicationDto med = _MedicationService.UpdateMedication(medication);
+                InfoMedicationDto? med = _MedicationService.UpdateMedication(medication);
 
                 ReturnAddUpdateMedication response = new ReturnAddUpdateMedication
                 {

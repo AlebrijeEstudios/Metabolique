@@ -6,6 +6,6 @@ namespace AppVidaSana.ProducesResponseType.Medications
     {
         public string message { get; set; } = "Ok.";
 
-        public InfoMedicationDto medication { get; set; } = null!;
+        public InfoMedicationDto? medication { get; set; } = null!;
     }
 }
