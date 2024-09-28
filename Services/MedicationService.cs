@@ -16,7 +16,7 @@ using System.Data;
 
 namespace AppVidaSana.Services
 {
-    public class MedicationService : IMedication, ISideEffects
+    public class MedicationService : IMedication, ISideEffects 
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
