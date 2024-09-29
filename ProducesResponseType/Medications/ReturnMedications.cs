@@ -11,5 +11,7 @@ namespace AppVidaSana.ProducesResponseType.Medications
         public List<WeeklyAttachmentDto> weeklyAttachments { get; set; } = null!;
 
         public List<SideEffectsListDto> sideEffects { get; set; } = null!;
+
+        public bool mfuStatus { get; set; } 
     }
 }
