@@ -12,7 +12,8 @@ namespace AppVidaSana.Services.IServices
         ReturnProfileDto UpdateAccount(ReturnAccountDto infoAccount);
 
         string DeleteAccount(Guid userid);
-        TokenUserDto LoginAccount(LoginAccountDto login);
+
+        Task<TokenUserDto> LoginAccount(LoginAccountDto login, CancellationToken cancellationToken);
 
         TokenUserDto RequestPasswordResetToken(ForgotPasswordDto request);
 
