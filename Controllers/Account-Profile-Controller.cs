@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Http.Timeouts;
 namespace AppVidaSana.Controllers
 {
     [Authorize]
-    [RequestTimeout("MyPolicy2")]
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/accounts")]
