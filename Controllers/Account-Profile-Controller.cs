@@ -11,10 +11,12 @@ using AppVidaSana.ProducesResponseType.Account;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Exceptions;
+using Microsoft.AspNetCore.Http.Timeouts;
 
 namespace AppVidaSana.Controllers
 {
     [Authorize]
+    [RequestTimeout("MyPolicy2")]
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/accounts")]
@@ -103,7 +105,8 @@ namespace AppVidaSana.Controllers
         [AllowAnonymous]
         [HttpPost("account-profile")]
         [Produces("application/json")]
-        public IActionResult CreateAccount([FromBody] CreateAccountProfileDto account)
+        [RequestTimeout("CustomPolicy")]
+        public async Task<IActionResult> CreateAccount([FromBody] CreateAccountProfileDto account)
         {
             try
             {
@@ -122,7 +125,7 @@ namespace AppVidaSana.Controllers
                     password = account.password
                 };
 
-                TokenUserDto token = _AccountService.LoginAccount(login);
+                var token = await _AccountService.LoginAccount(login, HttpContext.RequestAborted);
 
                 ReturnCreateAccount response = new ReturnCreateAccount
                 {

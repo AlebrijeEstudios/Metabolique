@@ -12,6 +12,7 @@ using System.ComponentModel.DataAnnotations;
 using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services
 {
@@ -226,17 +227,17 @@ namespace AppVidaSana.Services
             return result;
         }
 
-        public TokenUserDto LoginAccount(LoginAccountDto login)
+        public async Task<TokenUserDto> LoginAccount(LoginAccountDto login, CancellationToken cancellationToken)
         {
-            var user = _bd.Accounts.AsEnumerable()
-            .FirstOrDefault(u => string.Equals(u.email, login.email, StringComparison.OrdinalIgnoreCase));
+            var user = await _bd.Accounts.FirstOrDefaultAsync(u =>
+                                          u.email.ToLower() == login.email.ToLower(), cancellationToken);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(login.password, user.password))
             {
                 throw new LoginException();
             }
 
-            var rol = _bd.Roles.FirstOrDefault(e => e.roleID == user.roleID);
+            var rol = await _bd.Roles.FirstOrDefaultAsync(e => e.roleID == user.roleID);
 
             var tok = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(keyToken);

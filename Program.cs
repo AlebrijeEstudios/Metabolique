@@ -23,6 +23,7 @@ using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
 using AppVidaSana.Services.Monthly_Follows_Ups;
 using AppVidaSana.JsonFormat;
 using AppVidaSana.Services.IServices.IHabits;
+using Microsoft.AspNetCore.Http.Timeouts;
 
 Env.Load();
 
@@ -47,6 +48,21 @@ builder.Services.AddCors(opt =>
                .AllowAnyMethod()
                .AllowAnyHeader();*/
     });
+});
+
+builder.Services.AddRequestTimeouts(options => {
+    options.DefaultPolicy =
+        new RequestTimeoutPolicy
+        {
+            Timeout = TimeSpan.FromMilliseconds(1000),
+            TimeoutStatusCode = StatusCodes.Status503ServiceUnavailable
+        };
+    options.AddPolicy("CustomPolicy",
+        new RequestTimeoutPolicy
+        {
+            Timeout = TimeSpan.FromMilliseconds(30000),
+            TimeoutStatusCode = StatusCodes.Status503ServiceUnavailable
+        });
 });
 
 var myOptions = new MyRateLimitOptions();
@@ -178,6 +194,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors(myrulesCORS);
+app.UseRequestTimeouts();
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();

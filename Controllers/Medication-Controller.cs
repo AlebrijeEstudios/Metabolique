@@ -69,13 +69,15 @@ namespace AppVidaSana.Controllers
                 {
                     medications = infoMedications.medications,
                     weeklyAttachments = infoMedications.weeklyAttachments,
-                    sideEffects = infoMedications.sideEffects
+                    sideEffects = infoMedications.sideEffects,
+                    mfuStatus = infoMedications.mfuStatus
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, 
-                                                                    medications = response.medications, 
-                                                                    weeklyAttachments = response.weeklyAttachments,
-                                                                    sideEffects = response.sideEffects});
+                                                                 medications = response.medications, 
+                                                                 weeklyAttachments = response.weeklyAttachments,
+                                                                 sideEffects = response.sideEffects,
+                                                                 mfuStatus = response.mfuStatus});
             }
             catch (UnstoredValuesException ex)
             {

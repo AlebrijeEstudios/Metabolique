@@ -10,6 +10,7 @@ using AppVidaSana.ProducesResponseType.Authenticator;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Exceptions;
+using Microsoft.AspNetCore.Http.Timeouts;
 
 namespace AppVidaSana.Controllers
 {
@@ -38,11 +39,12 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPost("login")]
         [Produces("application/json")]
-        public IActionResult LoginAccount([FromBody] LoginAccountDto login)
+        [RequestTimeout("CustomPolicy")]
+        public async Task<IActionResult> LoginAccount([FromBody] LoginAccountDto login)
         {
             try
             {
-                TokenUserDto token = _AccountService.LoginAccount(login);
+                var token = await _AccountService.LoginAccount(login, HttpContext.RequestAborted);
 
                 ReturnLoginAccount response = new ReturnLoginAccount
                 {
