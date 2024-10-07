@@ -11,7 +11,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AppVidaSana.Services
 {
@@ -19,13 +18,11 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly string keyToken;
-        private ValidationValuesDB _validationValues;
 
         public ResetPassswordService(AppDbContext bd)
         {
             _bd = bd;
             keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
-            _validationValues = new ValidationValuesDB();
         }
 
         public async Task<bool> ResetPassword(ResetPasswordDto values)
@@ -68,9 +65,9 @@ namespace AppVidaSana.Services
             return true;
         }
 
-        public async Task<TokenDto> PasswordResetToken(EmailDto request)
+        public async Task<TokenDto> PasswordResetToken(EmailDto value)
         {
-            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == request.email);
+            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == value.email);
 
             if (account == null) { throw new EmailNotSendException(); }
 

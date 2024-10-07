@@ -17,13 +17,11 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly string keyToken;
-        private ValidationValuesDB _validationValues;
 
         public Authentication_AuthorizationService(AppDbContext bd)
         {
             _bd = bd;
             keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
-            _validationValues = new ValidationValuesDB();
         }
 
         public async Task<TokenDto> LoginAccount(LoginDto login, CancellationToken cancellationToken)

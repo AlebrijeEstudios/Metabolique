@@ -4,9 +4,9 @@ namespace AppVidaSana.Services.IServices
 {
     public interface IProfile
     {
-        void CreateProfile(Guid id, AccountDto profile);
+        void CreateProfile(Guid accountID, AccountDto values);
 
-        Task<string> UpdateProfile(ProfileDto profile);
+        Task<string> UpdateProfile(ProfileDto values);
 
         bool Save();
     }

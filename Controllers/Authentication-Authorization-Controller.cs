@@ -17,12 +17,10 @@ namespace AppVidaSana.Controllers
     public class AuthenticationAuthorizationController : ControllerBase
     {
         private readonly IAuthentication_Authorization _AuthService;
-        private readonly IResetPassword _resetPasswordService;
 
-        public AuthenticationAuthorizationController(IAuthentication_Authorization AuthService, IResetPassword resetPasswordService)
+        public AuthenticationAuthorizationController(IAuthentication_Authorization AuthService)
         {
             _AuthService = AuthService;
-            _resetPasswordService = resetPasswordService;
         }
 
         /// <summary>
