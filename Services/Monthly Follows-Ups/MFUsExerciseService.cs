@@ -46,10 +46,10 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
 
             RetrieveResponsesExerciseDto responses;
-            
+
             var existMonth = _bd.Months.FirstOrDefault(e => e.month == getMonth && e.year == year);
 
-            if(existMonth == null)
+            if (existMonth == null)
             {
                 responses = null;
                 return responses;
@@ -136,7 +136,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 question5 = values.question5,
                 question6 = values.question6,
                 question7 = values.question7
-            }; 
+            };
 
             float METactvigorous = actVigorous(values.question1, values.question2);
             float METactmoderate = actModerate(values.question3, values.question4);
@@ -343,19 +343,19 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         private static float actVigorous(int res1, int res2)
         {
-            return (float) 8.0 * res2 * res1;
+            return (float)8.0 * res2 * res1;
         }
 
         private static float actModerate(int res3, int res4)
         {
-            return (float) 4.0 * res4 * res3;
+            return (float)4.0 * res4 * res3;
         }
-        
+
         private static float actWalking(int res5, int res6)
         {
-            return (float) 3.3 * res6 * res5;
+            return (float)3.3 * res6 * res5;
         }
-        
+
         private static float totalMET(float met1, float met2, float met3)
         {
             return met1 + met2 + met3;
@@ -365,7 +365,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
         {
             string result = "AUSENTE";
 
-            if(res7 > 6)
+            if (res7 > 6)
             {
                 result = "PRESENTE";
             }
@@ -378,12 +378,12 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             bool criterion1 = false;
             bool criterion2 = false;
 
-            if (res1 >= 3 && (int) MET_AFvigorous >= 1500)
+            if (res1 >= 3 && (int)MET_AFvigorous >= 1500)
             {
                 criterion1 = true;
             }
 
-            if ((int) (MET_AFwalking + MET_AFmoderate + MET_AFvigorous) >= 3000)
+            if ((int)(MET_AFwalking + MET_AFmoderate + MET_AFvigorous) >= 3000)
             {
                 criterion2 = true;
             }
@@ -402,12 +402,12 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 criterion1 = true;
             }
 
-            if ((answers.question3 >= 5 && answers.question4 >= 30) || (answers.question5 >= 5 && answers.question6 >=30))
+            if ((answers.question3 >= 5 && answers.question4 >= 30) || (answers.question5 >= 5 && answers.question6 >= 30))
             {
                 criterion2 = true;
             }
 
-            if( ((answers.question1 + answers.question5) >= 5 && (int) (MET_AFvigorous + MET_AFwalking) >= 600) || ((answers.question3 + answers.question5) >= 5 && (int) (MET_AFmoderate + MET_AFwalking) >= 600))
+            if (((answers.question1 + answers.question5) >= 5 && (int)(MET_AFvigorous + MET_AFwalking) >= 600) || ((answers.question3 + answers.question5) >= 5 && (int)(MET_AFmoderate + MET_AFwalking) >= 600))
             {
                 criterion3 = true;
             }

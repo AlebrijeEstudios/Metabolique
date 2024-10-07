@@ -1,11 +1,9 @@
 ﻿using AppVidaSana.Api.Key;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.Net.Http.Headers;
-using NuGet.Packaging.Signing;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 
 namespace AppVidaSana.Api
 {
@@ -28,7 +26,7 @@ namespace AppVidaSana.Api
             }
 
             var apiKey = await _context.ApiKeys
-                .AsNoTracking() 
+                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Key.ToString() == headerValue);
 
             if (apiKey is null)

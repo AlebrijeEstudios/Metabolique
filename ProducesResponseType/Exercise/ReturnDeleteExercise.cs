@@ -1,6 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
-
-namespace AppVidaSana.ProducesResponseType.Exercise
+﻿namespace AppVidaSana.ProducesResponseType.Exercise
 {
     public class ReturnDeleteExercise
     {

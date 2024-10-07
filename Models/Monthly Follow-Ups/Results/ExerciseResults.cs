@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using AppVidaSana.Models.Seguimientos_Mensuales;
 using System.ComponentModel.DataAnnotations;
-using AppVidaSana.Models.Seguimientos_Mensuales;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Monthly_Follow_Ups.Results
 {

@@ -1,6 +1,6 @@
 ﻿namespace AppVidaSana.ProducesReponseType
 {
-    public class ReturnExceptionMessage
+    public class ExceptionMessage
     {
         public string message { get; set; } = "Hubo un error, inténtelo de nuevo.";
 

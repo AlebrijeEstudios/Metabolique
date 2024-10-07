@@ -3,7 +3,6 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
 using AppVidaSana.Models.Monthly_Follow_Ups;
-using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
@@ -134,7 +133,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 answerQuestion3 = values.answerQuestion3,
                 answerQuestion4 = values.answerQuestion4,
                 answerQuestion5a = values.answerQuestion5a,
-                answerQuestion5b= values.answerQuestion5b,
+                answerQuestion5b = values.answerQuestion5b,
                 answerQuestion5c = values.answerQuestion5c,
                 answerQuestion5d = values.answerQuestion5d,
                 answerQuestion5e = values.answerQuestion5e,
@@ -260,7 +259,8 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         public bool Save()
         {
-            try {
+            try
+            {
                 return _bd.SaveChanges() >= 0;
             }
             catch (Exception)
@@ -341,13 +341,13 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
         {
             byte value = 0;
 
-            if ((float) response4 > 7) { return value; }
+            if ((float)response4 > 7) { return value; }
 
-            if ((float) response4 >= 6 && (float) response4 <= 7) { value = 1; }
+            if ((float)response4 >= 6 && (float)response4 <= 7) { value = 1; }
 
-            if ((float) response4 >= 5 && (float) response4 <= 6) { value = 2; }
+            if ((float)response4 >= 5 && (float)response4 <= 6) { value = 2; }
 
-            if ((float) response4 < 5) { value = 3; }
+            if ((float)response4 < 5) { value = 3; }
 
             return value;
         }
@@ -362,11 +362,11 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             TimeSpan diff = end - start;
 
-            int bedHours = (int) diff.TotalHours;
+            int bedHours = (int)diff.TotalHours;
 
             if (bedHours == 0) { return 3; }
 
-            float ES = ((float) response4 / bedHours) * 100;
+            float ES = ((float)response4 / bedHours) * 100;
 
             if (ES > 85) { return value; }
 

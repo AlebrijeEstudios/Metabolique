@@ -4,7 +4,7 @@
     {
         public List<string?> Errors { get; }
 
-        public ValuesInvalidException(List<string?> errors) 
+        public ValuesInvalidException(List<string?> errors)
         {
             Errors = errors;
         }

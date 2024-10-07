@@ -1,17 +1,11 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Services.IServices;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
-using Azure.Communication.Email;
-using Azure;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using AppVidaSana.Models;
-using System.ComponentModel.DataAnnotations;
-using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
-using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Exceptions;
+using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Models;
+using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.Services.IServices;
+using AppVidaSana.ValidationValues;
 using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services
@@ -19,100 +13,74 @@ namespace AppVidaSana.Services
     public class AccountService : IAccount
     {
         private readonly AppDbContext _bd;
-        private readonly string keyToken;
+        private ValidationValuesDB _validationValues;
 
         public AccountService(AppDbContext bd)
         {
             _bd = bd;
-            keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
+            _validationValues = new ValidationValuesDB();
         }
 
-        public Guid CreateAccount(CreateAccountProfileDto account)
+        public async Task<Guid> CreateAccount(AccountDto values)
         {
-            List<string?> er = new List<string?>();
+            List<string?> errors = new List<string?>();
 
             string message = "";
 
-            string vUsername = verifyUsername(account.username); 
-            
-            if(vUsername != "")
-            { 
-                er.Add(vUsername); 
+            string verifyStatusUsername = await VerifyValues.verifyUsername(values.username, _bd);
+
+            if (verifyStatusUsername != "") { errors.Add(verifyStatusUsername); }
+
+            try
+            {
+                string verifyStatusEmail = await VerifyValues.verifyEmail(values.email, _bd);
+
+                if (verifyStatusEmail != "") { errors.Add(verifyStatusEmail); }
+
+            }
+            catch (EmailValidationTimeoutException ex)
+            {
+                message = ex.Message;
+                errors.Add(message);
             }
 
             try
             {
-                string vEmail = verifyEmail(account.email);
-                
-                if(vEmail != "")
-                { 
-                    er.Add(vEmail); 
-                }
+                string verifyStatusPassword = VerifyValues.verifyPassword(values.password);
 
-            }catch(EmailValidationTimeoutException ex)
+                if (verifyStatusPassword != "") { errors.Add(verifyStatusPassword); }
+
+            }
+            catch (PasswordValidationTimeoutException ex)
             {
-                message =  ex.Message;
-                er.Add(message);
+                message = ex.Message;
+                errors.Add(message);
             }
 
-            try
+            if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
+
+            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == "User");
+
+            if (role == null) { throw new NoRoleAssignmentException(); }
+
+            Account account = new Account
             {
-                string vPassword = verifyPassword(account.password);
-
-                if (vPassword != "") 
-                { 
-                    er.Add(vPassword); 
-                }
-
-            }catch(PasswordValidationTimeoutException ex)
-            {
-                message =  ex.Message;
-                er.Add(message);
-            }
-
-            if(er.Count > 0) 
-            {
-                throw new ValuesInvalidException(er);
-            }
-
-            Guid roleID = _bd.Roles.FirstOrDefault(e => e.role == "User").roleID;
-
-            Account us = new Account
-            {
-                username = account.username,
-                email = account.email,
-                password = BCrypt.Net.BCrypt.HashPassword(account.password),
-                roleID = roleID
+                username = values.username,
+                email = values.email,
+                password = BCrypt.Net.BCrypt.HashPassword(values.password),
+                roleID = role.roleID
             };
 
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(us, null, null);
+            _validationValues.ValidationValues(account);
 
-            if (!Validator.TryValidateObject(us, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
+            await _bd.Accounts.AddAsync(account);
 
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
-            _bd.Accounts.Add(us);
+            var user = await _bd.Accounts.FirstOrDefaultAsync(u =>
+                                          u.email.ToLower() == account.email.ToLower());
 
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            var user = _bd.Accounts.AsEnumerable()
-            .FirstOrDefault(u => string.Equals(u.email, account.email, StringComparison.OrdinalIgnoreCase));
-
-            if (user == null)
-            {
-                throw new UserNotFoundException();
-            }
-
+            if (user == null) { throw new UnstoredValuesException(); }
 
             Guid accountID = user.accountID;
 
@@ -120,17 +88,14 @@ namespace AppVidaSana.Services
 
         }
 
-        public ReturnAccountDto GetAccount(Guid accountid)
+        public async Task<InfoAccountDto> GetAccount(Guid accountID)
         {
-            var account = _bd.Accounts.Find(accountid);
-            var profile = _bd.Profiles.Find(accountid);
+            var account = await _bd.Accounts.FindAsync(accountID);
+            var profile = await _bd.Profiles.FindAsync(accountID);
 
-            if (account == null || profile == null)
-            {
-                throw new UserNotFoundException();
-            }
+            if (account == null || profile == null) { throw new UserNotFoundException(); }
 
-            ReturnAccountDto infoAccount = new ReturnAccountDto
+            InfoAccountDto infoUser = new InfoAccountDto
             {
                 accountID = account.accountID,
                 username = account.username,
@@ -142,202 +107,83 @@ namespace AppVidaSana.Services
                 protocolToFollow = profile.protocolToFollow
             };
 
-            return infoAccount;
+            return infoUser;
         }
 
-        public ReturnProfileDto UpdateAccount(ReturnAccountDto infoAccount)
+        public async Task<ProfileDto> UpdateAccount(InfoAccountDto values)
         {
-            List<string?> er = new List<string?>();
+            List<string?> errors = new List<string?>();
+
             string message = "";
 
-            var user = _bd.Accounts.Find(infoAccount.accountID);
+            var user = await _bd.Accounts.FindAsync(values.accountID);
 
-            if (user == null) 
-            { 
-                throw new UserNotFoundException(); 
-            }
+            if (user == null) { throw new UserNotFoundException(); }
 
-            if (user.username != infoAccount.username)
+            if (user.username != values.username)
             {
-                string vUsername = verifyUsername(infoAccount.username);
+                string verifyStatusUsername = await VerifyValues.verifyUsername(values.username, _bd);
 
-                if (vUsername != "")
+                if (verifyStatusUsername != "")
                 {
-                    er.Add(vUsername);
+                    errors.Add(verifyStatusUsername);
                 }
             }
 
-            if (user.email != infoAccount.email)
+            if (user.email != values.email)
             {
                 try
                 {
-                    string vEmail = verifyEmail(infoAccount.email);
+                    string verifyStatusEmail = await VerifyValues.verifyEmail(values.email, _bd);
 
-                    if (vEmail != "")
+                    if (verifyStatusEmail != "")
                     {
-                        er.Add(vEmail);
+                        errors.Add(verifyStatusEmail);
                     }
 
                 }
                 catch (EmailValidationTimeoutException ex)
                 {
                     message = ex.Message;
-                    er.Add(message);
+                    errors.Add(message);
                 }
             }
 
-            if (er.Count > 0)
-            {
-                throw new ValuesInvalidException(er);
-            }
+            if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
 
-            user.username = infoAccount.username; 
-            user.email = infoAccount.email;
+            user.username = values.username;
+            user.email = values.email;
 
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(user, null, null);
-
-            if (!Validator.TryValidateObject(user, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
+            _validationValues.ValidationValues(user);
 
             _bd.Accounts.Update(user);
 
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
-            ReturnProfileDto result = new ReturnProfileDto
+            ProfileDto profile = new ProfileDto
             {
-                accountID = infoAccount.accountID,
-                birthDate = infoAccount.birthDate,
-                sex = infoAccount.sex,
-                stature = infoAccount.stature,
-                weight = infoAccount.weight,
-                protocolToFollow = infoAccount.protocolToFollow
+                accountID = values.accountID,
+                birthDate = values.birthDate,
+                sex = values.sex,
+                stature = values.stature,
+                weight = values.weight,
+                protocolToFollow = values.protocolToFollow
             };
 
-            return result;
+            return profile;
         }
 
-        public async Task<TokenUserDto> LoginAccount(LoginAccountDto login, CancellationToken cancellationToken)
+        public async Task<string> DeleteAccount(Guid accountID)
         {
-            var user = await _bd.Accounts.FirstOrDefaultAsync(u =>
-                                          u.email.ToLower() == login.email.ToLower(), cancellationToken);
+            var account = await _bd.Accounts.FindAsync(accountID);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(login.password, user.password))
-            {
-                throw new LoginException();
-            }
+            if (account == null) { throw new UserNotFoundException(); }
 
-            var rol = await _bd.Roles.FirstOrDefaultAsync(e => e.roleID == user.roleID);
+            _bd.Accounts.Remove(account);
 
-            var tok = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(keyToken);
+            if (!Save()) { throw new UnstoredValuesException(); }
 
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                        new Claim(ClaimTypes.Name, user.username.ToString()),
-                        new Claim(ClaimTypes.Email, user.email.ToString()),
-                        new Claim(ClaimTypes.Role, rol.role)
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                Issuer = "metaboliqueapi",
-                Audience = "metabolique.com",
-                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tok.CreateToken(tokenDescriptor);
-            var account = _bd.Accounts.FirstOrDefault(u => u.email == login.email);
-
-            if (account == null)
-            {
-                throw new UserNotFoundException();
-            }
-
-            TokenUserDto ut = new TokenUserDto()
-            {
-                token = tok.WriteToken(token),
-                accountID = account.accountID
-            };
-
-            return ut;
-        }
-
-        public bool ResetPassword(ResetPasswordDto model)
-        {
-
-            if (model.password != model.confirmPassword)
-            {
-                throw new ComparedPasswordException();
-            }
-
-            string vPassword = verifyPassword(model.confirmPassword);
-
-            List<string?> er = new List<string?>();
-
-            if (vPassword != "")
-            {
-                er.Add(vPassword);
-            }
-
-            if (er.Count > 0)
-            {
-                throw new ValuesInvalidException(er);
-            }
-
-            var principal = GetPrincipalFromExpiredToken(model.token);
-
-            if (principal == null)
-            {
-                return false;
-            }
-
-            var user = _bd.Accounts.FirstOrDefault(u => u.email == model.email);
-
-            if (user == null)
-            {
-                return false;
-            }
-
-            user.password = BCrypt.Net.BCrypt.HashPassword(model.confirmPassword);
-
-            _bd.Accounts.Update(user);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            return true;
-        }
-
-        public string DeleteAccount(Guid userid)
-        {
-            var user = _bd.Accounts.Find(userid);
-
-            if (user == null)
-            {
-                throw new UserNotFoundException();
-            }
-
-            _bd.Accounts.Remove(user);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            return "El usuario ha sido eliminado correctamente.";
+            return "Su cuenta ha sido eliminada correctamente.";
         }
 
         public bool Save()
@@ -351,127 +197,6 @@ namespace AppVidaSana.Services
                 return false;
 
             }
-        }
-
-        public TokenUserDto RequestPasswordResetToken(ForgotPasswordDto request)
-        {
-            var user = _bd.Accounts.FirstOrDefault(u => u.email == request.email);
-
-            if (user == null)
-            {
-                throw new EmailNotSendException();
-            }
-
-            var tok = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(keyToken);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                        new Claim(ClaimTypes.Name, user.username.ToString()),
-                        new Claim(ClaimTypes.Email, user.email.ToString()),
-                }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                Issuer = "metaboliqueapi",
-                Audience = "metabolique.com",
-                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tok.CreateToken(tokenDescriptor);
-
-            TokenUserDto ut = new TokenUserDto()
-            {
-                token = tok.WriteToken(token),
-                accountID = user.accountID
-
-            };
-
-            return ut;
-        }
-
-        public void SendPasswordResetEmail(string email, string resetLink)
-        {
-            EmailClient emailClient = new EmailClient(Environment.GetEnvironmentVariable("EMAIL_API"));
-            emailClient.Send(
-                WaitUntil.Completed,
-                senderAddress: "DoNotReply@0b745518-72fa-4e25-b409-445ce615627e.azurecomm.net",
-                recipientAddress: email,
-                subject: "Password Reset",
-                htmlContent: $"<html><body><h2>Restablecimiento de contraseña</h2><p>Hola,</p><p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.</p><p>Por favor, haz clic en el siguiente enlace para restablecer tu contraseña:</p><p><a href=\"{resetLink}\">Click aquí para restablecer tu contraseña</a></p><p>Si no solicitaste este cambio, por favor ignora este correo.</p><p>Gracias,</p><p>Tu equipo de soporte</p></body></html>",
-                plainTextContent: $"Click the link to reset your password: {resetLink}");
-
-        }
-
-        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
-        {
-            var key = Encoding.ASCII.GetBytes(keyToken);
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = "metaboliqueapi",
-                ValidAudience = "metabolique.com",
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateLifetime = false
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken securityToken;
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
-
-            var jwtSecurityToken = securityToken as JwtSecurityToken;
-
-            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new SecurityTokenException("Invalid token");
-            }
-
-            return principal;
-        }
-
-        private string verifyUsername(string username)
-        {
-            var existingAccount = _bd.Accounts.FirstOrDefault(c => c.username == username);
-            if (existingAccount != null)
-            {
-                return "Este nombre de usuario ya está en uso.";
-            }
-
-            return "";
-        }
-
-        private string verifyEmail(string email)
-        {
-            if (!RegexPatterns.RegexPatterns.Emailregex.IsMatch(email))
-            {
-                return "El correo electrónico no tiene un formato válido.";
-            }
-
-            var existingEmail = _bd.Accounts.FirstOrDefault(c => c.email == email);
-            if (existingEmail != null)
-            {
-                return "Este correo electrónico está ligado a una cuenta existente.";
-            }
-
-            return "";
-        }
-
-        private static string verifyPassword(string password)
-        {
-            
-            if (password.Length < 8)
-            {
-                return "La contraseña debe tener al menos 8 caracteres.";
-            }
-
-            if (!RegexPatterns.RegexPatterns.Passwordregex.IsMatch(password))
-            {
-                return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico.";
-            }
-
-            return "";
         }
     }
 }

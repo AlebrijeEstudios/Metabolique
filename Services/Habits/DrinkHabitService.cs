@@ -2,12 +2,10 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Habits;
-using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Services.IServices.IHabits.IHabits;
 using AutoMapper;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Services.Habits
@@ -26,7 +24,7 @@ namespace AppVidaSana.Services.Habits
         public GetDrinksConsumedDto AddDrinksConsumed(DrinksConsumedDto drinksConsumed)
         {
 
-            var habitExisting = _bd.HabitsDrink.Count(e => e.drinkDateHabit == drinksConsumed.drinkDateHabit && 
+            var habitExisting = _bd.HabitsDrink.Count(e => e.drinkDateHabit == drinksConsumed.drinkDateHabit &&
                                 e.typeDrink == drinksConsumed.typeDrink &&
                                 e.amountConsumed == drinksConsumed.amountConsumed);
 
@@ -73,7 +71,7 @@ namespace AppVidaSana.Services.Habits
 
             return drinks;
 
-        } 
+        }
 
         public GetDrinksConsumedDto UpdateDrinksConsumed(UpdateDrinksConsumedDto values)
         {
@@ -147,7 +145,7 @@ namespace AppVidaSana.Services.Habits
 
             }
         }
-        
+
         private GetDrinksConsumedDto GetDrinksConsumed(Guid id, DateOnly date, string type, string amount)
         {
             var habits = _bd.HabitsDrink.FirstOrDefault(e => e.accountID == id && e.drinkDateHabit == date
@@ -158,7 +156,7 @@ namespace AppVidaSana.Services.Habits
 
             if (habits == null)
             {
-               habitsDrink = _mapper.Map<GetDrinksConsumedDto>(habits);  
+                habitsDrink = _mapper.Map<GetDrinksConsumedDto>(habits);
             }
 
             habitsDrink = _mapper.Map<GetDrinksConsumedDto>(habits);

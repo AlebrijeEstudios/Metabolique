@@ -1,16 +1,14 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.ProducesReponseType;
+using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
+using AppVidaSana.ProducesReponseType;
+using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
 using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
-using Microsoft.AspNetCore.RateLimiting;
-using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Exceptions;
-using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos;
 
 namespace AppVidaSana.Controllers.Seg_Men_Controllers
 {
@@ -18,7 +16,6 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/monthly-exercise-monitoring")]
-    [EnableRateLimiting("concurrency")]
     public class MFUsExerciseController : ControllerBase
     {
         private readonly IMFUsExercise _MFUsExerciseService;
@@ -35,12 +32,10 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Return an error message if the user is not found.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnResponsesAndResultsMFUsExercise))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
@@ -59,7 +54,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -68,7 +63,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             }
             catch (RepeatRegistrationException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -77,7 +72,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             }
             catch (UserNotFoundException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -86,7 +81,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ReturnExceptionList response = new ReturnExceptionList
+                ExceptionDB response = new ExceptionDB
                 {
                     status = ex.Errors
                 };
@@ -100,10 +95,8 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         /// </summary>
         /// <response code="200">It returns the answers of the questionnaire that was made in such month and such year, otherwise it returns empty results.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnResponsesAndResultsMFUsExercise))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
@@ -123,7 +116,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -138,11 +131,9 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         /// <response code="200">Returns monthly monitoring results and responses.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnResponsesAndResultsMFUsExercise))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]       
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
@@ -161,7 +152,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -170,7 +161,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ReturnExceptionList response = new ReturnExceptionList
+                ExceptionDB response = new ExceptionDB
                 {
                     status = ex.Errors
                 };

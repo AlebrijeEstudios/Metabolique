@@ -11,5 +11,5 @@ namespace AppVidaSana.Models.Dtos.Medication_Dtos
         [JsonRequired] public List<SideEffectsListDto> sideEffects { get; set; } = null!;
 
         [JsonRequired] public bool mfuStatus { get; set; }
-    } 
+    }
 }

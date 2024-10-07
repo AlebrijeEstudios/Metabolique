@@ -10,7 +10,7 @@ namespace AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos
 
         [JsonRequired] public int year { get; set; }
 
-        [JsonRequired]  public TimeOnly answerQuestion1 { get; set; }
+        [JsonRequired] public TimeOnly answerQuestion1 { get; set; }
 
         [JsonRequired] public byte answerQuestion2 { get; set; }
 
@@ -18,9 +18,9 @@ namespace AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos
 
         [JsonRequired] public int answerQuestion4 { get; set; }
 
-        [JsonRequired]  public byte answerQuestion5a { get; set; }
+        [JsonRequired] public byte answerQuestion5a { get; set; }
 
-        [JsonRequired]  public byte answerQuestion5b { get; set; }
+        [JsonRequired] public byte answerQuestion5b { get; set; }
 
         [JsonRequired] public byte answerQuestion5c { get; set; }
 

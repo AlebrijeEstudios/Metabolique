@@ -1,6 +1,5 @@
 ﻿using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs;
-using Newtonsoft.Json;
 
 namespace AppVidaSana.Models.Dtos.Habits_Dtos
 {
@@ -11,7 +10,7 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos
         public GetHoursSleepConsumedDto hoursSleepConsumed { get; set; } = null!;
 
         public GetDrugsConsumedDto drugsConsumed { get; set; } = null!;
-         
+
         public List<GraphicValuesHabitSleepDto> hoursSleep { get; set; } = null!;
 
         public bool mfuStatus { get; set; }

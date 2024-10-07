@@ -2,10 +2,10 @@
 
 namespace AppVidaSana.ProducesResponseType.Account
 {
-    public class ReturnGetAccount
+    public class ResponseGet
     {
         public string message { get; set; } = "Ok.";
 
-        public ReturnAccountDto account { get; set; } = null!;
+        public InfoAccountDto account { get; set; } = null!;
     }
 }

@@ -2,7 +2,6 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
-using AppVidaSana.Exceptions.Medication;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
@@ -11,7 +10,6 @@ using AppVidaSana.Services.IServices;
 using AutoMapper;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using System.Runtime.InteropServices.Marshalling;
 
 namespace AppVidaSana.Services
 {
@@ -52,15 +50,15 @@ namespace AppVidaSana.Services
 
             DateOnly dateFinal = date.AddDays(-6);
 
-            var dates = GetDatesInRange(dateFinal, date); 
-        
+            var dates = GetDatesInRange(dateFinal, date);
+
             List<GraphicValuesExerciseDto> graphicValues = new List<GraphicValuesExerciseDto>();
 
             foreach (var item in dates)
             {
                 var activeMinutes = _bd.ActiveMinutes.FirstOrDefault(e => e.dateExercise == item && e.accountID == id);
 
-                if(activeMinutes != null)
+                if (activeMinutes != null)
                 {
                     GraphicValuesExerciseDto value = new GraphicValuesExerciseDto
                     {
@@ -89,7 +87,7 @@ namespace AppVidaSana.Services
             var monthExist = _bd.Months.FirstOrDefault(e => e.month == date.ToString("MMMM", ci)
                                                        && e.year == Convert.ToInt32(date.ToString("yyyy")));
 
-            if(monthExist == null)
+            if (monthExist == null)
             {
                 info = new ExerciseAndValuesGraphicDto
                 {
@@ -131,7 +129,7 @@ namespace AppVidaSana.Services
             var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == exercise.dateExercise && e.typeExercise == exercise.typeExercise &&
                                 e.intensityExercise == exercise.intensityExercise && e.timeSpent == exercise.timeSpent);
 
-            if(exerciseExisting > 0)
+            if (exerciseExisting > 0)
             {
                 throw new RepeatRegistrationException();
             }
@@ -175,9 +173,9 @@ namespace AppVidaSana.Services
 
             totalTimeSpentforDay(exercise.accountID, exercise.dateExercise, exercise.timeSpent);
 
-            var exerciseRecently = _bd.Exercises.FirstOrDefault(e => e.accountID == exercise.accountID && e.dateExercise == exercise.dateExercise 
-                                                                && e.typeExercise == exercise.typeExercise 
-                                                                && e.intensityExercise == exercise.intensityExercise 
+            var exerciseRecently = _bd.Exercises.FirstOrDefault(e => e.accountID == exercise.accountID && e.dateExercise == exercise.dateExercise
+                                                                && e.typeExercise == exercise.typeExercise
+                                                                && e.intensityExercise == exercise.intensityExercise
                                                                 && e.timeSpent == exercise.timeSpent);
 
             ExerciseListDto info = GetExercise(exerciseRecently.exerciseID, exercise.dateExercise);
@@ -194,7 +192,7 @@ namespace AppVidaSana.Services
                 throw new ExerciseNotFoundException();
             }
 
-            if(ex.timeSpent < exercise.timeSpent || ex.timeSpent > exercise.timeSpent)
+            if (ex.timeSpent < exercise.timeSpent || ex.timeSpent > exercise.timeSpent)
             {
                 var previousTotal = _bd.ActiveMinutes.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
 
@@ -210,7 +208,7 @@ namespace AppVidaSana.Services
                     throw new UnstoredValuesException();
                 }
             }
-            
+
             ex.typeExercise = exercise.typeExercise;
             ex.intensityExercise = exercise.intensityExercise;
             ex.timeSpent = exercise.timeSpent;
@@ -314,8 +312,8 @@ namespace AppVidaSana.Services
         {
             var infoGraphics = _bd.ActiveMinutes.FirstOrDefault(c => c.accountID == id && c.dateExercise == dateInitial);
 
-            if(infoGraphics != null)
-            {            
+            if (infoGraphics != null)
+            {
                 var value = infoGraphics.totalTimeSpent;
 
                 infoGraphics.totalTimeSpent = value + timeSpent;

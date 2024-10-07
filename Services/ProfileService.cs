@@ -1,100 +1,62 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Services.IServices;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions;
-using System.ComponentModel.DataAnnotations;
-using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
+using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.Services.IServices;
+using AppVidaSana.ValidationValues;
 
 namespace AppVidaSana.Services
 {
     public class ProfileService : IProfile
     {
         private readonly AppDbContext _bd;
+        private ValidationValuesDB _validationValues;
 
         public ProfileService(AppDbContext bd)
         {
             _bd = bd;
+            _validationValues = new ValidationValuesDB();
         }
 
-        public bool CreateProfile(Guid id, CreateAccountProfileDto profile)
+        public async void CreateProfile(Guid accountID, AccountDto values)
         {
-            var account = _bd.Accounts.Find(id);
-
-            if (account == null)
+            Profiles profile = new Profiles
             {
-                throw new UserNotFoundException();
-            }
-
-            Models.Profiles prf = new Models.Profiles
-            {
-                accountID = id,
-                birthDate = profile.birthDate,
-                sex = profile.sex,
-                stature = profile.stature,
-                weight = profile.weight,
-                protocolToFollow  = profile.protocolToFollow
+                accountID = accountID,
+                birthDate = values.birthDate,
+                sex = values.sex,
+                stature = values.stature,
+                weight = values.weight,
+                protocolToFollow = values.protocolToFollow
             };
 
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(prf, null, null);
+            _validationValues.ValidationValues(profile);
 
-            if (!Validator.TryValidateObject(prf, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
+            await _bd.Profiles.AddAsync(profile);
 
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
-
-            _bd.Profiles.Add(prf);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            return Save();
+            if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        public string UpdateProfile(ReturnProfileDto profile)
+        public async Task<string> UpdateProfile(ProfileDto values)
         {
-            var prf = _bd.Profiles.Find(profile.accountID);
+            var profile = await _bd.Profiles.FindAsync(values.accountID);
 
-            if (prf == null)
-            {
-                throw new UserNotFoundException();
-            }
+            if (profile == null) { throw new UserNotFoundException(); }
 
-            prf.sex = profile.sex;
-            prf.birthDate = profile.birthDate;
-            prf.stature = profile.stature;
-            prf.weight = profile.weight;
-            prf.protocolToFollow = profile.protocolToFollow;
+            profile.sex = values.sex;
+            profile.birthDate = profile.birthDate;
+            profile.stature = values.stature;
+            profile.weight = values.weight;
+            profile.protocolToFollow = values.protocolToFollow;
 
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(prf, null, null);
+            _validationValues.ValidationValues(profile);
 
-            if (!Validator.TryValidateObject(prf, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
+            _bd.Profiles.Update(profile);
 
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
-            _bd.Profiles.Update(prf);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            return "Actualización completada.";
+            return "Su cuenta se actualizó con éxito.";
         }
 
         public bool Save()
@@ -103,11 +65,12 @@ namespace AppVidaSana.Services
             {
                 return _bd.SaveChanges() >= 0;
 
-            }catch(Exception)
+            }
+            catch (Exception)
             {
                 return false;
 
-            } 
+            }
         }
     }
 }

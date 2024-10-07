@@ -125,7 +125,7 @@ namespace AppVidaSana.Services
 
             if (period.initialFrec != values.initialFrec || period.finalFrec != values.finalFrec)
             {
-                infoMedication = UpdateForNewDateInitialAndFinal(period, values.updateDate, 
+                infoMedication = UpdateForNewDateInitialAndFinal(period, values.updateDate,
                                                                  values.initialFrec, values.finalFrec);
             }
 
@@ -291,7 +291,7 @@ namespace AppVidaSana.Services
             var medication = _bd.Medications.Find(medicationID);
 
             var period = _bd.PeriodsMedications.Find(periodID);
-            
+
             if (medication == null || period == null) { throw new UnstoredValuesException(); }
 
             InfoMedicationDto infoMedication = new InfoMedicationDto
@@ -308,7 +308,7 @@ namespace AppVidaSana.Services
 
             return infoMedication;
         }
-        
+
         private List<InfoMedicationDto> ListMedications(List<PeriodsMedications> periods, DateOnly dateActual)
         {
             List<InfoMedicationDto> listMedications = new List<InfoMedicationDto>();
@@ -443,8 +443,8 @@ namespace AppVidaSana.Services
 
             return weeklyList;
         }
-        
-        private List<SideEffectsListDto> SideEffects(Guid accountID, DateOnly dateActual) 
+
+        private List<SideEffectsListDto> SideEffects(Guid accountID, DateOnly dateActual)
         {
             var searchSideEffects = _bd.SideEffects.Where(e => e.accountID == accountID
                                                     && e.dateSideEffects == dateActual).ToList();
@@ -523,7 +523,8 @@ namespace AppVidaSana.Services
                     var timeExist = _bd.Times.Any(e => e.periodID == periodID
                                                   && e.dateMedication == date);
 
-                    if (!timeExist) {
+                    if (!timeExist)
+                    {
 
                         Times newTime = new Times
                         {
@@ -585,12 +586,13 @@ namespace AppVidaSana.Services
             }
         }
 
-        private InfoMedicationDto? UpdateForNewDateInitialAndFinal(PeriodsMedications periods, DateOnly dateRecord, 
+        private InfoMedicationDto? UpdateForNewDateInitialAndFinal(PeriodsMedications periods, DateOnly dateRecord,
                                                                    DateOnly newInitialDate, DateOnly newFinalDate)
         {
-            if(newFinalDate < newInitialDate) { throw new UnstoredValuesException(); }
+            if (newFinalDate < newInitialDate) { throw new UnstoredValuesException(); }
 
-            if (newFinalDate < dateRecord || dateRecord < newInitialDate) {
+            if (newFinalDate < dateRecord || dateRecord < newInitialDate)
+            {
 
                 periods.initialFrec = newInitialDate;
                 periods.finalFrec = newFinalDate;
@@ -624,7 +626,7 @@ namespace AppVidaSana.Services
             }
 
             if (periods.finalFrec < newFinalDate)
-            { 
+            {
                 periods.finalFrec = newFinalDate;
 
                 _bd.PeriodsMedications.Update(periods);
@@ -692,7 +694,7 @@ namespace AppVidaSana.Services
 
         private void RemoveTimes(Guid periodID, UpdateMedicationUseDto values)
         {
-            List<Guid> idsPrevious = new List<Guid>(); 
+            List<Guid> idsPrevious = new List<Guid>();
             List<Guid> ids = new List<Guid>();
 
             var recordsTimes = _bd.Times.Where(e => e.dateMedication == values.updateDate

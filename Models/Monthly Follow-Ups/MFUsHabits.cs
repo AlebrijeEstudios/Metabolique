@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
-using AppVidaSana.Models.Monthly_Follow_Ups;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Seguimientos_Mensuales
 {
@@ -35,22 +35,22 @@ namespace AppVidaSana.Models.Seguimientos_Mensuales
         public byte answerQuestion5b { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 5c es obligatorio")]
-        public byte answerQuestion5c { get; set; } 
+        public byte answerQuestion5c { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 5d es obligatorio")]
-        public byte answerQuestion5d { get; set; } 
+        public byte answerQuestion5d { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 5e es obligatorio")]
-        public byte answerQuestion5e { get; set; } 
+        public byte answerQuestion5e { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 5f es obligatorio")]
         public byte answerQuestion5f { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 5g es obligatorio")]
-        public byte answerQuestion5g { get; set; } 
+        public byte answerQuestion5g { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 5h es obligatorio")]
-        public byte answerQuestion5h { get; set; } 
+        public byte answerQuestion5h { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 5i es obligatorio")]
         public byte answerQuestion5i { get; set; }
@@ -62,13 +62,13 @@ namespace AppVidaSana.Models.Seguimientos_Mensuales
         public byte answerQuestion6 { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 7 es obligatorio")]
-        public byte answerQuestion7 { get; set; } 
+        public byte answerQuestion7 { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 8 es obligatorio")]
-        public byte answerQuestion8 { get; set; } 
+        public byte answerQuestion8 { get; set; }
 
         [Required(ErrorMessage = "El campo respuesta de la pregunta 9 es obligatorio")]
-        public byte answerQuestion9 { get; set; } 
+        public byte answerQuestion9 { get; set; }
 
         public Account? account { get; set; }
 

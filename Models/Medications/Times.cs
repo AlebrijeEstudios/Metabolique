@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Medications
 {
@@ -15,7 +15,7 @@ namespace AppVidaSana.Models.Medications
         public DateOnly dateMedication { get; set; }
 
         [Required(ErrorMessage = "El campo horario es obligatoria.")]
-        public TimeOnly time { get; set; } 
+        public TimeOnly time { get; set; }
 
         [Required(ErrorMessage = "El campo status de medicamento es obligatorio.")]
         public bool medicationStatus { get; set; }

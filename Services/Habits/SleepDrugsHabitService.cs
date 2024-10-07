@@ -128,8 +128,8 @@ namespace AppVidaSana.Services.Habits
             habits = _mapper.Map(drugs, habits);
 
             return habits;
-        } 
-        
+        }
+
         public string DeleteSleepHours(Guid idHabit)
         {
             var habit = _bd.HabitsSleep.Find(idHabit);

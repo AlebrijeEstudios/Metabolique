@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
-using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
+﻿using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
@@ -14,7 +13,6 @@ using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
-using AutoMapper;
 
 namespace AppVidaSana.Mappers
 {
