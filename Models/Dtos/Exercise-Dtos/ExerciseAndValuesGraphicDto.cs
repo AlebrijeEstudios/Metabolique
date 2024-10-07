@@ -10,7 +10,7 @@ namespace AppVidaSana.Models.Dtos.Exercise_Dtos
 
         [JsonRequired] public List<GraphicValuesExerciseDto> activeMinutes { get; set; } = null!;
 
-        [JsonRequired] public bool mfuStatus { get; set; } 
+        [JsonRequired] public bool mfuStatus { get; set; }
 
     }
 }

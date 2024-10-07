@@ -6,7 +6,7 @@ namespace AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos
     {
         [JsonRequired] public Guid accountID { get; set; }
 
-        [JsonRequired] public int month { get; set; } 
+        [JsonRequired] public int month { get; set; }
 
         [JsonRequired] public int year { get; set; }
 

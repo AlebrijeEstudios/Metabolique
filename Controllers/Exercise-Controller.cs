@@ -1,17 +1,15 @@
-﻿using AppVidaSana.Exceptions.Cuenta_Perfil;
+﻿using AppVidaSana.Api;
+using AppVidaSana.Exceptions;
+using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Exceptions.Ejercicio;
+using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
+using AppVidaSana.Models.Dtos.Exercise_Dtos;
+using AppVidaSana.ProducesReponseType;
+using AppVidaSana.ProducesResponseType.Exercise;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
-using AppVidaSana.Exceptions.Ejercicio;
-using AppVidaSana.Api;
-using AppVidaSana.ProducesReponseType;
-using AppVidaSana.ProducesResponseType.Exercise;
-using Microsoft.AspNetCore.RateLimiting;
-using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Exceptions;
-using AppVidaSana.Models.Dtos.Exercise_Dtos;
 
 namespace AppVidaSana.Controllers
 {
@@ -19,7 +17,6 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/exercises")]
-    [EnableRateLimiting("concurrency")]
     public class ExerciseController : ControllerBase
     {
         private readonly IExercise _ExerciseService;
@@ -44,9 +41,7 @@ namespace AppVidaSana.Controllers
         /// </remarks>
         /// <response code="200">Returns two arrays, one with all the exercises performed by the user during the day and 
         /// another with the active minutes during the last 7 days, otherwise, an empty array will be returned for both cases.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetExercise))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
@@ -81,12 +76,10 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Return an error message if the user is not found.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddUpdateExercises))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
@@ -105,7 +98,7 @@ namespace AppVidaSana.Controllers
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -114,7 +107,7 @@ namespace AppVidaSana.Controllers
             }
             catch (RepeatRegistrationException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -124,7 +117,7 @@ namespace AppVidaSana.Controllers
             catch (UserNotFoundException ex)
             {
 
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -133,7 +126,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ReturnExceptionList response = new ReturnExceptionList
+                ExceptionDB response = new ExceptionDB
                 {
                     status = ex.Errors
                 };
@@ -150,12 +143,10 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Returns a message indicating that no record(s) were found for a certain exercise.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateExercises))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
@@ -174,7 +165,7 @@ namespace AppVidaSana.Controllers
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -183,7 +174,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ExerciseNotFoundException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -192,7 +183,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ReturnExceptionList response = new ReturnExceptionList
+                ExceptionDB response = new ExceptionDB
                 {
                     status = ex.Errors
                 };
@@ -207,11 +198,9 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Returns a message indicating that an exercise does not exist in the Exercises table.</response>     
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnDeleteExercise))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{exerciseID:guid}")]
         [Produces("application/json")]
@@ -230,7 +219,7 @@ namespace AppVidaSana.Controllers
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -239,7 +228,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ExerciseNotFoundException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };

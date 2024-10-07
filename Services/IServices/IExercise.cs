@@ -13,7 +13,7 @@ namespace AppVidaSana.Services.IServices
 
         ExerciseListDto UpdateExercises(ExerciseListDto exercise);
 
-        string DeleteExercise(Guid idexercise); 
+        string DeleteExercise(Guid idexercise);
 
         bool Save();
     }

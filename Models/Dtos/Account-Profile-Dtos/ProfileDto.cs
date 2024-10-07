@@ -2,13 +2,9 @@
 
 namespace AppVidaSana.Models.Dtos.Account_Profile_Dtos
 {
-    public class CreateAccountProfileDto
+    public class ProfileDto
     {
-        [JsonRequired] public string username { get; set; } = null!;
-
-        [JsonRequired] public string email { get; set; } = null!;
-         
-        [JsonRequired] public string password { get; set; } = null!;
+        [JsonRequired] public Guid accountID { get; set; }
 
         [JsonRequired] public DateOnly birthDate { get; set; }
 
@@ -19,6 +15,5 @@ namespace AppVidaSana.Models.Dtos.Account_Profile_Dtos
         [JsonRequired] public float weight { get; set; }
 
         [JsonRequired] public string protocolToFollow { get; set; } = null!;
-
     }
 }

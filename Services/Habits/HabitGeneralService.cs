@@ -1,7 +1,4 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions.Medication;
-using AppVidaSana.Mappers;
-using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs;
@@ -33,17 +30,17 @@ namespace AppVidaSana.Services.Habits
             var habitDrugs = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
 
             List<GraphicValuesHabitSleepDto> hoursSleep = new List<GraphicValuesHabitSleepDto>();
-            
+
             DateOnly dateFinal = date.AddDays(-6);
 
             var dates = GetDatesInRange(dateFinal, date);
 
-            foreach(var item in dates)
+            foreach (var item in dates)
             {
                 var habits = _bd.HabitsSleep.FirstOrDefault(e => e.sleepDateHabit == item
                                                             && e.accountID == idAccount);
 
-                if(habits != null)
+                if (habits != null)
                 {
                     GraphicValuesHabitSleepDto value = new GraphicValuesHabitSleepDto
                     {

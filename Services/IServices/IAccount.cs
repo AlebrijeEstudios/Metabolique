@@ -1,25 +1,16 @@
 ﻿using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
 
 namespace AppVidaSana.Services.IServices
 {
     public interface IAccount
     {
-        ReturnAccountDto GetAccount(Guid accountid);
+        Task<InfoAccountDto> GetAccount(Guid accountID);
 
-        Guid CreateAccount(CreateAccountProfileDto account);
+        Task<Guid> CreateAccount(AccountDto values);
 
-        ReturnProfileDto UpdateAccount(ReturnAccountDto infoAccount);
+        Task<ProfileDto> UpdateAccount(InfoAccountDto values);
 
-        string DeleteAccount(Guid userid);
-
-        Task<TokenUserDto> LoginAccount(LoginAccountDto login, CancellationToken cancellationToken);
-
-        TokenUserDto RequestPasswordResetToken(ForgotPasswordDto request);
-
-        bool ResetPassword(ResetPasswordDto model);
-
-        void SendPasswordResetEmail(string email, string resetLink);
+        Task<string> DeleteAccount(Guid accountID);
 
         bool Save();
     }

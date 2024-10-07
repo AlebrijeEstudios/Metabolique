@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using AppVidaSana.Models.Medications;
 using System.ComponentModel.DataAnnotations;
-using AppVidaSana.Models.Medications;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Monthly_Follow_Ups
 {

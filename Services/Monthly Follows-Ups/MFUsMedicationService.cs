@@ -1,7 +1,6 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
-using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Medications_Dtos;
 using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
@@ -125,7 +124,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             var statusID = _bd.StatusAdherence.FirstOrDefault(e => e.statusAdherence == "Negativo").statusID;
 
-            if(!values.answerQuestion1 && values.answerQuestion2 && !values.answerQuestion3 && !values.answerQuestion4)
+            if (!values.answerQuestion1 && values.answerQuestion2 && !values.answerQuestion3 && !values.answerQuestion4)
             {
                 statusID = _bd.StatusAdherence.FirstOrDefault(e => e.statusAdherence == "Positivo").statusID;
             }
@@ -135,7 +134,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 accountID = values.accountID,
                 monthID = monthID,
                 answerQuestion1 = values.answerQuestion1,
-                answerQuestion2 =  values.answerQuestion2,
+                answerQuestion2 = values.answerQuestion2,
                 answerQuestion3 = values.answerQuestion3,
                 answerQuestion4 = values.answerQuestion4,
                 statusID = statusID
@@ -188,7 +187,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             return responses;
         }
-        
+
         public bool Save()
         {
             try

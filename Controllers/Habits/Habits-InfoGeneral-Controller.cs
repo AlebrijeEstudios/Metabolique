@@ -1,12 +1,10 @@
 ﻿using AppVidaSana.Api;
+using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.ProducesResponseType.Habits;
-using AppVidaSana.ProducesResponseType;
+using AppVidaSana.Services.IServices.IHabits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
-using AppVidaSana.Services.IServices.IHabits;
-using AppVidaSana.Models.Dtos.Habits_Dtos;
 
 namespace AppVidaSana.Controllers.Habits
 {
@@ -14,7 +12,6 @@ namespace AppVidaSana.Controllers.Habits
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/habits")]
-    [EnableRateLimiting("concurrency")]
     public class HabitsInfoGeneralController : ControllerBase
     {
         private readonly IHabitsGeneral _HabitsInfoService;
@@ -39,9 +36,7 @@ namespace AppVidaSana.Controllers.Habits
         ///     
         /// </remarks>
         /// <response code="200">Returns all the information from the Habits section for a given day and the hours of sleep for the last 7 days.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnHabitsInfo))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
@@ -60,14 +55,14 @@ namespace AppVidaSana.Controllers.Habits
             };
 
             return StatusCode(StatusCodes.Status200OK, new
-                {
-                    message = response.message,
-                    drinkConsumed = response.drinkConsumed,
-                    hoursSleepConsumed = response.hoursSleepConsumed,
-                    drugsConsumed = response.drugsConsumed,
-                    hoursSleep = response.hoursSleep,
-                    mfuStatus = response.mfuStatus
-                });
+            {
+                message = response.message,
+                drinkConsumed = response.drinkConsumed,
+                hoursSleepConsumed = response.hoursSleepConsumed,
+                drugsConsumed = response.drugsConsumed,
+                hoursSleep = response.hoursSleep,
+                mfuStatus = response.mfuStatus
+            });
         }
     }
 }

@@ -1,29 +1,25 @@
-using DotNetEnv;
+using AppVidaSana.Api;
+using AppVidaSana.Api.Key;
 using AppVidaSana.Data;
+using AppVidaSana.JsonFormat;
 using AppVidaSana.Mappers;
 using AppVidaSana.Services;
+using AppVidaSana.Services.Habits;
 using AppVidaSana.Services.IServices;
+using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Services.IServices.IHabits.IHabits;
+using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
+using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
+using AppVidaSana.Services.Monthly_Follows_Ups;
+using AppVidaSana.Services.Seguimientos_Mensuales;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
-using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
-using AppVidaSana.Services.Seguimientos_Mensuales;
-using AppVidaSana.Api.Key;
-using AppVidaSana.Api;
 using System.Reflection;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Threading.RateLimiting;
-using AppVidaSana.ProducesResponseType;
-using System.Text.Json;
-using AppVidaSana.Services.IServices.IHabits.IHabits;
-using AppVidaSana.Services.Habits;
-using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
-using AppVidaSana.Services.Monthly_Follows_Ups;
-using AppVidaSana.JsonFormat;
-using AppVidaSana.Services.IServices.IHabits;
-using Microsoft.AspNetCore.Http.Timeouts;
+using System.Text;
 
 Env.Load();
 
@@ -34,7 +30,7 @@ var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
 var key = Encoding.ASCII.GetBytes(token);
 
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString)); 
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
 var myrulesCORS = "RulesCORS";
 builder.Services.AddCors(opt =>
@@ -50,7 +46,8 @@ builder.Services.AddCors(opt =>
     });
 });
 
-builder.Services.AddRequestTimeouts(options => {
+builder.Services.AddRequestTimeouts(options =>
+{
     options.DefaultPolicy =
         new RequestTimeoutPolicy
         {
@@ -65,30 +62,6 @@ builder.Services.AddRequestTimeouts(options => {
         });
 });
 
-var myOptions = new MyRateLimitOptions();
-builder.Configuration.GetSection("MyRateLimitOptions").Bind(myOptions);
-var slidingPolicy = "concurrency";
-RateLimiting response = new RateLimiting();
-var jsonResponse = JsonSerializer.Serialize(response);
-
-builder.Services.AddRateLimiter(options =>
-{ 
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    
-
-    options.OnRejected = async (context, token) =>
-    {
-        context.HttpContext.Response.ContentType = "application/json";
-        await context.HttpContext.Response.WriteAsync(jsonResponse, token);
-    };
-
-    options.AddConcurrencyLimiter(policyName: slidingPolicy, op =>
-    {
-        op.PermitLimit = myOptions.PermitLimit;
-        op.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        op.QueueLimit = myOptions.QueueLimit;
-    });
-});
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -99,6 +72,8 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
+builder.Services.AddScoped<IAuthentication_Authorization, Authentication_AuthorizationService>();
+builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
 builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
 builder.Services.AddScoped<IHabitsGeneral, HabitGeneralService>();
@@ -150,8 +125,9 @@ builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { 
-        Title = "Metabolique_API", 
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Metabolique_API",
         Version = "v1",
         Description = "An ASP.NET Core web API to manage medical tracking elements of a user's medical record."
     });
@@ -196,7 +172,6 @@ app.UseRouting();
 app.UseCors(myrulesCORS);
 app.UseRequestTimeouts();
 app.UseAuthentication();
-app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",

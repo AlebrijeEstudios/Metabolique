@@ -12,6 +12,6 @@ namespace AppVidaSana.ProducesResponseType.Medications
 
         public List<SideEffectsListDto> sideEffects { get; set; } = null!;
 
-        public bool mfuStatus { get; set; } 
+        public bool mfuStatus { get; set; }
     }
 }

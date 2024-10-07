@@ -1,19 +1,16 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions;
+using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Exceptions.Habits;
+using AppVidaSana.Models.Dtos.Habits_Dtos;
+using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType.Habits.DrugsHabit;
-using AppVidaSana.ProducesResponseType;
+using AppVidaSana.ProducesResponseType.Habits.SleepHabit_DrugsHabit;
 using AppVidaSana.Services.IServices.IHabits.IHabits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
-using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs;
-using AppVidaSana.Exceptions.Habits;
-using AppVidaSana.Models.Dtos.Habits_Dtos;
-using AppVidaSana.ProducesResponseType.Exercise;
-using AppVidaSana.ProducesResponseType.Habits.SleepHabit_DrugsHabit;
 
 namespace AppVidaSana.Controllers.Habits
 {
@@ -21,7 +18,6 @@ namespace AppVidaSana.Controllers.Habits
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/habits-sleep-drugs")]
-    [EnableRateLimiting("concurrency")]
     public class HabitSleepDrugsController : ControllerBase
     {
         private readonly ISleepDrugsHabit _SleepDrugsHabitService;
@@ -47,12 +43,10 @@ namespace AppVidaSana.Controllers.Habits
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Return an error message if the user is not found.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddUpdateSleepHoursAndDrugsConsumed))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
@@ -71,7 +65,7 @@ namespace AppVidaSana.Controllers.Habits
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -80,7 +74,7 @@ namespace AppVidaSana.Controllers.Habits
             }
             catch (RepeatRegistrationException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -89,7 +83,7 @@ namespace AppVidaSana.Controllers.Habits
             }
             catch (UserNotFoundException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -98,7 +92,7 @@ namespace AppVidaSana.Controllers.Habits
             }
             catch (ErrorDatabaseException ex)
             {
-                ReturnExceptionList response = new ReturnExceptionList
+                ExceptionDB response = new ExceptionDB
                 {
                     status = ex.Errors
                 };
@@ -124,12 +118,10 @@ namespace AppVidaSana.Controllers.Habits
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Returns a message indicating that no records have been found for a certain number of cigarettes consumed.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateSleepHoursAndDrugsConsumed))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
@@ -149,7 +141,7 @@ namespace AppVidaSana.Controllers.Habits
 
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -158,7 +150,7 @@ namespace AppVidaSana.Controllers.Habits
             }
             catch (HabitNotFoundException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -167,7 +159,7 @@ namespace AppVidaSana.Controllers.Habits
             }
             catch (ErrorDatabaseException ex)
             {
-                ReturnExceptionList response = new ReturnExceptionList
+                ExceptionDB response = new ExceptionDB
                 {
                     status = ex.Errors
                 };
@@ -182,11 +174,9 @@ namespace AppVidaSana.Controllers.Habits
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Returns a message indicating that the record with the cigarettes consumed does not exist in the DrugsHabit table.</response>     
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnDeleteSleepHoursAndDrugsConsumed))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{drugsHabitID:guid}")]
         [Produces("application/json")]
@@ -205,7 +195,7 @@ namespace AppVidaSana.Controllers.Habits
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -214,7 +204,7 @@ namespace AppVidaSana.Controllers.Habits
             }
             catch (HabitNotFoundException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -229,11 +219,9 @@ namespace AppVidaSana.Controllers.Habits
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Returns a message indicating that the record with the specified sleep hours does not exist in the SleepHabit table.</response>     
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>       
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnDeleteSleepHoursAndDrugsConsumed))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{habitSleepID:guid}")]
         [Produces("application/json")]
@@ -252,7 +240,7 @@ namespace AppVidaSana.Controllers.Habits
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
@@ -261,7 +249,7 @@ namespace AppVidaSana.Controllers.Habits
             }
             catch (HabitNotFoundException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };

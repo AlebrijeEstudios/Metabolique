@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Habitos
 {
@@ -15,7 +15,7 @@ namespace AppVidaSana.Models.Habitos
         public DateOnly drugsDateHabit { get; set; }
 
         [Required(ErrorMessage = "El campo cigarros consumidos es obligatorio")]
-        public int cigarettesSmoked { get; set; } 
+        public int cigarettesSmoked { get; set; }
 
         [Required(ErrorMessage = "El campo estado emocional predominante es obligatorio")]
         public string predominantEmotionalState { get; set; } = null!;

@@ -1,12 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using AppVidaSana.Models;
-using AppVidaSana.Models.Seguimientos_Mensuales;
-using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
+﻿using AppVidaSana.Models;
+using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
-using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
+using AppVidaSana.Models.Seguimientos_Mensuales;
+using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Data
 {
@@ -21,7 +21,7 @@ namespace AppVidaSana.Data
         public DbSet<Exercise> Exercises { get; set; }
         public DbSet<MFUsExercise> MFUsExercise { get; set; }
         public DbSet<ExerciseResults> ResultsExercise { get; set; }
-        public DbSet<ActiveMinutes> ActiveMinutes {  get; set; }
+        public DbSet<ActiveMinutes> ActiveMinutes { get; set; }
         public DbSet<DrinkHabit> HabitsDrink { get; set; }
         public DbSet<DrugsHabit> HabitsDrugs { get; set; }
         public DbSet<SleepHabit> HabitsSleep { get; set; }
@@ -60,7 +60,7 @@ namespace AppVidaSana.Data
                 .WithOne(exercises => exercises.account)
                 .HasForeignKey(exercises => exercises.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.graphicsValuesExercise)
                 .WithOne(graphic => graphic.account)
@@ -149,7 +149,7 @@ namespace AppVidaSana.Data
                 .WithOne(times => times.periods)
                 .HasForeignKey(times => times.periodID)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             modelBuilder.Entity<Times>()
               .Property(e => e.time)
               .HasColumnType("TIME(0)");

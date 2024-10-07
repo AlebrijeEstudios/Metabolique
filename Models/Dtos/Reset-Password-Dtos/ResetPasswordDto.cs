@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos
+namespace AppVidaSana.Models.Dtos.Reset_Password_Dtos
 {
     public class ResetPasswordDto
     {
