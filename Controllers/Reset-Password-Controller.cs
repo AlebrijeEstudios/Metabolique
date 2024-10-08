@@ -7,6 +7,7 @@ using AppVidaSana.ProducesResponseType.Authenticator;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AppVidaSana.Controllers
@@ -14,6 +15,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/forgot-password")]
+    [RequestTimeout("CustomPolicy")]
     public class ResetPasswordController : Controller
     {
         private readonly IResetPassword _resetPasswordService;
@@ -37,7 +39,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var token = await _resetPasswordService.PasswordResetToken(email);
+                var token = await _resetPasswordService.PasswordResetToken(email, HttpContext.RequestAborted);
 
                 var resetLink = Url.Action("ViewResetPassword", "ResetPassword", new { token = token.token, email = email.email }, Request.Scheme);
 
@@ -113,7 +115,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var status = await _resetPasswordService.ResetPassword(values);
+                var status = await _resetPasswordService.ResetPassword(values, HttpContext.RequestAborted);
 
                 if (!status)
                 {

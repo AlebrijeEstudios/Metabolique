@@ -4,6 +4,7 @@ using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
+using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Food_Dtos;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
 using AppVidaSana.Models.Exercises;
@@ -20,6 +21,38 @@ namespace AppVidaSana.Mappers
     {
         public Mapper()
         {
+            CreateMap<MFUsFood, ResultsMFUsFoodDto>()
+                .ForMember(dest => dest.month, opt => opt.Ignore())
+                .ForMember(dest => dest.year, opt => opt.Ignore())
+                .ForMember(dest => dest.totalPts, opt => opt.Ignore())
+                .ForMember(dest => dest.classification, opt => opt.Ignore());
+
+            CreateMap<FoodResults, ResultsMFUsFoodDto>()
+                .ForMember(dest => dest.monthlyFollowUpID, opt => opt.Ignore())
+                .ForMember(dest => dest.month, opt => opt.Ignore())
+                .ForMember(dest => dest.year, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion1, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion2, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion3, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion4, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion6, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion7, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion8, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion9, opt => opt.Ignore());
+
+            CreateMap<MFUsMonths, ResultsMFUsFoodDto>()
+                .ForMember(dest => dest.monthlyFollowUpID, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion1, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion2, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion3, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion4, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion6, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion7, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion8, opt => opt.Ignore())
+                .ForMember(dest => dest.answerQuestion9, opt => opt.Ignore())
+                .ForMember(dest => dest.totalPts, opt => opt.Ignore())
+                .ForMember(dest => dest.classification, opt => opt.Ignore());
+
             CreateMap<Exercise, ExerciseListDto>().ReverseMap();
             CreateMap<ActiveMinutes, GraphicValuesExerciseDto>().ReverseMap();
             CreateMap<DrinkHabit, GetDrinksConsumedDto>().ReverseMap();
@@ -113,6 +146,7 @@ namespace AppVidaSana.Mappers
                 .ForMember(dest => dest.answerQuestion9, opt => opt.Ignore());
 
             CreateMap<MFUsMonths, RetrieveResponsesHabitsDto>()
+                .ForMember(dest => dest.monthlyFollowUpID, opt => opt.Ignore())
                 .ForMember(dest => dest.answerQuestion1, opt => opt.Ignore())
                 .ForMember(dest => dest.answerQuestion2, opt => opt.Ignore())
                 .ForMember(dest => dest.answerQuestion3, opt => opt.Ignore())
@@ -131,7 +165,6 @@ namespace AppVidaSana.Mappers
                 .ForMember(dest => dest.answerQuestion7, opt => opt.Ignore())
                 .ForMember(dest => dest.answerQuestion8, opt => opt.Ignore())
                 .ForMember(dest => dest.answerQuestion9, opt => opt.Ignore())
-                .ForMember(dest => dest.monthlyFollowUpID, opt => opt.Ignore())
                 .ForMember(dest => dest.resultComponent1, opt => opt.Ignore())
                 .ForMember(dest => dest.resultComponent2, opt => opt.Ignore())
                 .ForMember(dest => dest.resultComponent3, opt => opt.Ignore())

@@ -4,9 +4,9 @@ namespace AppVidaSana.Services.IServices
 {
     public interface IResetPassword
     {
-        Task<TokenDto> PasswordResetToken(EmailDto value);
+        Task<TokenDto> PasswordResetToken(EmailDto value, CancellationToken cancellationToken);
 
-        Task<bool> ResetPassword(ResetPasswordDto values);
+        Task<bool> ResetPassword(ResetPasswordDto values, CancellationToken cancellationToken);
 
         void SendEmail(string email, string resetLink);
 

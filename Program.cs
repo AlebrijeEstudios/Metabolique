@@ -25,7 +25,7 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
 var key = Encoding.ASCII.GetBytes(token);
@@ -74,6 +74,7 @@ builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IAuthentication_Authorization, Authentication_AuthorizationService>();
 builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
+builder.Services.AddScoped<IMFUsFood, MFUsFoodService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
 builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
 builder.Services.AddScoped<IHabitsGeneral, HabitGeneralService>();

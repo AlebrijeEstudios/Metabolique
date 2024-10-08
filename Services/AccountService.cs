@@ -7,6 +7,7 @@ using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace AppVidaSana.Services
 {
@@ -21,19 +22,19 @@ namespace AppVidaSana.Services
             _validationValues = new ValidationValuesDB();
         }
 
-        public async Task<Guid> CreateAccount(AccountDto values)
+        public async Task<Guid> CreateAccount(AccountDto values, CancellationToken cancellationToken)
         {
             List<string?> errors = new List<string?>();
 
             string message = "";
 
-            string verifyStatusUsername = await VerifyValues.verifyUsername(values.username, _bd);
+            string verifyStatusUsername = await VerifyValues.verifyUsername(values.username, _bd, cancellationToken);
 
             if (verifyStatusUsername != "") { errors.Add(verifyStatusUsername); }
 
             try
             {
-                string verifyStatusEmail = await VerifyValues.verifyEmail(values.email, _bd);
+                string verifyStatusEmail = await VerifyValues.verifyEmail(values.email, _bd, cancellationToken);
 
                 if (verifyStatusEmail != "") { errors.Add(verifyStatusEmail); }
 
@@ -59,7 +60,7 @@ namespace AppVidaSana.Services
 
             if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
 
-            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == "User");
+            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == "User", cancellationToken);
 
             if (role == null) { throw new NoRoleAssignmentException(); }
 
@@ -73,12 +74,12 @@ namespace AppVidaSana.Services
 
             _validationValues.ValidationValues(account);
 
-            await _bd.Accounts.AddAsync(account);
+            await _bd.Accounts.AddAsync(account, cancellationToken);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
             var user = await _bd.Accounts.FirstOrDefaultAsync(u =>
-                                          u.email.ToLower() == account.email.ToLower());
+                                          u.email.ToLower() == account.email.ToLower(), cancellationToken);
 
             if (user == null) { throw new UnstoredValuesException(); }
 
@@ -88,10 +89,10 @@ namespace AppVidaSana.Services
 
         }
 
-        public async Task<InfoAccountDto> GetAccount(Guid accountID)
+        public async Task<InfoAccountDto> GetAccount(Guid accountID, CancellationToken cancellationToken)
         {
-            var account = await _bd.Accounts.FindAsync(accountID);
-            var profile = await _bd.Profiles.FindAsync(accountID);
+            var account = await _bd.Accounts.FindAsync(accountID, cancellationToken);
+            var profile = await _bd.Profiles.FindAsync(accountID, cancellationToken);
 
             if (account == null || profile == null) { throw new UserNotFoundException(); }
 
@@ -110,19 +111,19 @@ namespace AppVidaSana.Services
             return infoUser;
         }
 
-        public async Task<ProfileDto> UpdateAccount(InfoAccountDto values)
+        public async Task<ProfileDto> UpdateAccount(InfoAccountDto values, CancellationToken cancellationToken)
         {
             List<string?> errors = new List<string?>();
 
             string message = "";
 
-            var user = await _bd.Accounts.FindAsync(values.accountID);
+            var user = await _bd.Accounts.FindAsync(values.accountID, cancellationToken);
 
             if (user == null) { throw new UserNotFoundException(); }
 
             if (user.username != values.username)
             {
-                string verifyStatusUsername = await VerifyValues.verifyUsername(values.username, _bd);
+                string verifyStatusUsername = await VerifyValues.verifyUsername(values.username, _bd, cancellationToken);
 
                 if (verifyStatusUsername != "")
                 {
@@ -134,7 +135,7 @@ namespace AppVidaSana.Services
             {
                 try
                 {
-                    string verifyStatusEmail = await VerifyValues.verifyEmail(values.email, _bd);
+                    string verifyStatusEmail = await VerifyValues.verifyEmail(values.email, _bd, cancellationToken);
 
                     if (verifyStatusEmail != "")
                     {
@@ -173,9 +174,9 @@ namespace AppVidaSana.Services
             return profile;
         }
 
-        public async Task<string> DeleteAccount(Guid accountID)
+        public async Task<string> DeleteAccount(Guid accountID, CancellationToken cancellationToken)
         {
-            var account = await _bd.Accounts.FindAsync(accountID);
+            var account = await _bd.Accounts.FindAsync(accountID, cancellationToken);
 
             if (account == null) { throw new UserNotFoundException(); }
 

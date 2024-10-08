@@ -14,6 +14,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/auth")]
+    [RequestTimeout("CustomPolicy")]
     public class AuthenticationAuthorizationController : ControllerBase
     {
         private readonly IAuthentication_Authorization _AuthService;
@@ -35,7 +36,6 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPost("login")]
         [Produces("application/json")]
-        [RequestTimeout("CustomPolicy")]
         public async Task<IActionResult> LoginAccount([FromBody] LoginDto login)
         {
             try
