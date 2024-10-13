@@ -1,8 +1,9 @@
 ﻿using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Graphics_Dtos;
-using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
-using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs;
+using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
+using AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits;
+using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Food_Dtos;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
@@ -21,6 +22,7 @@ namespace AppVidaSana.Mappers
     {
         public Mapper()
         {
+            //FOOD
             CreateMap<MFUsFood, ResultsMFUsFoodDto>()
                 .ForMember(dest => dest.month, opt => opt.Ignore())
                 .ForMember(dest => dest.year, opt => opt.Ignore())
@@ -53,22 +55,9 @@ namespace AppVidaSana.Mappers
                 .ForMember(dest => dest.totalPts, opt => opt.Ignore())
                 .ForMember(dest => dest.classification, opt => opt.Ignore());
 
+            //EXERCISE
             CreateMap<Exercise, ExerciseListDto>().ReverseMap();
             CreateMap<ActiveMinutes, GraphicValuesExerciseDto>().ReverseMap();
-            CreateMap<DrinkHabit, GetDrinksConsumedDto>().ReverseMap();
-            CreateMap<SleepHabit, GetHoursSleepConsumedDto>().ReverseMap();
-            CreateMap<DrugsHabit, GetDrugsConsumedDto>().ReverseMap();
-
-            CreateMap<SleepHabit, ReturnSleepHoursAndDrugsConsumedDto>()
-            .ForMember(dest => dest.drugsHabitID, opt => opt.Ignore())
-            .ForMember(dest => dest.cigarettesSmoked, opt => opt.Ignore())
-            .ForMember(dest => dest.predominantEmotionalState, opt => opt.Ignore());
-
-            CreateMap<DrugsHabit, ReturnSleepHoursAndDrugsConsumedDto>()
-            .ForMember(dest => dest.dateRegister, opt => opt.Ignore())
-            .ForMember(dest => dest.sleepHabitID, opt => opt.Ignore())
-            .ForMember(dest => dest.sleepHours, opt => opt.Ignore())
-            .ForMember(dest => dest.perceptionOfRelaxation, opt => opt.Ignore());
 
             CreateMap<MFUsExercise, RetrieveResponsesExerciseDto>()
             .ForMember(dest => dest.month, opt => opt.Ignore())
@@ -108,6 +97,13 @@ namespace AppVidaSana.Mappers
             .ForMember(dest => dest.totalMET, opt => opt.Ignore())
             .ForMember(dest => dest.sedentaryBehavior, opt => opt.Ignore())
             .ForMember(dest => dest.levelAF, opt => opt.Ignore());
+
+            //HABITS
+            CreateMap<DrinkHabit, GetDrinksConsumedDto>().ReverseMap();
+            CreateMap<SleepHabit, GetHoursSleepConsumedDto>().ReverseMap();
+            CreateMap<DrugsHabit, GetDrugsConsumedDto>().ReverseMap();
+            CreateMap<SleepHabit, SleepHabitInfoDto>().ReverseMap();
+            CreateMap<DrugsHabit, DrugsHabitInfoDto>().ReverseMap();
 
             CreateMap<MFUsHabits, RetrieveResponsesHabitsDto>()
             .ForMember(dest => dest.month, opt => opt.Ignore())
@@ -177,6 +173,8 @@ namespace AppVidaSana.Mappers
 
             CreateMap<MFUsHabits, SaveResponsesHabitsDto>().ReverseMap();
             CreateMap<HabitsResults, SaveResultsHabitsDto>().ReverseMap();
+
+            //MEDICATION
             CreateMap<Times, TimeListDto>().ReverseMap();
             CreateMap<SideEffects, SideEffectsListDto>().ReverseMap();
 

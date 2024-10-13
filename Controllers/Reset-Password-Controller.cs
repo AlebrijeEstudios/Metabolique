@@ -109,7 +109,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
         [ApiKeyAuthorizationFilter]
-        [HttpPost("reset-password")]
+        [HttpPut("reset-password")]
         [Produces("application/json")]
         public async Task<IActionResult> UpdatePassword([FromBody] ResetPasswordDto values)
         {

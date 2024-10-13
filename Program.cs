@@ -79,7 +79,7 @@ builder.Services.AddScoped<IExercise, ExerciseService>();
 builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
 builder.Services.AddScoped<IHabitsGeneral, HabitGeneralService>();
 builder.Services.AddScoped<IDrinkHabit, DrinkHabitService>();
-builder.Services.AddScoped<ISleepDrugsHabit, SleepDrugsHabitService>();
+builder.Services.AddScoped<IDrugsHabit, DrugsHabitService>();
 builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
 builder.Services.AddScoped<IMedication, MedicationService>();
 builder.Services.AddScoped<ISideEffects, MedicationService>();
