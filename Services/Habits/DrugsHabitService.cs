@@ -25,10 +25,10 @@ namespace AppVidaSana.Services.Habits
 
         public DrugsHabitInfoDto AddDrugsConsumed(DrugsHabitDto values)
         {
-            var habitDrugsExisting = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == values.accountID
-                                                                    && e.drugsDateHabit == values.dateRegister);
+            var habitDrugsExisting = _bd.HabitsDrugs.Any(e => e.accountID == values.accountID
+                                                         && e.drugsDateHabit == values.dateRegister);
 
-            if (habitDrugsExisting == null) { throw new RepeatRegistrationException(); }
+            if (habitDrugsExisting) { throw new RepeatRegistrationException(); }
 
             DrugsHabit drugHabit = new DrugsHabit
             {
@@ -44,7 +44,10 @@ namespace AppVidaSana.Services.Habits
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var infoHabitsDrugs = _mapper.Map<DrugsHabitInfoDto>(habitDrugsExisting);
+            var habitDrugs = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == values.accountID
+                                                            && e.drugsDateHabit == values.dateRegister);
+
+            var infoHabitsDrugs = _mapper.Map<DrugsHabitInfoDto>(habitDrugs);
 
             return infoHabitsDrugs;
         }

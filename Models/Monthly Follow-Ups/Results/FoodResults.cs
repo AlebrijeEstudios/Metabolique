@@ -7,7 +7,7 @@ namespace AppVidaSana.Models.Monthly_Follow_Ups.Results
     {
         [Key]
         public Guid resultsID { get; set; } = Guid.NewGuid();
-
+         
         [ForeignKey("MFUsFood")]
         public Guid monthlyFollowUpID { get; set; }
 

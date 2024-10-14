@@ -25,10 +25,10 @@ namespace AppVidaSana.Services.Habits
 
         public SleepHabitInfoDto AddSleepHours(SleepHabitDto values)
         {
-            var habitSleepExist = _bd.HabitsSleep.FirstOrDefault(e => e.accountID == values.accountID
-                                                                 && e.sleepDateHabit == values.dateRegister);
+            var habitSleepExist = _bd.HabitsSleep.Any(e => e.accountID == values.accountID
+                                                      && e.sleepDateHabit == values.dateRegister);
 
-            if (habitSleepExist == null) { throw new RepeatRegistrationException(); }
+            if (habitSleepExist) { throw new RepeatRegistrationException(); }
 
             SleepHabit sleepHabit = new SleepHabit
             {
@@ -44,7 +44,10 @@ namespace AppVidaSana.Services.Habits
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var infoHabitsSleep = _mapper.Map<SleepHabitInfoDto>(habitSleepExist);
+            var habitSleep = _bd.HabitsSleep.FirstOrDefault(e => e.accountID == values.accountID
+                                                            && e.sleepDateHabit == values.dateRegister);
+
+            var infoHabitsSleep = _mapper.Map<SleepHabitInfoDto>(habitSleep);
 
             return infoHabitsSleep;
         }

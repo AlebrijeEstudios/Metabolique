@@ -4,7 +4,7 @@ using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 
 namespace AppVidaSana.Models.Monthly_Follow_Ups
 {
-    public class MFUsFood
+    public class MFUsFood 
     {
         [Key]
         public Guid monthlyFollowUpID { get; set; } = Guid.NewGuid();

@@ -8,8 +8,8 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos.Drugs
 
         [JsonRequired] public DateOnly dateRegister { get; set; }
 
-        [JsonRequired] public int? cigarettesSmoked { get; set; }
+        public int? cigarettesSmoked { get; set; }
 
-        [JsonRequired] public string? predominantEmotionalState { get; set; }
+        public string? predominantEmotionalState { get; set; }
     }
 }

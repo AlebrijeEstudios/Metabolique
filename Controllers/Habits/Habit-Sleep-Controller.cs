@@ -2,6 +2,7 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep;
+using AppVidaSana.Models.Habitos;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType.Habits.SleepHabit;
 using AppVidaSana.Services.IServices.IHabits;
@@ -95,9 +96,11 @@ namespace AppVidaSana.Controllers.Habits
         /// <remarks>
         /// Sample Request:
         /// 
-        ///     The dateRegister property must have the following structure:   
+        ///     From the request body only the following properties are needed:
         ///     {
-        ///        "dateRegister": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///        "op": "replace",
+        ///        "path": {name property},
+        ///        "value": {new value (accept null)}
         ///     }
         ///   
         /// </remarks>

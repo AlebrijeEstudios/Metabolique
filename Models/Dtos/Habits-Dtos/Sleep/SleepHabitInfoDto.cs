@@ -6,8 +6,8 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos.Sleep
     {
         [JsonRequired] public Guid sleepHabitID { get; set; }
 
-        [JsonRequired] public int? sleepHours { get; set; }
+        public int? sleepHours { get; set; }
 
-        [JsonRequired] public string? perceptionOfRelaxation { get; set; }  
+        public string? perceptionOfRelaxation { get; set; }  
     }
 }

@@ -6,8 +6,8 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos.Drugs
     {
         [JsonRequired] public Guid drugsHabitID { get; set; }
 
-        [JsonRequired] public int cigarettesSmoked { get; set; }
+        public int? cigarettesSmoked { get; set; }
 
-        [JsonRequired] public string predominantEmotionalState { get; set; } = null!; 
+        public string? predominantEmotionalState { get; set; } = null!; 
     }
 }

@@ -96,10 +96,12 @@ namespace AppVidaSana.Controllers.Habits
         /// </summary>
         /// <remarks>
         /// Sample Request:
-        /// 
-        ///     The dateRegister property must have the following structure:   
+        ///
+        ///     From the request body only the following properties are needed:
         ///     {
-        ///        "dateRegister": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///        "op": "replace",
+        ///        "path": {name property},
+        ///        "value": {new value (accept null)}
         ///     }
         ///   
         /// </remarks>
