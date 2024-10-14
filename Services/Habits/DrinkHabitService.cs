@@ -79,7 +79,7 @@ namespace AppVidaSana.Services.Habits
 
             if (habit == null)
             {
-                throw new HabitNotFoundException();
+                throw new HabitNotFoundException("No existe información de bebidas consumidas. Inténtelo de nuevo.");
             }
 
             habit.typeDrink = values.typeDrink;
@@ -117,7 +117,7 @@ namespace AppVidaSana.Services.Habits
 
             if (habit == null)
             {
-                throw new HabitNotFoundException();
+                throw new HabitNotFoundException("No existe información de bebidas consumidas. Inténtelo de nuevo.");
             }
 
             Guid id = habit.accountID;

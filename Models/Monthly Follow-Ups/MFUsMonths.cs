@@ -12,6 +12,8 @@ namespace AppVidaSana.Models.Monthly_Follow_Ups
 
         public int year { get; set; }
 
+        public ICollection<MFUsFood> foods { get; set; } = new List<MFUsFood>();
+
         public ICollection<MFUsMedication> medications { get; set; } = new List<MFUsMedication>();
 
         public ICollection<MFUsExercise> exercises { get; set; } = new List<MFUsExercise>();

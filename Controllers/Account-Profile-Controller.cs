@@ -17,6 +17,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/accounts")]
+    [RequestTimeout("CustomPolicy")]
     public class AccountProfileController : ControllerBase
     {
         private readonly IAccount _AccountService;
@@ -53,7 +54,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var account = await _AccountService.GetAccount(accountID);
+                var account = await _AccountService.GetAccount(accountID, HttpContext.RequestAborted);
 
                 ResponseGet response = new ResponseGet
                 {
@@ -104,9 +105,9 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var accountID = await _AccountService.CreateAccount(values);
+                var accountID = await _AccountService.CreateAccount(values, HttpContext.RequestAborted);
 
-                _ProfileService.CreateProfile(accountID, values);
+                _ProfileService.CreateProfile(accountID, values, HttpContext.RequestAborted);
 
                 LoginDto login = new LoginDto
                 {
@@ -197,8 +198,8 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var profile = await _AccountService.UpdateAccount(values);
-                var message = await _ProfileService.UpdateProfile(profile);
+                var profile = await _AccountService.UpdateAccount(values, HttpContext.RequestAborted);
+                var message = await _ProfileService.UpdateProfile(profile, HttpContext.RequestAborted);
 
                 ResponseUpdateDelete response = new ResponseUpdateDelete
                 {
@@ -262,7 +263,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var message = await _AccountService.DeleteAccount(accountID);
+                var message = await _AccountService.DeleteAccount(accountID, HttpContext.RequestAborted);
 
                 ResponseUpdateDelete response = new ResponseUpdateDelete
                 {

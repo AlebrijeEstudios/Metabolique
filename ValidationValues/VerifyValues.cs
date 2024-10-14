@@ -5,9 +5,9 @@ namespace AppVidaSana.ValidationValues
 {
     public class VerifyValues
     {
-        public static async Task<string> verifyUsername(string username, AppDbContext bd)
+        public static async Task<string> verifyUsername(string username, AppDbContext bd, CancellationToken cancellationToken)
         {
-            var existingAccount = await bd.Accounts.AnyAsync(c => c.username == username);
+            var existingAccount = await bd.Accounts.AnyAsync(c => c.username == username, cancellationToken);
 
             if (existingAccount!)
             {
@@ -17,14 +17,14 @@ namespace AppVidaSana.ValidationValues
             return "";
         }
 
-        public static async Task<string> verifyEmail(string email, AppDbContext bd)
+        public static async Task<string> verifyEmail(string email, AppDbContext bd, CancellationToken cancellationToken)
         {
             if (!RegexPatterns.RegexPatterns.Emailregex.IsMatch(email))
             {
                 return "El correo electrónico no tiene un formato válido.";
             }
 
-            var existingEmail = await bd.Accounts.AnyAsync(c => c.email == email);
+            var existingEmail = await bd.Accounts.AnyAsync(c => c.email == email, cancellationToken);
 
             if (existingEmail!)
             {

@@ -25,7 +25,7 @@ namespace AppVidaSana.Services
             keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
         }
 
-        public async Task<bool> ResetPassword(ResetPasswordDto values)
+        public async Task<bool> ResetPassword(ResetPasswordDto values, CancellationToken cancellationToken)
         {
             if (values.password != values.confirmPassword) { throw new ComparedPasswordException(); }
 
@@ -52,7 +52,7 @@ namespace AppVidaSana.Services
 
             if (claimPrincipal == null) { return false; }
 
-            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == values.email);
+            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == values.email, cancellationToken);
 
             if (account == null) { return false; }
 
@@ -65,9 +65,9 @@ namespace AppVidaSana.Services
             return true;
         }
 
-        public async Task<TokenDto> PasswordResetToken(EmailDto value)
+        public async Task<TokenDto> PasswordResetToken(EmailDto value, CancellationToken cancellationToken)
         {
-            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == value.email);
+            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == value.email, cancellationToken);
 
             if (account == null) { throw new EmailNotSendException(); }
 

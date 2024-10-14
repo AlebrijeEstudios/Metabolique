@@ -1,5 +1,5 @@
 ﻿using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
-using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs;
+using AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits;
 
 namespace AppVidaSana.Models.Dtos.Habits_Dtos
 {

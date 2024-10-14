@@ -18,6 +18,8 @@ namespace AppVidaSana.Data
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Profiles> Profiles { get; set; }
+        public DbSet<MFUsFood> MFUsFood { get; set; }
+        public DbSet<FoodResults> ResultsFood { get; set; }
         public DbSet<Exercise> Exercises { get; set; }
         public DbSet<MFUsExercise> MFUsExercise { get; set; }
         public DbSet<ExerciseResults> ResultsExercise { get; set; }
@@ -53,6 +55,25 @@ namespace AppVidaSana.Data
                 .WithOne(account => account.roles)
                 .HasForeignKey(account => account.roleID)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            //Food and MFUsFood
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.MFUsFood)
+                .WithOne(MFUsFood => MFUsFood.account)
+                .HasForeignKey(MFUsFood => MFUsFood.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MFUsMonths>()
+               .HasMany(month => month.foods)
+               .WithOne(foods => foods.months)
+               .HasForeignKey(foods => foods.monthID)
+               .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MFUsFood>()
+                .HasOne(MFUsFood => MFUsFood.results)
+                .WithOne(results => results.MFUsFood)
+                .HasForeignKey<FoodResults>(results => results.monthlyFollowUpID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             //Exercise and MFUsExercise
             modelBuilder.Entity<Account>()

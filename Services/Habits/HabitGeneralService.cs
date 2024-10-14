@@ -1,7 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
-using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs;
+using AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits;
 using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
 using System.Globalization;

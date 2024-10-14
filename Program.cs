@@ -70,15 +70,24 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
 });
 
+builder.Services.AddControllers().AddNewtonsoftJson();
+
+builder.Services.AddControllers(options =>
+{
+    options.InputFormatters.Insert(0, MyJPIF.GetJsonPatchInputFormatter());
+});
+
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IAuthentication_Authorization, Authentication_AuthorizationService>();
 builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
+builder.Services.AddScoped<IMFUsFood, MFUsFoodService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
 builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
 builder.Services.AddScoped<IHabitsGeneral, HabitGeneralService>();
 builder.Services.AddScoped<IDrinkHabit, DrinkHabitService>();
-builder.Services.AddScoped<ISleepDrugsHabit, SleepDrugsHabitService>();
+builder.Services.AddScoped<IDrugsHabit, DrugsHabitService>();
+builder.Services.AddScoped<ISleepHabit, SleepHabitService>();
 builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
 builder.Services.AddScoped<IMedication, MedicationService>();
 builder.Services.AddScoped<ISideEffects, MedicationService>();

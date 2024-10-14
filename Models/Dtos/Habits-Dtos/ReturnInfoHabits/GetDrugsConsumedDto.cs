@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs
+namespace AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits
 {
     public class GetDrugsConsumedDto
     {
@@ -8,8 +8,8 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos.Sleep_And_Drugs
 
         [JsonRequired] public DateOnly drugsDateHabit { get; set; }
 
-        [JsonRequired] public int cigarettesSmoked { get; set; }
+        public int? cigarettesSmoked { get; set; }
 
-        [JsonRequired] public string predominantEmotionalState { get; set; } = null!;
+        public string? predominantEmotionalState { get; set; } 
     }
 }
