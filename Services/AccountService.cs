@@ -15,11 +15,13 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private ValidationValuesDB _validationValues;
+        private VerifyValues _verifyValues;
 
         public AccountService(AppDbContext bd)
         {
             _bd = bd;
             _validationValues = new ValidationValuesDB();
+            _verifyValues = new VerifyValues();
         }
 
         public async Task<Guid> CreateAccount(AccountDto values, CancellationToken cancellationToken)
@@ -28,13 +30,13 @@ namespace AppVidaSana.Services
 
             string message = "";
 
-            string verifyStatusUsername = await VerifyValues.verifyUsername(values.username, _bd, cancellationToken);
+            string verifyStatusUsername = await _verifyValues.verifyUsername(values.username, _bd, cancellationToken);
 
             if (verifyStatusUsername != "") { errors.Add(verifyStatusUsername); }
 
             try
             {
-                string verifyStatusEmail = await VerifyValues.verifyEmail(values.email, _bd, cancellationToken);
+                string verifyStatusEmail = await _verifyValues.verifyEmail(values.email, _bd, cancellationToken);
 
                 if (verifyStatusEmail != "") { errors.Add(verifyStatusEmail); }
 
@@ -47,7 +49,7 @@ namespace AppVidaSana.Services
 
             try
             {
-                string verifyStatusPassword = VerifyValues.verifyPassword(values.password);
+                string verifyStatusPassword = _verifyValues.verifyPassword(values.password);
 
                 if (verifyStatusPassword != "") { errors.Add(verifyStatusPassword); }
 
@@ -123,7 +125,7 @@ namespace AppVidaSana.Services
 
             if (user.username != values.username)
             {
-                string verifyStatusUsername = await VerifyValues.verifyUsername(values.username, _bd, cancellationToken);
+                string verifyStatusUsername = await _verifyValues.verifyUsername(values.username, _bd, cancellationToken);
 
                 if (verifyStatusUsername != "")
                 {
@@ -135,7 +137,7 @@ namespace AppVidaSana.Services
             {
                 try
                 {
-                    string verifyStatusEmail = await VerifyValues.verifyEmail(values.email, _bd, cancellationToken);
+                    string verifyStatusEmail = await _verifyValues.verifyEmail(values.email, _bd, cancellationToken);
 
                     if (verifyStatusEmail != "")
                     {

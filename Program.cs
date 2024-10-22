@@ -25,12 +25,13 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
-var key = Encoding.ASCII.GetBytes(token);
+var keyBytes = Encoding.ASCII.GetBytes(token);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<ApiDbContext>(options => options.UseInMemoryDatabase(nameof(ApiDbContext)));
 
 var myrulesCORS = "RulesCORS";
 builder.Services.AddCors(opt =>
@@ -77,6 +78,12 @@ builder.Services.AddControllers(options =>
     options.InputFormatters.Insert(0, MyJPIF.GetJsonPatchInputFormatter());
 });
 
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddAutoMapper(typeof(Mapper));
+
+builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IAuthentication_Authorization, Authentication_AuthorizationService>();
@@ -93,16 +100,6 @@ builder.Services.AddScoped<IMedication, MedicationService>();
 builder.Services.AddScoped<ISideEffects, MedicationService>();
 builder.Services.AddScoped<IMFUsMedications, MFUsMedicationService>();
 
-builder.Services.AddControllersWithViews();
-
-builder.Services.AddAutoMapper(typeof(Mapper));
-
-builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddDbContext<ApiDbContext>(options =>
-    options.UseInMemoryDatabase(nameof(ApiDbContext)));
-
-builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -110,17 +107,20 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = "metaboliqueapi",
-        ValidAudience = "metabolique.com",
-        IssuerSigningKey = new SymmetricSecurityKey(key)
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+        ClockSkew = TimeSpan.Zero
     };
 });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
     .AddScheme<ApiKeySchemeOptions, ApiKeySchemeHandler>(
@@ -128,7 +128,6 @@ builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
         {
             options.HeaderName = "Metabolique_API_KEY";
         });
-
 
 builder.Services.AddControllers();
 

@@ -6,7 +6,7 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits
     {
         [JsonRequired] public DateOnly date { get; set; }
 
-        [JsonRequired] public int? value { get; set; }
+        public int? value { get; set; }
 
     }
 }

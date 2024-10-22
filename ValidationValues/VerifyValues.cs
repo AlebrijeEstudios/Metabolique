@@ -5,7 +5,7 @@ namespace AppVidaSana.ValidationValues
 {
     public class VerifyValues
     {
-        public static async Task<string> verifyUsername(string username, AppDbContext bd, CancellationToken cancellationToken)
+        public async Task<string> verifyUsername(string username, AppDbContext bd, CancellationToken cancellationToken)
         {
             var existingAccount = await bd.Accounts.AnyAsync(c => c.username == username, cancellationToken);
 
@@ -17,7 +17,7 @@ namespace AppVidaSana.ValidationValues
             return "";
         }
 
-        public static async Task<string> verifyEmail(string email, AppDbContext bd, CancellationToken cancellationToken)
+        public async Task<string> verifyEmail(string email, AppDbContext bd, CancellationToken cancellationToken)
         {
             if (!RegexPatterns.RegexPatterns.Emailregex.IsMatch(email))
             {
@@ -34,7 +34,7 @@ namespace AppVidaSana.ValidationValues
             return "";
         }
 
-        public static string verifyPassword(string password)
+        public string verifyPassword(string password)
         {
             if (password.Length < 8)
             {

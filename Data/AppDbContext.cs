@@ -14,6 +14,7 @@ namespace AppVidaSana.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+        public DbSet<HistorialRefreshToken> HistorialRefreshTokens { get; set; }
         public DbSet<MFUsMonths> Months { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Roles> Roles { get; set; }
@@ -38,6 +39,12 @@ namespace AppVidaSana.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Account>()
+                .HasOne(account => account.historialRefreshToken)
+                .WithOne(historial => historial.account)
+                .HasForeignKey<HistorialRefreshToken>(historial => historial.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
             //Account-Profile
             modelBuilder.Entity<Account>()
                 .HasOne(account => account.profile)
@@ -46,8 +53,8 @@ namespace AppVidaSana.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Roles>().HasData(
-                new Roles { roleID = Guid.NewGuid(), role = "User" },
-                new Roles { roleID = Guid.NewGuid(), role = "Admin" }
+                new Roles { roleID = Guid.Parse("2bc6e28a-7fbb-4649-aa30-f1f3e3202f81"), role = "User" },
+                new Roles { roleID = Guid.Parse("bd73f55e-7cac-4683-84c1-2fa7e2dc6edb"), role = "Admin" }
             );
 
             modelBuilder.Entity<Roles>()
@@ -204,8 +211,8 @@ namespace AppVidaSana.Data
                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<StatusAdherence>().HasData(
-                new StatusAdherence { statusID = Guid.NewGuid(), statusAdherence = "Positivo" },
-                new StatusAdherence { statusID = Guid.NewGuid(), statusAdherence = "Negativo" }
+                new StatusAdherence { statusID = Guid.Parse("3f9cb946-e43d-4865-b451-aa2f2da0f6b7"), statusAdherence = "Positivo" },
+                new StatusAdherence { statusID = Guid.Parse("44204900-efa7-4b49-8c49-ba5c7450c983"), statusAdherence = "Negativo" }
             );
 
             modelBuilder.Entity<StatusAdherence>()

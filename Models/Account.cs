@@ -30,6 +30,8 @@ namespace AppVidaSana.Models
 
         public Profiles? profile { get; set; }
 
+        public HistorialRefreshToken? historialRefreshToken { get; set; }
+
         public ICollection<MFUsFood> MFUsFood { get; set; } = new List<MFUsFood>();
 
         public ICollection<Exercise> exercises { get; set; } = new List<Exercise>();

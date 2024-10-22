@@ -1,6 +1,7 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.Services.IServices;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace AppVidaSana.Services
@@ -17,59 +19,190 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly string keyToken;
+        private ValidationValuesDB _validationValues;
 
         public Authentication_AuthorizationService(AppDbContext bd)
         {
             _bd = bd;
+            _validationValues = new ValidationValuesDB();
             keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
         }
 
-        public async Task<TokenDto> LoginAccount(LoginDto login, CancellationToken cancellationToken)
+        public async Task<TokensDto> LoginAccount(LoginDto login, CancellationToken cancellationToken)
         {
-            var user = await _bd.Accounts.FirstOrDefaultAsync(u =>
+            var account = await _bd.Accounts.FirstOrDefaultAsync(u =>
                                           u.email.ToLower() == login.email.ToLower(), cancellationToken);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(login.password, user.password))
+            if (account == null || !BCrypt.Net.BCrypt.Verify(login.password, account.password))
             {
                 throw new FailLoginException();
             }
 
-            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.roleID == user.roleID);
+            var accessToken = await CreateToken(account);
+            var refreshToken = await CreateRefreshToken(account.accountID);
 
-            if (role == null) { throw new NoRoleAssignmentException(); }
+            TokensDto response = new TokensDto()
+            {
+                accountID = account.accountID,
+                accessToken = accessToken,
+                refreshToken = refreshToken
+            };
 
-            var tok = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(keyToken);
+            return response;
+        }
+
+        public async Task<TokensDto> RefreshToken(TokensDto values, CancellationToken cancellationToken)
+        {
+            var principal = GetPrincipalFromExpiredToken(values.accessToken);
+
+            var user = await _bd.Accounts.FirstOrDefaultAsync(e => e.accountID == values.accountID
+                                                              && e.username == principal.Identity.Name, cancellationToken);
+
+            var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.refreshToken == values.refreshToken);
+
+            if(user is null || historial is null)
+            {
+                throw new UnstoredValuesException();
+            }
+
+            var accessToken = await CreateToken(user);
+            var refreshToken = await CreateRefreshToken(user.accountID);
+
+            TokensDto response = new TokensDto()
+            {
+                accountID = user.accountID,
+                accessToken = accessToken,
+                refreshToken = refreshToken
+            };
+
+            return response;
+        }
+
+        private async Task<string> CreateToken(Account account)
+        {
+            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID);
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var keyBytes = Encoding.ASCII.GetBytes(keyToken);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                        new Claim(ClaimTypes.Name, user.username.ToString()),
-                        new Claim(ClaimTypes.Email, user.email.ToString()),
+                        new Claim(ClaimTypes.Name, account.username.ToString()),
+                        new Claim(ClaimTypes.Email, account.email.ToString()),
                         new Claim(ClaimTypes.Role, role.role)
                 }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                Issuer = "metaboliqueapi",
-                Audience = "metabolique.com",
-                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                Expires = DateTime.UtcNow.AddMinutes(30),
+                SigningCredentials = new(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature)
             };
 
-            var token = tok.CreateToken(tokenDescriptor);
-            var account = _bd.Accounts.FirstOrDefault(u => u.email == login.email);
+            var createToken = tokenHandler.CreateToken(tokenDescriptor);
 
-            if (account == null)
+            var accessToken = tokenHandler.WriteToken(createToken);
+
+            return accessToken;
+        }
+
+        private async Task<string> CreateRefreshToken(Guid accountID)
+        {
+            var refreshToken = GenerateRefreshToken();
+
+            var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.accountID == accountID);
+            
+            if (historial != null && !(historial.dateExpiration <= DateTime.Now))
             {
-                throw new UserNotFoundException();
+                historial.refreshToken = refreshToken;
+
+                UpdateRefreshToken(historial);
+
+                return refreshToken;
             }
 
-            TokenDto ut = new TokenDto()
+            if (historial.dateExpiration <= DateTime.Now)
             {
-                token = tok.WriteToken(token),
-                accountID = account.accountID
+                historial.refreshToken = refreshToken;
+
+                historial.dateExpiration = DateTime.Now.AddDays(7);
+
+                UpdateRefreshToken(historial);
+
+                return refreshToken;
+            }
+
+            HistorialRefreshToken historialRefreshToken = new HistorialRefreshToken
+            {
+                accountID = accountID,
+                refreshToken = refreshToken,
+                dateExpiration = DateTime.Now.AddDays(7)
             };
 
-            return ut;
+            _validationValues.ValidationValues(historialRefreshToken);
+
+            await _bd.HistorialRefreshTokens.AddAsync(historialRefreshToken);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            return refreshToken;
+        }
+
+        private void UpdateRefreshToken(HistorialRefreshToken values)
+        {
+            _validationValues.ValidationValues(values);
+
+            _bd.HistorialRefreshTokens.Update(values);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
+        }
+
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var key = Encoding.ASCII.GetBytes(keyToken);
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateLifetime = false
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken securityToken;
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
+
+            var jwtSecurityToken = securityToken as JwtSecurityToken;
+
+            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg
+                .Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new SecurityTokenException("Invalid token");
+            }
+
+            return principal;
+        }
+
+        public bool Save()
+        {
+            try
+            {
+                return _bd.SaveChanges() >= 0;
+            }
+            catch (Exception)
+            {
+                return false;
+
+            }
         }
     }
 }

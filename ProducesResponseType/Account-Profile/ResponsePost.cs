@@ -6,6 +6,6 @@ namespace AppVidaSana.ProducesResponseType.Account
     {
         public string message { get; set; } = "Ok.";
 
-        public TokenDto auth { get; set; } = null!;
+        public TokensDto auth { get; set; } = null!;
     }
 }

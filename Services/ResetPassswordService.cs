@@ -18,11 +18,13 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly string keyToken;
+        private VerifyValues _verifyValues;
 
         public ResetPassswordService(AppDbContext bd)
         {
             _bd = bd;
             keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
+            _verifyValues = new VerifyValues();
         }
 
         public async Task<bool> ResetPassword(ResetPasswordDto values, CancellationToken cancellationToken)
@@ -35,7 +37,7 @@ namespace AppVidaSana.Services
 
             try
             {
-                string verifyStatusPassword = VerifyValues.verifyPassword(values.password);
+                string verifyStatusPassword = _verifyValues.verifyPassword(values.password);
 
                 if (verifyStatusPassword != "") { errors.Add(verifyStatusPassword); }
 
@@ -65,7 +67,7 @@ namespace AppVidaSana.Services
             return true;
         }
 
-        public async Task<TokenDto> PasswordResetToken(EmailDto value, CancellationToken cancellationToken)
+        public async Task<TokensDto> PasswordResetToken(EmailDto value, CancellationToken cancellationToken)
         {
             var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == value.email, cancellationToken);
 
@@ -81,19 +83,17 @@ namespace AppVidaSana.Services
                         new Claim(ClaimTypes.Name, account.username.ToString()),
                         new Claim(ClaimTypes.Email, account.email.ToString()),
                 }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                Issuer = "metaboliqueapi",
-                Audience = "metabolique.com",
+                Expires = DateTime.UtcNow.AddMinutes(15),
                 SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tok.CreateToken(tokenDescriptor);
 
-            TokenDto ut = new TokenDto()
+            TokensDto ut = new TokensDto()
             {
-                token = tok.WriteToken(token),
-                accountID = account.accountID
-
+                accountID = account.accountID,
+                accessToken = tok.WriteToken(token),
+                refreshToken = ""
             };
 
             return ut;
@@ -140,11 +140,9 @@ namespace AppVidaSana.Services
             var key = Encoding.ASCII.GetBytes(keyToken);
             var tokenValidationParameters = new TokenValidationParameters
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
+                ValidateIssuer = false,
+                ValidateAudience = false,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = "metaboliqueapi",
-                ValidAudience = "metabolique.com",
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateLifetime = false
             };

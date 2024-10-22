@@ -5,6 +5,10 @@ namespace AppVidaSana.Services.IServices
 {
     public interface IAuthentication_Authorization
     {
-        Task<TokenDto> LoginAccount(LoginDto login, CancellationToken cancellationToken);
+        Task<TokensDto> LoginAccount(LoginDto login, CancellationToken cancellationToken);
+
+        Task<TokensDto> RefreshToken(TokensDto values, CancellationToken cancellationToken);
+
+        bool Save();
     }
 }

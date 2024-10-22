@@ -41,7 +41,7 @@ namespace AppVidaSana.Controllers
             {
                 var token = await _resetPasswordService.PasswordResetToken(email, HttpContext.RequestAborted);
 
-                var resetLink = Url.Action("ViewResetPassword", "ResetPassword", new { token = token.token, email = email.email }, Request.Scheme);
+                var resetLink = Url.Action("ViewResetPassword", "ResetPassword", new { token = token.accessToken, email = email.email }, Request.Scheme);
 
                 if (resetLink == null) { throw new EmailNotSendException(); }
 

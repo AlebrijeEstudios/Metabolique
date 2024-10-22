@@ -6,7 +6,7 @@ namespace AppVidaSana.Models.Medications
     public class StatusAdherence
     {
         [Key]
-        public Guid statusID { get; set; } = Guid.NewGuid();
+        public Guid statusID { get; set; } 
 
         public string statusAdherence { get; set; } = null!;
 
