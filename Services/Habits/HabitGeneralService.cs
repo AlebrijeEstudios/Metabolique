@@ -40,25 +40,25 @@ namespace AppVidaSana.Services.Habits
                 var habits = _bd.HabitsSleep.FirstOrDefault(e => e.sleepDateHabit == item
                                                             && e.accountID == idAccount);
 
-                if (habits != null)
+                if (habits != null && habits.sleepHours != null)
                 {
-                    GraphicValuesHabitSleepDto value = new GraphicValuesHabitSleepDto
+                    GraphicValuesHabitSleepDto values = new GraphicValuesHabitSleepDto
                     {
                         date = item,
                         value = habits.sleepHours
                     };
 
-                    hoursSleep.Add(value);
+                    hoursSleep.Add(values);
                 }
                 else
                 {
-                    GraphicValuesHabitSleepDto value = new GraphicValuesHabitSleepDto
+                    GraphicValuesHabitSleepDto values = new GraphicValuesHabitSleepDto
                     {
                         date = item,
                         value = 0
                     };
 
-                    hoursSleep.Add(value);
+                    hoursSleep.Add(values);
                 }
             }
 
