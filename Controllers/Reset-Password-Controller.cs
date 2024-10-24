@@ -1,5 +1,6 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
+using AppVidaSana.Exceptions.Account_Profile.ResetPasswordException;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.ProducesReponseType;
@@ -29,9 +30,11 @@ namespace AppVidaSana.Controllers
         /// This driver performs password reset.
         /// </summary>
         /// <response code="200">Returns a message indicating that the email has been sent correctly or on the contrary it was not sent because there is no account associated to that email and/or the email could not be sent due to external factors.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response> 
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
@@ -41,7 +44,7 @@ namespace AppVidaSana.Controllers
             {
                 var token = await _resetPasswordService.PasswordResetToken(email, HttpContext.RequestAborted);
 
-                var resetLink = Url.Action("ViewResetPassword", "ResetPassword", new { token = token.accessToken, email = email.email }, Request.Scheme);
+                var resetLink = Url.Action("ViewResetPassword", "ResetPassword", new { token = token, email = email.email }, Request.Scheme);
 
                 if (resetLink == null) { throw new EmailNotSendException(); }
 
@@ -57,11 +60,10 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
-
             }
             catch (ValuesInvalidException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
@@ -107,7 +109,7 @@ namespace AppVidaSana.Controllers
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseResetPassword))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPut("reset-password")]
         [Produces("application/json")]
@@ -132,6 +134,16 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
             }
+            catch (ComparedEmailException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+
+            }
             catch (ComparedPasswordException ex)
             {
                 ExceptionMessage response = new ExceptionMessage
@@ -153,7 +165,16 @@ namespace AppVidaSana.Controllers
             }
             catch (ValuesInvalidException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+            }
+            catch (ErrorDatabaseException ex)
+            {
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };

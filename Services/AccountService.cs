@@ -6,29 +6,29 @@ using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
 
 namespace AppVidaSana.Services
 {
     public class AccountService : IAccount
     {
         private readonly AppDbContext _bd;
+        private readonly IMapper _mapper;
         private ValidationValuesDB _validationValues;
-        private VerifyValues _verifyValues;
+        private ValidationValuesAccount _verifyValues;
 
-        public AccountService(AppDbContext bd)
+        public AccountService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
+            _mapper = mapper;
             _validationValues = new ValidationValuesDB();
-            _verifyValues = new VerifyValues();
+            _verifyValues = new ValidationValuesAccount();
         }
 
         public async Task<Guid> CreateAccount(AccountDto values, CancellationToken cancellationToken)
         {
             List<string?> errors = new List<string?>();
-
-            string message = "";
 
             string verifyStatusUsername = await _verifyValues.verifyUsername(values.username, _bd, cancellationToken);
 
@@ -39,12 +39,10 @@ namespace AppVidaSana.Services
                 string verifyStatusEmail = await _verifyValues.verifyEmail(values.email, _bd, cancellationToken);
 
                 if (verifyStatusEmail != "") { errors.Add(verifyStatusEmail); }
-
             }
             catch (EmailValidationTimeoutException ex)
             {
-                message = ex.Message;
-                errors.Add(message);
+                errors.Add(ex.Message);
             }
 
             try
@@ -52,19 +50,17 @@ namespace AppVidaSana.Services
                 string verifyStatusPassword = _verifyValues.verifyPassword(values.password);
 
                 if (verifyStatusPassword != "") { errors.Add(verifyStatusPassword); }
-
             }
             catch (PasswordValidationTimeoutException ex)
             {
-                message = ex.Message;
-                errors.Add(message);
+                errors.Add(ex.Message);
             }
 
             if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
 
-            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == "User", cancellationToken);
+            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == "User", cancellationToken); ;
 
-            if (role == null) { throw new NoRoleAssignmentException(); }
+            if (role is null) { throw new NoRoleAssignmentException(); }
 
             Account account = new Account
             {
@@ -81,9 +77,9 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
 
             var user = await _bd.Accounts.FirstOrDefaultAsync(u =>
-                                          u.email.ToLower() == account.email.ToLower(), cancellationToken);
+                                                              u.email.ToLower() == account.email.ToLower(), cancellationToken);
 
-            if (user == null) { throw new UnstoredValuesException(); }
+            if (user is null) { throw new UnstoredValuesException(); }
 
             Guid accountID = user.accountID;
 
@@ -96,19 +92,10 @@ namespace AppVidaSana.Services
             var account = await _bd.Accounts.FindAsync(accountID, cancellationToken);
             var profile = await _bd.Profiles.FindAsync(accountID, cancellationToken);
 
-            if (account == null || profile == null) { throw new UserNotFoundException(); }
+            if (account is null || profile is null) { throw new UserNotFoundException(); }
 
-            InfoAccountDto infoUser = new InfoAccountDto
-            {
-                accountID = account.accountID,
-                username = account.username,
-                email = account.email,
-                birthDate = profile.birthDate,
-                sex = profile.sex,
-                stature = profile.stature,
-                weight = profile.weight,
-                protocolToFollow = profile.protocolToFollow
-            };
+            InfoAccountDto infoUser = _mapper.Map<InfoAccountDto>(account);
+            _mapper.Map(profile, infoUser);
 
             return infoUser;
         }
@@ -117,15 +104,19 @@ namespace AppVidaSana.Services
         {
             List<string?> errors = new List<string?>();
 
-            string message = "";
+            var taskAccount = _bd.Accounts.FindAsync(values.accountID, cancellationToken);
 
-            var user = await _bd.Accounts.FindAsync(values.accountID, cancellationToken);
+            var taskVerifyUsername = _verifyValues.verifyUsername(values.username, _bd, cancellationToken);
 
-            if (user == null) { throw new UserNotFoundException(); }
+            var taskVerifyEmail = _verifyValues.verifyEmail(values.email, _bd, cancellationToken);
+
+            var user = await taskAccount;
+
+            if (user is null) { throw new UserNotFoundException(); }
 
             if (user.username != values.username)
             {
-                string verifyStatusUsername = await _verifyValues.verifyUsername(values.username, _bd, cancellationToken);
+                string verifyStatusUsername = await taskVerifyUsername;
 
                 if (verifyStatusUsername != "")
                 {
@@ -137,7 +128,7 @@ namespace AppVidaSana.Services
             {
                 try
                 {
-                    string verifyStatusEmail = await _verifyValues.verifyEmail(values.email, _bd, cancellationToken);
+                    string verifyStatusEmail = await taskVerifyEmail;
 
                     if (verifyStatusEmail != "")
                     {
@@ -147,8 +138,7 @@ namespace AppVidaSana.Services
                 }
                 catch (EmailValidationTimeoutException ex)
                 {
-                    message = ex.Message;
-                    errors.Add(message);
+                    errors.Add(ex.Message);
                 }
             }
 
@@ -180,7 +170,7 @@ namespace AppVidaSana.Services
         {
             var account = await _bd.Accounts.FindAsync(accountID, cancellationToken);
 
-            if (account == null) { throw new UserNotFoundException(); }
+            if (account is null) { throw new UserNotFoundException(); }
 
             _bd.Accounts.Remove(account);
 

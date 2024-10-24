@@ -39,7 +39,7 @@ namespace AppVidaSana.Controllers
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnSideEffect))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPost("side-effects")]
         [Produces("application/json")]
@@ -76,7 +76,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
@@ -94,7 +94,7 @@ namespace AppVidaSana.Controllers
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnSideEffect))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPut("side-effects")]
         [Produces("application/json")]
@@ -122,7 +122,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };

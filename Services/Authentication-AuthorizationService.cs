@@ -5,13 +5,11 @@ using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.Services.IServices;
+using AppVidaSana.Tokens;
 using AppVidaSana.ValidationValues;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace AppVidaSana.Services
 {
@@ -20,20 +18,22 @@ namespace AppVidaSana.Services
         private readonly AppDbContext _bd;
         private readonly string keyToken;
         private ValidationValuesDB _validationValues;
+        private GeneratorTokens _generatorTokens;
 
         public Authentication_AuthorizationService(AppDbContext bd)
         {
             _bd = bd;
-            _validationValues = new ValidationValuesDB();
             keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
+            _validationValues = new ValidationValuesDB();
+            _generatorTokens = new GeneratorTokens();
         }
 
         public async Task<TokensDto> LoginAccount(LoginDto login, CancellationToken cancellationToken)
         {
-            var account = await _bd.Accounts.FirstOrDefaultAsync(u =>
-                                          u.email.ToLower() == login.email.ToLower(), cancellationToken);
+            var account = await _bd.Accounts.FirstOrDefaultAsync(u => 
+                                                                 u.email.ToLower() == login.email.ToLower(), cancellationToken);
 
-            if (account == null || !BCrypt.Net.BCrypt.Verify(login.password, account.password))
+            if (account is null || !BCrypt.Net.BCrypt.Verify(login.password, account.password))
             {
                 throw new FailLoginException();
             }
@@ -53,17 +53,16 @@ namespace AppVidaSana.Services
 
         public async Task<TokensDto> RefreshToken(TokensDto values, CancellationToken cancellationToken)
         {
-            var principal = GetPrincipalFromExpiredToken(values.accessToken);
+            var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.accessToken, keyToken);
+
+            var usernameClaimType = principal.FindFirst(ClaimTypes.Name)?.Value;
 
             var user = await _bd.Accounts.FirstOrDefaultAsync(e => e.accountID == values.accountID
-                                                              && e.username == principal.Identity.Name, cancellationToken);
+                                                              && e.username == usernameClaimType, cancellationToken);
 
             var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.refreshToken == values.refreshToken);
 
-            if(user is null || historial is null)
-            {
-                throw new UnstoredValuesException();
-            }
+            if(user is null || historial is null) { throw new UnstoredValuesException(); }
 
             var accessToken = await CreateToken(user);
             var refreshToken = await CreateRefreshToken(user.accountID);
@@ -82,24 +81,16 @@ namespace AppVidaSana.Services
         {
             var role = await _bd.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID);
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var keyBytes = Encoding.ASCII.GetBytes(keyToken);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
+            Claim[] claims = new Claim[]
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                        new Claim(ClaimTypes.Name, account.username.ToString()),
-                        new Claim(ClaimTypes.Email, account.email.ToString()),
-                        new Claim(ClaimTypes.Role, role.role)
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(30),
-                SigningCredentials = new(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature)
+                new Claim(ClaimTypes.Name, account.username.ToString()),
+                new Claim(ClaimTypes.Email, account.email.ToString()),
+                new Claim(ClaimTypes.Role, role.role)
             };
 
-            var createToken = tokenHandler.CreateToken(tokenDescriptor);
+            DateTime durationToken = DateTime.UtcNow.AddMinutes(30);
 
-            var accessToken = tokenHandler.WriteToken(createToken);
+            var accessToken = _generatorTokens.Tokens(keyToken, claims, durationToken);
 
             return accessToken;
         }
@@ -163,33 +154,6 @@ namespace AppVidaSana.Services
                 rng.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
             }
-        }
-
-        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
-        {
-            var key = Encoding.ASCII.GetBytes(keyToken);
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateLifetime = false
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken securityToken;
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
-
-            var jwtSecurityToken = securityToken as JwtSecurityToken;
-
-            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg
-                .Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new SecurityTokenException("Invalid token");
-            }
-
-            return principal;
         }
 
         public bool Save()

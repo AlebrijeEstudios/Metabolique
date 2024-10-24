@@ -95,7 +95,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [AllowAnonymous]
         [HttpPost("account-profile")]
@@ -153,7 +153,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ValuesInvalidException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
@@ -162,7 +162,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
@@ -190,7 +190,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseUpdateDelete))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
@@ -229,7 +229,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ValuesInvalidException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
@@ -238,7 +238,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };

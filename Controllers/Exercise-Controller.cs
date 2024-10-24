@@ -79,7 +79,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnAddUpdateExercises))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
@@ -126,7 +126,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
@@ -146,7 +146,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateExercises))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
@@ -183,7 +183,7 @@ namespace AppVidaSana.Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };

@@ -42,7 +42,7 @@ namespace AppVidaSana.Services
         {
             var profile = await _bd.Profiles.FindAsync(values.accountID, cancellationToken);
 
-            if (profile == null) { throw new UserNotFoundException(); }
+            if (profile is null) { throw new UserNotFoundException(); }
 
             profile.sex = values.sex;
             profile.birthDate = profile.birthDate;

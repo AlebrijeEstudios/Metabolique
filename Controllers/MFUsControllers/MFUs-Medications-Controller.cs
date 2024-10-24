@@ -34,7 +34,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnResponsesAndResultsMFUsMedications))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
@@ -80,7 +80,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
@@ -133,7 +133,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnResponsesAndResultsMFUsMedications))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
@@ -161,7 +161,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
