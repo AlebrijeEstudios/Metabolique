@@ -101,16 +101,25 @@ namespace AppVidaSana.Services
 
             var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.accountID == accountID);
             
-            if (historial != null && !(historial.dateExpiration <= DateTime.Now))
+            if(historial is null)
             {
-                historial.refreshToken = refreshToken;
+                HistorialRefreshToken historialRefreshToken = new HistorialRefreshToken
+                {
+                    accountID = accountID,
+                    refreshToken = refreshToken,
+                    dateExpiration = DateTime.Now.AddDays(7)
+                };
 
-                UpdateRefreshToken(historial);
+                _validationValues.ValidationValues(historialRefreshToken);
+
+                await _bd.HistorialRefreshTokens.AddAsync(historialRefreshToken);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
 
                 return refreshToken;
             }
 
-            if (historial.dateExpiration <= DateTime.Now)
+            if (historial != null && historial.dateExpiration <= DateTime.Now)
             {
                 historial.refreshToken = refreshToken;
 
@@ -121,18 +130,9 @@ namespace AppVidaSana.Services
                 return refreshToken;
             }
 
-            HistorialRefreshToken historialRefreshToken = new HistorialRefreshToken
-            {
-                accountID = accountID,
-                refreshToken = refreshToken,
-                dateExpiration = DateTime.Now.AddDays(7)
-            };
+            historial.refreshToken = refreshToken;
 
-            _validationValues.ValidationValues(historialRefreshToken);
-
-            await _bd.HistorialRefreshTokens.AddAsync(historialRefreshToken);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
+            UpdateRefreshToken(historial);
 
             return refreshToken;
         }

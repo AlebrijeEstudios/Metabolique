@@ -54,7 +54,7 @@ namespace AppVidaSana.Services
 
             if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
 
-            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == "User", cancellationToken); ;
+            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == "User", cancellationToken);
 
             if (role is null) { throw new NoRoleAssignmentException(); }
 
