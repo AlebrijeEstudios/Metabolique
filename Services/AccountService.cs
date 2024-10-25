@@ -30,10 +30,6 @@ namespace AppVidaSana.Services
         {
             List<string?> errors = new List<string?>();
 
-            string verifyStatusUsername = await _verifyValues.verifyUsername(values.username, _bd, cancellationToken);
-
-            if (verifyStatusUsername != "") { errors.Add(verifyStatusUsername); }
-
             try
             {
                 string verifyStatusEmail = await _verifyValues.verifyEmail(values.email, _bd, cancellationToken);
@@ -104,31 +100,15 @@ namespace AppVidaSana.Services
         {
             List<string?> errors = new List<string?>();
 
-            var taskAccount = _bd.Accounts.FindAsync(values.accountID, cancellationToken);
-
-            var taskVerifyUsername = _verifyValues.verifyUsername(values.username, _bd, cancellationToken);
-
-            var taskVerifyEmail = _verifyValues.verifyEmail(values.email, _bd, cancellationToken);
-
-            var user = await taskAccount;
+            var user = await _bd.Accounts.FindAsync(values.accountID, cancellationToken);
 
             if (user is null) { throw new UserNotFoundException(); }
-
-            if (user.username != values.username)
-            {
-                string verifyStatusUsername = await taskVerifyUsername;
-
-                if (verifyStatusUsername != "")
-                {
-                    errors.Add(verifyStatusUsername);
-                }
-            }
 
             if (user.email != values.email)
             {
                 try
                 {
-                    string verifyStatusEmail = await taskVerifyEmail;
+                    string verifyStatusEmail = await _verifyValues.verifyEmail(values.email, _bd, cancellationToken);
 
                     if (verifyStatusEmail != "")
                     {
