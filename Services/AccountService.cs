@@ -28,10 +28,6 @@ namespace AppVidaSana.Services
 
             string message = "";
 
-            string verifyStatusUsername = await VerifyValues.verifyUsername(values.username, _bd, cancellationToken);
-
-            if (verifyStatusUsername != "") { errors.Add(verifyStatusUsername); }
-
             try
             {
                 string verifyStatusEmail = await VerifyValues.verifyEmail(values.email, _bd, cancellationToken);
@@ -120,16 +116,6 @@ namespace AppVidaSana.Services
             var user = await _bd.Accounts.FindAsync(values.accountID, cancellationToken);
 
             if (user == null) { throw new UserNotFoundException(); }
-
-            if (user.username != values.username)
-            {
-                string verifyStatusUsername = await VerifyValues.verifyUsername(values.username, _bd, cancellationToken);
-
-                if (verifyStatusUsername != "")
-                {
-                    errors.Add(verifyStatusUsername);
-                }
-            }
 
             if (user.email != values.email)
             {

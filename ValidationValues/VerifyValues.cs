@@ -5,18 +5,6 @@ namespace AppVidaSana.ValidationValues
 {
     public class VerifyValues
     {
-        public static async Task<string> verifyUsername(string username, AppDbContext bd, CancellationToken cancellationToken)
-        {
-            var existingAccount = await bd.Accounts.AnyAsync(c => c.username == username, cancellationToken);
-
-            if (existingAccount!)
-            {
-                return "Este nombre de usuario ya está en uso.";
-            }
-
-            return "";
-        }
-
         public static async Task<string> verifyEmail(string email, AppDbContext bd, CancellationToken cancellationToken)
         {
             if (!RegexPatterns.RegexPatterns.Emailregex.IsMatch(email))
