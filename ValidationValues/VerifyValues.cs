@@ -14,7 +14,7 @@ namespace AppVidaSana.ValidationValues
 
             var existingEmail = await bd.Accounts.AnyAsync(c => c.email == email, cancellationToken);
 
-            if (existingEmail!)
+            if (existingEmail)
             {
                 return "Este correo electrónico está ligado a una cuenta existente.";
             }
