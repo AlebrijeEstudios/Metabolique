@@ -30,7 +30,7 @@ namespace AppVidaSana.Services
             _generatorTokens = new GeneratorTokens();
         }
         
-        public async Task<string> PasswordResetToken(EmailDto value, CancellationToken cancellationToken)
+        public async Task<string> PasswordResetTokenAsync(EmailDto value, CancellationToken cancellationToken)
         {
             var account = await _bd.Accounts.FirstOrDefaultAsync(e => e.email == value.email, cancellationToken);
 
@@ -49,7 +49,7 @@ namespace AppVidaSana.Services
             return accessToken;
         }
 
-        public async void SendEmail(string email, string resetLink)
+        public async void SendEmailAsync(string email, string resetLink)
         {
             List<string?> errors = new List<string?>();
 
@@ -72,7 +72,7 @@ namespace AppVidaSana.Services
             if (errors.Any()) { throw new ValuesInvalidException(errors); }
         }
 
-        public async Task<bool> ResetPassword(ResetPasswordDto values, CancellationToken cancellationToken)
+        public async Task<bool> ResetPasswordAsync(ResetPasswordDto values, CancellationToken cancellationToken)
         {
             var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.token, keyToken);
 

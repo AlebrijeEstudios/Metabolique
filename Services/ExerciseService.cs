@@ -8,6 +8,7 @@ using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Exercises;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
@@ -26,9 +27,7 @@ namespace AppVidaSana.Services
 
         public List<ExerciseListDto> GetExercises(Guid id, DateOnly date)
         {
-            var exercise = _bd.Exercises
-            .Where(e => e.accountID == id && e.dateExercise == date)
-            .ToList();
+            var exercise = _bd.Exercises.Where(e => e.accountID == id && e.dateExercise == date).ToList();
 
             List<ExerciseListDto> exercises;
 
@@ -58,7 +57,7 @@ namespace AppVidaSana.Services
             {
                 var activeMinutes = _bd.ActiveMinutes.FirstOrDefault(e => e.dateExercise == item && e.accountID == id);
 
-                if (activeMinutes != null)
+                if (activeMinutes is not null)
                 {
                     GraphicValuesExerciseDto value = new GraphicValuesExerciseDto
                     {

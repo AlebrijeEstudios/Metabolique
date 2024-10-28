@@ -28,7 +28,7 @@ namespace AppVidaSana.Services
             _generatorTokens = new GeneratorTokens();
         }
 
-        public async Task<TokensDto> LoginAccount(LoginDto login, CancellationToken cancellationToken)
+        public async Task<TokensDto> LoginAccountAsync(LoginDto login, CancellationToken cancellationToken)
         {
             var account = await _bd.Accounts.FirstOrDefaultAsync(u => 
                                                                  u.email.ToLower() == login.email.ToLower(), cancellationToken);
@@ -38,8 +38,8 @@ namespace AppVidaSana.Services
                 throw new FailLoginException();
             }
 
-            var accessToken = await CreateToken(account);
-            var refreshToken = await CreateRefreshToken(account.accountID);
+            var accessToken = await CreateTokenAsync(account);
+            var refreshToken = await CreateRefreshTokenAsync(account.accountID, cancellationToken);
 
             TokensDto response = new TokensDto()
             {
@@ -51,7 +51,7 @@ namespace AppVidaSana.Services
             return response;
         }
 
-        public async Task<TokensDto> RefreshToken(TokensDto values, CancellationToken cancellationToken)
+        public async Task<TokensDto> RefreshTokenAsync(TokensDto values, CancellationToken cancellationToken)
         {
             var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.accessToken, keyToken);
 
@@ -64,8 +64,8 @@ namespace AppVidaSana.Services
 
             if(user is null || historial is null) { throw new UnstoredValuesException(); }
 
-            var accessToken = await CreateToken(user);
-            var refreshToken = await CreateRefreshToken(user.accountID);
+            var accessToken = await CreateTokenAsync(user);
+            var refreshToken = await CreateRefreshTokenAsync(user.accountID, cancellationToken);
 
             TokensDto response = new TokensDto()
             {
@@ -77,7 +77,7 @@ namespace AppVidaSana.Services
             return response;
         }
 
-        private async Task<string> CreateToken(Account account)
+        private async Task<string> CreateTokenAsync(Account account)
         {
             var role = await _bd.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID);
 
@@ -95,7 +95,7 @@ namespace AppVidaSana.Services
             return accessToken;
         }
 
-        private async Task<string> CreateRefreshToken(Guid accountID)
+        private async Task<string> CreateRefreshTokenAsync(Guid accountID, CancellationToken cancellationToken)
         {
             var refreshToken = GenerateRefreshToken();
 
@@ -112,7 +112,7 @@ namespace AppVidaSana.Services
 
                 _validationValues.ValidationValues(historialRefreshToken);
 
-                await _bd.HistorialRefreshTokens.AddAsync(historialRefreshToken);
+                _bd.HistorialRefreshTokens.Add(historialRefreshToken);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
 
@@ -125,19 +125,19 @@ namespace AppVidaSana.Services
 
                 historial.dateExpiration = DateTime.Now.AddDays(7);
 
-                UpdateRefreshToken(historial);
+                UpdateRefreshTokenAsync(historial, cancellationToken);
 
                 return refreshToken;
             }
 
             historial.refreshToken = refreshToken;
 
-            UpdateRefreshToken(historial);
+            UpdateRefreshTokenAsync(historial, cancellationToken);
 
             return refreshToken;
         }
 
-        private void UpdateRefreshToken(HistorialRefreshToken values)
+        private async void UpdateRefreshTokenAsync(HistorialRefreshToken values, CancellationToken cancellationToken)
         {
             _validationValues.ValidationValues(values);
 

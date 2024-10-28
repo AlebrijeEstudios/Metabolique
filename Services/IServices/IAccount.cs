@@ -4,13 +4,13 @@ namespace AppVidaSana.Services.IServices
 {
     public interface IAccount
     {
-        Task<InfoAccountDto> GetAccount(Guid accountID, CancellationToken cancellationToken);
+        Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken);
 
-        Task<Guid> CreateAccount(AccountDto values, CancellationToken cancellationToken);
+        Task<Guid> CreateAccountAsync(AccountDto values, CancellationToken cancellationToken);
 
-        Task<ProfileDto> UpdateAccount(InfoAccountDto values, CancellationToken cancellationToken);
+        Task<ProfileDto> UpdateAccountAsync(InfoAccountDto values, CancellationToken cancellationToken);
 
-        Task<string> DeleteAccount(Guid accountID, CancellationToken cancellationToken);
+        Task<string> DeleteAccountAsync(Guid accountID, CancellationToken cancellationToken);
 
         bool Save();
     }

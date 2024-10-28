@@ -43,7 +43,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var token = await _AuthService.LoginAccount(login, HttpContext.RequestAborted);
+                var token = await _AuthService.LoginAccountAsync(login, HttpContext.RequestAborted);
 
                 ResponseLogin response = new ResponseLogin
                 {
@@ -97,7 +97,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var tokens = await _AuthService.RefreshToken(values, HttpContext.RequestAborted);
+                var tokens = await _AuthService.RefreshTokenAsync(values, HttpContext.RequestAborted);
 
                 ResponseLogin response = new ResponseLogin
                 {

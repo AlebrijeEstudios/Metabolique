@@ -54,7 +54,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var account = await _AccountService.GetAccount(accountID, HttpContext.RequestAborted);
+                var account = await _AccountService.GetAccountAsync(accountID, HttpContext.RequestAborted);
 
                 ResponseGet response = new ResponseGet
                 {
@@ -105,9 +105,9 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var accountID = await _AccountService.CreateAccount(values, HttpContext.RequestAborted);
+                var accountID = await _AccountService.CreateAccountAsync(values, HttpContext.RequestAborted);
 
-                _ProfileService.CreateProfile(accountID, values, HttpContext.RequestAborted);
+                _ProfileService.CreateProfileAsync(accountID, values, HttpContext.RequestAborted);
 
                 LoginDto login = new LoginDto
                 {
@@ -115,7 +115,7 @@ namespace AppVidaSana.Controllers
                     password = values.password
                 };
 
-                var token = await _AuthService.LoginAccount(login, HttpContext.RequestAborted);
+                var token = await _AuthService.LoginAccountAsync(login, HttpContext.RequestAborted);
 
                 ResponsePost response = new ResponsePost
                 {
@@ -198,8 +198,8 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var profile = await _AccountService.UpdateAccount(values, HttpContext.RequestAborted);
-                var message = await _ProfileService.UpdateProfile(profile, HttpContext.RequestAborted);
+                var profile = await _AccountService.UpdateAccountAsync(values, HttpContext.RequestAborted);
+                var message = await _ProfileService.UpdateProfileAsync(profile, HttpContext.RequestAborted);
 
                 ResponseUpdateDelete response = new ResponseUpdateDelete
                 {
@@ -263,7 +263,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var message = await _AccountService.DeleteAccount(accountID, HttpContext.RequestAborted);
+                var message = await _AccountService.DeleteAccountAsync(accountID, HttpContext.RequestAborted);
 
                 ResponseUpdateDelete response = new ResponseUpdateDelete
                 {

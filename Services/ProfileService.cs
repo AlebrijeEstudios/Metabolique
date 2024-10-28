@@ -19,7 +19,7 @@ namespace AppVidaSana.Services
             _validationValues = new ValidationValuesDB();
         }
 
-        public async void CreateProfile(Guid accountID, AccountDto values, CancellationToken cancellationToken)
+        public async void CreateProfileAsync(Guid accountID, AccountDto values, CancellationToken cancellationToken)
         {
             Profiles profile = new Profiles
             {
@@ -33,12 +33,12 @@ namespace AppVidaSana.Services
 
             _validationValues.ValidationValues(profile);
 
-            await _bd.Profiles.AddAsync(profile, cancellationToken);
+            _bd.Profiles.Add(profile);
 
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        public async Task<string> UpdateProfile(ProfileDto values, CancellationToken cancellationToken)
+        public async Task<string> UpdateProfileAsync(ProfileDto values, CancellationToken cancellationToken)
         {
             var profile = await _bd.Profiles.FindAsync(values.accountID, cancellationToken);
 
@@ -64,7 +64,6 @@ namespace AppVidaSana.Services
             try
             {
                 return _bd.SaveChanges() >= 0;
-
             }
             catch (Exception)
             {

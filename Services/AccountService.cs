@@ -26,7 +26,7 @@ namespace AppVidaSana.Services
             _verifyValues = new ValidationValuesAccount();
         }
 
-        public async Task<Guid> CreateAccount(AccountDto values, CancellationToken cancellationToken)
+        public async Task<Guid> CreateAccountAsync(AccountDto values, CancellationToken cancellationToken)
         {
             List<string?> errors = new List<string?>();
 
@@ -68,7 +68,7 @@ namespace AppVidaSana.Services
 
             _validationValues.ValidationValues(account);
 
-            await _bd.Accounts.AddAsync(account, cancellationToken);
+            _bd.Accounts.Add(account);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
@@ -83,7 +83,7 @@ namespace AppVidaSana.Services
 
         }
 
-        public async Task<InfoAccountDto> GetAccount(Guid accountID, CancellationToken cancellationToken)
+        public async Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
             var account = await _bd.Accounts.FindAsync(accountID, cancellationToken);
             var profile = await _bd.Profiles.FindAsync(accountID, cancellationToken);
@@ -96,7 +96,7 @@ namespace AppVidaSana.Services
             return infoUser;
         }
 
-        public async Task<ProfileDto> UpdateAccount(InfoAccountDto values, CancellationToken cancellationToken)
+        public async Task<ProfileDto> UpdateAccountAsync(InfoAccountDto values, CancellationToken cancellationToken)
         {
             List<string?> errors = new List<string?>();
 
@@ -114,7 +114,6 @@ namespace AppVidaSana.Services
                     {
                         errors.Add(verifyStatusEmail);
                     }
-
                 }
                 catch (EmailValidationTimeoutException ex)
                 {
@@ -146,7 +145,7 @@ namespace AppVidaSana.Services
             return profile;
         }
 
-        public async Task<string> DeleteAccount(Guid accountID, CancellationToken cancellationToken)
+        public async Task<string> DeleteAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
             var account = await _bd.Accounts.FindAsync(accountID, cancellationToken);
 

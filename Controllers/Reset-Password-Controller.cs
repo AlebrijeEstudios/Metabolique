@@ -42,13 +42,13 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var token = await _resetPasswordService.PasswordResetToken(email, HttpContext.RequestAborted);
+                var token = await _resetPasswordService.PasswordResetTokenAsync(email, HttpContext.RequestAborted);
 
                 var resetLink = Url.Action("ViewResetPassword", "ResetPassword", new { token = token, email = email.email }, Request.Scheme);
 
                 if (resetLink == null) { throw new EmailNotSendException(); }
 
-                _resetPasswordService.SendEmail(email.email, resetLink);
+                _resetPasswordService.SendEmailAsync(email.email, resetLink);
 
                 return StatusCode(StatusCodes.Status200OK);
             }
@@ -117,7 +117,7 @@ namespace AppVidaSana.Controllers
         {
             try
             {
-                var status = await _resetPasswordService.ResetPassword(values, HttpContext.RequestAborted);
+                var status = await _resetPasswordService.ResetPasswordAsync(values, HttpContext.RequestAborted);
 
                 if (!status)
                 {
