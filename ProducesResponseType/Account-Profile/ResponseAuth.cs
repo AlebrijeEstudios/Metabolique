@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.ProducesResponseType.Account
 {
-    public class ResponsePost
+    public class ResponseAuth
     {
         public string message { get; set; } = "Ok.";
 

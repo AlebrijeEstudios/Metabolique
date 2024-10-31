@@ -90,7 +90,7 @@ namespace AppVidaSana.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Account>()
-                .HasMany(account => account.graphicsValuesExercise)
+                .HasMany(account => account.activeMinutes)
                 .WithOne(graphic => graphic.account)
                 .HasForeignKey(graphic => graphic.accountID)
                 .OnDelete(DeleteBehavior.Cascade);

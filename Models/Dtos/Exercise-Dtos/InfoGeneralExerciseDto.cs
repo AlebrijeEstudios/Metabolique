@@ -4,11 +4,11 @@ using Newtonsoft.Json;
 
 namespace AppVidaSana.Models.Dtos.Exercise_Dtos
 {
-    public class ExerciseAndValuesGraphicDto
+    public class InfoGeneralExerciseDto
     {
-        [JsonRequired] public List<ExerciseListDto> exercises { get; set; } = null!;
+        [JsonRequired] public List<ExerciseDto> exercises { get; set; } = null!;
 
-        [JsonRequired] public List<GraphicValuesExerciseDto> activeMinutes { get; set; } = null!;
+        [JsonRequired] public List<ActiveMinutesExerciseDto> activeMinutes { get; set; } = null!;
 
         [JsonRequired] public bool mfuStatus { get; set; }
 

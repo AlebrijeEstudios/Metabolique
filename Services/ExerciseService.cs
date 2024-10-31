@@ -1,6 +1,5 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Exercise_Dtos;
@@ -9,289 +8,190 @@ using AppVidaSana.Models.Exercises;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using AppVidaSana.ValidationValues;
+using AppVidaSana.GraphicValues;
 
 namespace AppVidaSana.Services
 {
     public class ExerciseService : IExercise
     {
         private readonly AppDbContext _bd;
+        private ValidationValuesDB _validationValues;
+        private DatesInRange _datesInRange;
         private readonly IMapper _mapper;
 
         public ExerciseService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
+            _validationValues = new ValidationValuesDB();
+            _datesInRange = new DatesInRange();
         }
 
-        public List<ExerciseListDto> GetExercises(Guid id, DateOnly date)
+        public async Task<List<ExerciseDto>> GetExercisesAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
-            var exercise = _bd.Exercises.Where(e => e.accountID == id && e.dateExercise == date).ToList();
+            var exercises = await _bd.Exercises.Where(e => e.accountID == accountID 
+                                                      && e.dateExercise == date).ToListAsync(cancellationToken);
 
-            List<ExerciseListDto> exercises;
+            var exercisesMapped = _mapper.Map<List<ExerciseDto>>(exercises);
 
-            if (exercise.Count == 0)
-            {
-                exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
-            }
-
-            exercises = _mapper.Map<List<ExerciseListDto>>(exercise);
-
-            return exercises;
+            return exercisesMapped;
         }
 
-        public ExerciseAndValuesGraphicDto ExercisesAndValuesGraphic(Guid id, DateOnly date)
+        public async Task<InfoGeneralExerciseDto> GetInfoGeneralExercisesAsync(Guid accountID, DateOnly date,
+                                                                               CancellationToken cancellationToken)
         {
-            ExerciseAndValuesGraphicDto info;
+            bool status = false;
 
-            List<ExerciseListDto> exercises = GetExercises(id, date);
+            InfoGeneralExerciseDto infoGeneral;
 
-            DateOnly dateFinal = date.AddDays(-6);
+            List<ExerciseDto> exercises = await GetExercisesAsync(accountID, date, cancellationToken);
 
-            var dates = GetDatesInRange(dateFinal, date);
+            List<ActiveMinutesExerciseDto> activeMinutes = await GetActiveMinutesAsync(accountID, date, cancellationToken);
 
-            List<GraphicValuesExerciseDto> graphicValues = new List<GraphicValuesExerciseDto>();
+            CultureInfo cultureInfo = new CultureInfo("es-ES");
 
-            foreach (var item in dates)
+            var monthExist = await _bd.Months.FirstOrDefaultAsync(e => e.month == date.ToString("MMMM", cultureInfo)
+                                                                  && e.year == Convert.ToInt32(date.ToString("yyyy")), 
+                                                                  cancellationToken);
+            
+            var mfuExist = await _bd.MFUsExercise.AnyAsync(e => e.accountID == accountID
+                                                     && e.monthID == monthExist.monthID, cancellationToken);
+
+            if (monthExist is null)
             {
-                var activeMinutes = _bd.ActiveMinutes.FirstOrDefault(e => e.dateExercise == item && e.accountID == id);
+                infoGeneral = GeneratedInfoGeneralExercise(exercises, activeMinutes, status);
 
-                if (activeMinutes is not null)
-                {
-                    GraphicValuesExerciseDto value = new GraphicValuesExerciseDto
-                    {
-                        date = item,
-                        value = activeMinutes.totalTimeSpent
-                    };
-
-                    graphicValues.Add(value);
-                }
-                else
-                {
-                    GraphicValuesExerciseDto value = new GraphicValuesExerciseDto
-                    {
-                        date = item,
-                        value = 0
-                    };
-
-                    graphicValues.Add(value);
-                }
+                return infoGeneral;
             }
 
-            graphicValues = graphicValues.OrderBy(x => x.date).ToList();
-
-            CultureInfo ci = new CultureInfo("es-ES");
-
-            var monthExist = _bd.Months.FirstOrDefault(e => e.month == date.ToString("MMMM", ci)
-                                                       && e.year == Convert.ToInt32(date.ToString("yyyy")));
-
-            if (monthExist == null)
+            if (mfuExist)
             {
-                info = new ExerciseAndValuesGraphicDto
-                {
-                    exercises = exercises,
-                    activeMinutes = graphicValues,
-                    mfuStatus = false
-                };
+                status = true;
 
-                return info;
+                infoGeneral = GeneratedInfoGeneralExercise(exercises, activeMinutes, status);
+
+                return infoGeneral;
             }
 
-            var mfuExist = _bd.MFUsExercise.Any(e => e.accountID == id
-                                                && e.monthID == monthExist.monthID);
+            infoGeneral = GeneratedInfoGeneralExercise(exercises, activeMinutes, status);
 
-            if (!mfuExist)
+            return infoGeneral;
+        }
+
+        public async Task<ExerciseDto> AddExerciseAsync(AddExerciseDto values, CancellationToken cancellationToken)
+        {
+            var exerciseExisting = await _bd.Exercises.FirstOrDefaultAsync(e => e.accountID == values.accountID
+                                                                           && e.dateExercise == values.dateExercise
+                                                                           && e.typeExercise == values.typeExercise
+                                                                           && e.intensityExercise == values.intensityExercise
+                                                                           && e.timeSpent == values.timeSpent, cancellationToken);
+
+            if (exerciseExisting is not null) { throw new RepeatRegistrationException(); }
+
+            Exercise exercise = new Exercise
             {
-                info = new ExerciseAndValuesGraphicDto
-                {
-                    exercises = exercises,
-                    activeMinutes = graphicValues,
-                    mfuStatus = false
-                };
-
-                return info;
-            }
-
-            info = new ExerciseAndValuesGraphicDto
-            {
-                exercises = exercises,
-                activeMinutes = graphicValues,
-                mfuStatus = true
+                accountID = values.accountID,
+                dateExercise = values.dateExercise,
+                typeExercise = values.typeExercise,
+                intensityExercise = values.intensityExercise,
+                timeSpent = values.timeSpent
             };
 
-            return info;
+            _validationValues.ValidationValues(exercise);
+
+            _bd.Exercises.Add(exercise);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+            
+            await totalTimeSpentforDayAsync(exercise.accountID, exercise.dateExercise, exercise.timeSpent, cancellationToken);
+
+            var exerciseMapped = _mapper.Map<ExerciseDto>(exercise);
+
+            return exerciseMapped;
         }
 
-        public ExerciseListDto AddExercises(AddExerciseDto exercise)
+        public async Task<ExerciseDto> UpdateExerciseAsync(ExerciseDto values, CancellationToken cancellationToken)
         {
-            var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == exercise.dateExercise && e.typeExercise == exercise.typeExercise &&
-                                e.intensityExercise == exercise.intensityExercise && e.timeSpent == exercise.timeSpent);
+            var exercise = await _bd.Exercises.FindAsync(values.exerciseID, cancellationToken);
 
-            if (exerciseExisting > 0)
+            if (exercise is null) { throw new ExerciseNotFoundException(); }
+
+            if (exercise.timeSpent < values.timeSpent || exercise.timeSpent > values.timeSpent)
             {
-                throw new RepeatRegistrationException();
-            }
+                var previousTotal = await _bd.ActiveMinutes.FirstOrDefaultAsync(e => 
+                                                                                e.dateExercise == exercise.dateExercise,
+                                                                                cancellationToken);
 
-            var user = _bd.Accounts.Find(exercise.accountID);
-
-            if (user == null)
-            {
-                throw new UserNotFoundException();
-            }
-
-            Exercise ex = new Exercise
-            {
-                accountID = exercise.accountID,
-                dateExercise = exercise.dateExercise,
-                typeExercise = exercise.typeExercise,
-                intensityExercise = exercise.intensityExercise,
-                timeSpent = exercise.timeSpent,
-                account = null
-            };
-
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(ex, null, null);
-
-            if (!Validator.TryValidateObject(ex, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
-
-            _bd.Exercises.Add(ex);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            totalTimeSpentforDay(exercise.accountID, exercise.dateExercise, exercise.timeSpent);
-
-            var exerciseRecently = _bd.Exercises.FirstOrDefault(e => e.accountID == exercise.accountID && e.dateExercise == exercise.dateExercise
-                                                                && e.typeExercise == exercise.typeExercise
-                                                                && e.intensityExercise == exercise.intensityExercise
-                                                                && e.timeSpent == exercise.timeSpent);
-
-            ExerciseListDto info = GetExercise(exerciseRecently.exerciseID, exercise.dateExercise);
-
-            return info;
-        }
-
-        public ExerciseListDto UpdateExercises(ExerciseListDto exercise)
-        {
-            var ex = _bd.Exercises.Find(exercise.exerciseID);
-
-            if (ex == null)
-            {
-                throw new ExerciseNotFoundException();
-            }
-
-            if (ex.timeSpent < exercise.timeSpent || ex.timeSpent > exercise.timeSpent)
-            {
-                var previousTotal = _bd.ActiveMinutes.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
-
-                int currentTotal = previousTotal.totalTimeSpent - ex.timeSpent;
-                int newTotal = currentTotal + exercise.timeSpent;
+                int currentTotal = previousTotal.totalTimeSpent - exercise.timeSpent;
+                int newTotal = currentTotal + values.timeSpent;
 
                 previousTotal.totalTimeSpent = newTotal;
 
+                _validationValues.ValidationValues(previousTotal);
+
                 _bd.ActiveMinutes.Update(previousTotal);
 
-                if (!Save())
-                {
-                    throw new UnstoredValuesException();
-                }
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
 
-            ex.typeExercise = exercise.typeExercise;
-            ex.intensityExercise = exercise.intensityExercise;
-            ex.timeSpent = exercise.timeSpent;
+            exercise.typeExercise = values.typeExercise;
+            exercise.intensityExercise = values.intensityExercise;
+            exercise.timeSpent = values.timeSpent;
 
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(ex, null, null);
+            _validationValues.ValidationValues(exercise);
 
-            if (!Validator.TryValidateObject(ex, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
+            _bd.Exercises.Update(exercise);
 
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
-            _bd.Exercises.Update(ex);
+            var exerciseMapped = _mapper.Map<ExerciseDto>(exercise);
 
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            ExerciseListDto info = GetExercise(exercise.exerciseID, exercise.dateExercise);
-
-            return info;
+            return exerciseMapped;
         }
 
-        public string DeleteExercise(Guid idexercise)
+        public async Task<string> DeleteExerciseAsync(Guid exerciseID, CancellationToken cancellationToken)
         {
-            var ex = _bd.Exercises.Find(idexercise);
+            var exerciseExisting = await _bd.Exercises.FindAsync(exerciseID, cancellationToken);
 
-            if (ex == null)
+            if (exerciseExisting is null) { throw new ExerciseNotFoundException(); }
+
+            var exerciseForDate = await _bd.Exercises.CountAsync(e => 
+                                                                 e.dateExercise == exerciseExisting.dateExercise, 
+                                                                 cancellationToken);
+
+            var previousTotal = await _bd.ActiveMinutes.FirstOrDefaultAsync(e => 
+                                                                            e.dateExercise == exerciseExisting.dateExercise,
+                                                                            cancellationToken);
+
+            if (exerciseForDate >= 2)
             {
-                throw new ExerciseNotFoundException();
+                int currentTotal = previousTotal.totalTimeSpent - exerciseExisting.timeSpent;
+
+                int newTotal = currentTotal;
+
+                previousTotal.totalTimeSpent = newTotal;
+
+                _validationValues.ValidationValues(previousTotal);
+
+                _bd.ActiveMinutes.Update(previousTotal);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
 
-            Guid id = ex.accountID;
-            DateOnly date = ex.dateExercise;
-
-            var exerciseExisting = _bd.Exercises.Count(e => e.dateExercise == ex.dateExercise);
-            var previousTotal = _bd.ActiveMinutes.FirstOrDefault(e => e.dateExercise == ex.dateExercise);
-
-            if (exerciseExisting >= 2)
+            if (exerciseForDate == 1)
             {
-                if (previousTotal != null)
-                {
-                    int currentTotal = previousTotal.totalTimeSpent - ex.timeSpent;
-                    int newTotal = currentTotal;
+                _bd.ActiveMinutes.Remove(previousTotal);
 
-                    previousTotal.totalTimeSpent = newTotal;
-
-                    _bd.ActiveMinutes.Update(previousTotal);
-
-                    if (!Save())
-                    {
-                        throw new UnstoredValuesException();
-                    }
-                }
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
 
-            if (exerciseExisting == 1)
-            {
-                if (previousTotal != null)
-                {
-                    _bd.ActiveMinutes.Remove(previousTotal);
+            _bd.Exercises.Remove(exerciseExisting);
 
-                    if (!Save())
-                    {
-                        throw new UnstoredValuesException();
-                    }
-                }
-            }
-
-            _bd.Exercises.Remove(ex);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
             return "Se ha eliminado correctamente.";
-
         }
 
         public bool Save()
@@ -307,71 +207,89 @@ namespace AppVidaSana.Services
             }
         }
 
-        private void totalTimeSpentforDay(Guid id, DateOnly dateInitial, int timeSpent)
+        private InfoGeneralExerciseDto GeneratedInfoGeneralExercise(List<ExerciseDto> exercises, 
+                                                                    List<ActiveMinutesExerciseDto> activeMinutes, bool status)
         {
-            var infoGraphics = _bd.ActiveMinutes.FirstOrDefault(c => c.accountID == id && c.dateExercise == dateInitial);
-
-            if (infoGraphics != null)
+            InfoGeneralExerciseDto infoGeneral = new InfoGeneralExerciseDto
             {
-                var value = infoGraphics.totalTimeSpent;
+                exercises = exercises,
+                activeMinutes = activeMinutes,
+                mfuStatus = status
+            };
 
-                infoGraphics.totalTimeSpent = value + timeSpent;
+            return infoGeneral;
+        }
 
-                _bd.ActiveMinutes.Update(infoGraphics);
+        private async Task<List<ActiveMinutesExerciseDto>> GetActiveMinutesAsync(Guid accountID, 
+                                                                                 DateOnly date, CancellationToken cancellationToken)
+        {
+            DateOnly dateFinal = date.AddDays(-6);
 
-                if (!Save())
+            var dates = _datesInRange.GetDatesInRange(dateFinal, date);
+
+            List<ActiveMinutesExerciseDto> activeMinutes = new List<ActiveMinutesExerciseDto>();
+
+            foreach (var item in dates)
+            {
+                var minutes = await _bd.ActiveMinutes.FirstOrDefaultAsync(e => e.dateExercise == item
+                                                                          && e.accountID == accountID, cancellationToken);
+
+                ActiveMinutesExerciseDto value = new ActiveMinutesExerciseDto();
+
+                if (minutes is not null)
                 {
-                    throw new UnstoredValuesException();
+                    value.date = item;
+                    value.value = minutes.totalTimeSpent;
+
+                    activeMinutes.Add(value);
                 }
+                else
+                {
+                    value.date = item;
+                    value.value = 0;
+
+                    activeMinutes.Add(value);
+                }
+            }
+
+            activeMinutes = activeMinutes.OrderBy(x => x.date).ToList();
+
+            return activeMinutes;
+        }
+
+        private async Task totalTimeSpentforDayAsync(Guid accountID, DateOnly date, 
+                                                     int timeSpent, CancellationToken cancellationToken)
+        {
+            var activeMinutesExisting = await _bd.ActiveMinutes.FirstOrDefaultAsync(c => c.accountID == accountID 
+                                                                                    && c.dateExercise == date, cancellationToken);
+
+            if (activeMinutesExisting is not null)
+            {
+                var value = activeMinutesExisting.totalTimeSpent;
+
+                activeMinutesExisting.totalTimeSpent = value + timeSpent;
+
+                _validationValues.ValidationValues(activeMinutesExisting);
+
+                _bd.ActiveMinutes.Update(activeMinutesExisting);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
             else
             {
-                ActiveMinutes dates = new ActiveMinutes
+                ActiveMinutes activeMinutes = new ActiveMinutes
                 {
-                    accountID = id,
-                    dateExercise = dateInitial,
+                    accountID = accountID,
+                    dateExercise = date,
                     totalTimeSpent = timeSpent
                 };
 
-                _bd.ActiveMinutes.Add(dates);
+                _validationValues.ValidationValues(activeMinutes);
 
-                if (!Save())
-                {
-                    throw new UnstoredValuesException();
-                }
+                _bd.ActiveMinutes.Add(activeMinutes);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
-        }
-
-        private ExerciseListDto GetExercise(Guid id, DateOnly date)
-        {
-            var exercise = _bd.Exercises
-            .FirstOrDefault(e => e.exerciseID == id && e.dateExercise == date);
-
-            ExerciseListDto ex;
-
-            if (exercise == null)
-            {
-                ex = _mapper.Map<ExerciseListDto>(exercise);
-            }
-
-            ex = _mapper.Map<ExerciseListDto>(exercise);
-
-            return ex;
-        }
-
-        private static List<DateOnly> GetDatesInRange(DateOnly startDate, DateOnly endDate)
-        {
-            List<DateOnly> dates = new List<DateOnly>();
-
-            if (endDate >= startDate)
-            {
-                for (DateOnly date = startDate; date <= endDate; date = date.AddDays(1))
-                {
-                    dates.Add(date);
-                }
-            }
-
-            return dates;
         }
     }
 }

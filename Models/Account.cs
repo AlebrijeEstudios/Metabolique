@@ -38,7 +38,7 @@ namespace AppVidaSana.Models
 
         public ICollection<MFUsExercise> MFUsExercise { get; set; } = new List<MFUsExercise>();
 
-        public ICollection<ActiveMinutes> graphicsValuesExercise { get; set; } = new List<ActiveMinutes>();
+        public ICollection<ActiveMinutes> activeMinutes { get; set; } = new List<ActiveMinutes>();
 
         public ICollection<DrinkHabit> habitsDrink { get; set; } = new List<DrinkHabit>();
 

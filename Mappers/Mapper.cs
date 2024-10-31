@@ -71,8 +71,8 @@ namespace AppVidaSana.Mappers
                 .ForMember(dest => dest.classification, opt => opt.Ignore());
 
             //EXERCISE
-            CreateMap<Exercise, ExerciseListDto>().ReverseMap();
-            CreateMap<ActiveMinutes, GraphicValuesExerciseDto>().ReverseMap();
+            CreateMap<Exercise, ExerciseDto>().ReverseMap();
+            CreateMap<ActiveMinutes, ActiveMinutesExerciseDto>().ReverseMap();
 
             CreateMap<MFUsExercise, RetrieveResponsesExerciseDto>()
             .ForMember(dest => dest.month, opt => opt.Ignore())

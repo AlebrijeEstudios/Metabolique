@@ -4,6 +4,7 @@ using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.ProducesReponseType;
+using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Account;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
@@ -45,7 +46,7 @@ namespace AppVidaSana.Controllers
         /// </remarks>
         /// <response code="200">Returns account information if found.</response>
         /// <response code="404">Return an error message if the user is not found.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseGet))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseAccount))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet("{accountID:guid}")]
@@ -56,7 +57,7 @@ namespace AppVidaSana.Controllers
             {
                 var account = await _AccountService.GetAccountAsync(accountID, HttpContext.RequestAborted);
 
-                ResponseGet response = new ResponseGet
+                ResponseAccount response = new ResponseAccount
                 {
                     account = account
                 };
@@ -91,7 +92,7 @@ namespace AppVidaSana.Controllers
         /// <response code="401">Returns a message that you were unable to log in.</response>        
         /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ResponsePost))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ResponseAuth))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
@@ -117,7 +118,7 @@ namespace AppVidaSana.Controllers
 
                 var token = await _AuthService.LoginAccountAsync(login, HttpContext.RequestAborted);
 
-                ResponsePost response = new ResponsePost
+                ResponseAuth response = new ResponseAuth
                 {
                     auth = token
                 };
@@ -187,7 +188,7 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response> 
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseUpdateDelete))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
@@ -201,7 +202,7 @@ namespace AppVidaSana.Controllers
                 var profile = await _AccountService.UpdateAccountAsync(values, HttpContext.RequestAborted);
                 var message = await _ProfileService.UpdateProfileAsync(profile, HttpContext.RequestAborted);
 
-                ResponseUpdateDelete response = new ResponseUpdateDelete
+                ResponseMessage response = new ResponseMessage
                 {
                     status = message
                 };
@@ -253,7 +254,7 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Return a message that the user does not exist in the Accounts table.</response> 
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseUpdateDelete))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
@@ -265,7 +266,7 @@ namespace AppVidaSana.Controllers
             {
                 var message = await _AccountService.DeleteAccountAsync(accountID, HttpContext.RequestAborted);
 
-                ResponseUpdateDelete response = new ResponseUpdateDelete
+                ResponseMessage response = new ResponseMessage
                 {
                     status = message
                 };

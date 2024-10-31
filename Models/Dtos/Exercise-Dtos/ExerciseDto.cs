@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.Models.Dtos.Ejercicio_Dtos
 {
-    public class ExerciseListDto
+    public class ExerciseDto
     {
         [JsonRequired] public Guid exerciseID { get; set; }
 
