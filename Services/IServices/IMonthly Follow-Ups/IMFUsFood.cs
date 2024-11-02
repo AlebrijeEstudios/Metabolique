@@ -4,9 +4,9 @@ namespace AppVidaSana.Services.IServices.IMonthly_Follow_Ups
 {
     public interface IMFUsFood
     {
-        ResultsMFUsFoodDto SaveAnswers(AnswersMFUsFoodDto values);
-
-        ResultsMFUsFoodDto RetrieveAnswers(Guid accountID, int month, int year);
+        Task<ResultsMFUsFoodDto?> SaveAnswersAsync(AnswersMFUsFoodDto values, CancellationToken cancellationToken);
+         
+        Task<ResultsMFUsFoodDto?> RetrieveAnswersAsync(Guid accountID, int month, int year, CancellationToken cancellationToken);
 
         ResultsMFUsFoodDto UpdateAnswers(UpdateAnswersMFUsFoodDto values);
 
