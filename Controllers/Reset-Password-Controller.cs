@@ -107,7 +107,7 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns a message that the update has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response> 
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseResetPassword))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResetPasswordResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
@@ -130,7 +130,7 @@ namespace AppVidaSana.Controllers
                     return StatusCode(StatusCodes.Status400BadRequest, new { message = error.message, status = error.status });
                 }
 
-                ResponseResetPassword response = new ResponseResetPassword();
+                ResetPasswordResponse response = new ResetPasswordResponse();
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
             }

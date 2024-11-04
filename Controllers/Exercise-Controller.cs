@@ -41,7 +41,7 @@ namespace AppVidaSana.Controllers
         /// </remarks>
         /// <response code="200">Returns two arrays, one with all the exercises performed by the user during the day and 
         /// another with the active minutes during the last 7 days, otherwise, an empty array will be returned for both cases.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseGetExercise))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetExerciseResponse))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
@@ -50,7 +50,7 @@ namespace AppVidaSana.Controllers
 
             var infoExercises = await _ExerciseService.GetInfoGeneralExercisesAsync(accountID, date, HttpContext.RequestAborted);
 
-            ResponseGetExercise response = new ResponseGetExercise
+            GetExerciseResponse response = new GetExerciseResponse
             {
                 exercises = infoExercises.exercises,
                 activeMinutes = infoExercises.activeMinutes,
@@ -79,7 +79,7 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Return an error message if the user is not found.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ResponseAddUpdateExercises))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AddUpdateExercisesResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
@@ -92,7 +92,7 @@ namespace AppVidaSana.Controllers
             {
                 var exercise = await _ExerciseService.AddExerciseAsync(values, HttpContext.RequestAborted);
 
-                ResponseAddUpdateExercises response = new ResponseAddUpdateExercises
+                AddUpdateExercisesResponse response = new AddUpdateExercisesResponse
                 {
                     exercise = exercise
                 };
@@ -146,7 +146,7 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Returns a message indicating that no record(s) were found for a certain exercise.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseAddUpdateExercises))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AddUpdateExercisesResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
@@ -159,7 +159,7 @@ namespace AppVidaSana.Controllers
             {
                 var exercise = await _ExerciseService.UpdateExerciseAsync(values, HttpContext.RequestAborted);
 
-                ResponseAddUpdateExercises response = new ResponseAddUpdateExercises
+                AddUpdateExercisesResponse response = new AddUpdateExercisesResponse
                 {
                     exercise = exercise
                 };

@@ -3,7 +3,7 @@ using AppVidaSana.Models.Dtos.Graphics_Dtos;
 
 namespace AppVidaSana.ProducesResponseType.Exercise
 {
-    public class ResponseGetExercise
+    public class GetExerciseResponse
     {
         public string message { get; set; } = "Ok.";
 

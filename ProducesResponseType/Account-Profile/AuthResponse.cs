@@ -1,8 +1,8 @@
 ﻿using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 
-namespace AppVidaSana.ProducesResponseType.Authenticator
+namespace AppVidaSana.ProducesResponseType.Account
 {
-    public class ResponseLogin
+    public class AuthResponse
     {
         public string message { get; set; } = "Ok.";
 

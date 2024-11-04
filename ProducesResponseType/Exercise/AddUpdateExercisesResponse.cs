@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.ProducesResponseType.Exercise
 {
-    public class ResponseAddUpdateExercises
+    public class AddUpdateExercisesResponse
     {
         public string message { get; set; } = "Ok.";
 

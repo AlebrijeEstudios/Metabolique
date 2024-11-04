@@ -32,7 +32,7 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message that you were unable to log in.</response>  
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseLogin))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
@@ -45,7 +45,7 @@ namespace AppVidaSana.Controllers
             {
                 var token = await _AuthService.LoginAccountAsync(login, HttpContext.RequestAborted);
 
-                ResponseLogin response = new ResponseLogin
+                LoginResponse response = new LoginResponse
                 {
                     auth = token
                 };
@@ -87,7 +87,7 @@ namespace AppVidaSana.Controllers
         /// <response code="200">The tokens were successfully generated.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseLogin))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
@@ -99,7 +99,7 @@ namespace AppVidaSana.Controllers
             {
                 var tokens = await _AuthService.RefreshTokenAsync(values, HttpContext.RequestAborted);
 
-                ResponseLogin response = new ResponseLogin
+                LoginResponse response = new LoginResponse
                 {
                     auth = tokens
                 };

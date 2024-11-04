@@ -64,15 +64,17 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return results;
         }
 
-        public async Task<ResultsMFUsFoodDto?> SaveAnswersAsync(AnswersMFUsFoodDto values, CancellationToken cancellationToken)
+        public async Task<ResultsMFUsFoodDto?> SaveAnswersAsync(MFUsFoodDto values, CancellationToken cancellationToken)
         {
             var monthStr = _months.VerifyExistMonth(values.month);
 
             await ExistMonth(monthStr, values.year, cancellationToken);
 
-            var month = await _bd.Months.FirstOrDefaultAsync(e => e.month == monthStr && e.year == values.year, cancellationToken);
+            var month = await _bd.Months.FirstOrDefaultAsync(e => e.month == monthStr 
+                                                             && e.year == values.year, cancellationToken);
 
-            var answersExisting = await _bd.MFUsExercise.AnyAsync(e => e.accountID == values.accountID && e.monthID == month.monthID, cancellationToken);
+            var answersExisting = await _bd.MFUsFood.AnyAsync(e => e.accountID == values.accountID 
+                                                              && e.monthID == month.monthID, cancellationToken);
 
             if (answersExisting) { throw new RepeatRegistrationException(); }
 
@@ -80,15 +82,15 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             {
                 accountID = values.accountID,
                 monthID = month.monthID,
-                answerQuestion1 = values.question1,
-                answerQuestion2 = values.question2,
-                answerQuestion3 = values.question3,
-                answerQuestion4 = values.question4,
-                answerQuestion5 = values.question5,
-                answerQuestion6 = values.question6,
-                answerQuestion7 = values.question7,
-                answerQuestion8 = values.question8,
-                answerQuestion9 = values.question9
+                answerQuestion1 = values.answerQuestion1,
+                answerQuestion2 = values.answerQuestion2,
+                answerQuestion3 = values.answerQuestion3,
+                answerQuestion4 = values.answerQuestion4,
+                answerQuestion5 = values.answerQuestion5,
+                answerQuestion6 = values.answerQuestion6,
+                answerQuestion7 = values.answerQuestion7,
+                answerQuestion8 = values.answerQuestion8,
+                answerQuestion9 = values.answerQuestion9
             };
 
             _validationValues.ValidationValues(mfus);
@@ -97,30 +99,66 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var totalPts = TotalPts(values);
-            var classification = Classification(totalPts);
-
-            FoodResults results = new FoodResults
+            AnswersMFUsFoodDto answers = new AnswersMFUsFoodDto
             {
-                monthlyFollowUpID = mfus.monthlyFollowUpID,
-                totalPts = totalPts,
-                classification = classification
+                answerQuestion1 = values.answerQuestion1,
+                answerQuestion2 = values.answerQuestion2,
+                answerQuestion3 = values.answerQuestion3,
+                answerQuestion4 = values.answerQuestion4,
+                answerQuestion5 = values.answerQuestion5,
+                answerQuestion6 = values.answerQuestion6,
+                answerQuestion7 = values.answerQuestion7,
+                answerQuestion8 = values.answerQuestion8,
+                answerQuestion9 = values.answerQuestion9
             };
 
-            _validationValues.ValidationValues(results);
-
-            _bd.ResultsFood.Add(results);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
+            SaveResultsAsync(mfus.monthlyFollowUpID, answers);
 
             var responses = await RetrieveAnswersAsync(values.accountID, values.month, values.year, cancellationToken);
 
             return responses;
         }
 
-        public ResultsMFUsFoodDto UpdateAnswers(UpdateAnswersMFUsFoodDto values)
+        public async Task<ResultsMFUsFoodDto?> UpdateAnswersAsync(UpdateAnswersMFUsFoodDto values, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var mfuToUpdate = await _bd.MFUsFood.FindAsync(values.monthlyFollowUpID, cancellationToken);
+
+            if (mfuToUpdate is null) { throw new UnstoredValuesException(); }
+
+            mfuToUpdate.answerQuestion1 = values.answerQuestion1;
+            mfuToUpdate.answerQuestion2 = values.answerQuestion2;
+            mfuToUpdate.answerQuestion3 = values.answerQuestion3;
+            mfuToUpdate.answerQuestion4 = values.answerQuestion4;
+            mfuToUpdate.answerQuestion5 = values.answerQuestion5;
+            mfuToUpdate.answerQuestion6 = values.answerQuestion6;
+            mfuToUpdate.answerQuestion7 = values.answerQuestion7;
+            mfuToUpdate.answerQuestion8 = values.answerQuestion8;
+            mfuToUpdate.answerQuestion9 = values.answerQuestion9;
+
+            _validationValues.ValidationValues(mfuToUpdate);
+
+            _bd.MFUsFood.Update(mfuToUpdate);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            AnswersMFUsFoodDto answers = new AnswersMFUsFoodDto
+            {
+                answerQuestion1 = values.answerQuestion1,
+                answerQuestion2 = values.answerQuestion2,
+                answerQuestion3 = values.answerQuestion3,
+                answerQuestion4 = values.answerQuestion4,
+                answerQuestion5 = values.answerQuestion5,
+                answerQuestion6 = values.answerQuestion6,
+                answerQuestion7 = values.answerQuestion7,
+                answerQuestion8 = values.answerQuestion8,
+                answerQuestion9 = values.answerQuestion9
+            };
+
+            await UpdateResultsAsync(values.monthlyFollowUpID, answers, cancellationToken);
+
+            var responses = await RetrieveAnswersAsync(mfuToUpdate.accountID, values.month, values.year, cancellationToken);
+
+            return responses;
         }
         
         public bool Save()
@@ -133,6 +171,42 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             {
                 return false;
             }
+        }
+
+        private void SaveResultsAsync(Guid monthlyFollowUpID, AnswersMFUsFoodDto answers)
+        {
+            var totalPts = TotalPts(answers);
+            var classification = Classification(totalPts);
+
+            FoodResults results = new FoodResults
+            {
+                monthlyFollowUpID = monthlyFollowUpID,
+                totalPts = totalPts,
+                classification = classification
+            };
+
+            _validationValues.ValidationValues(results);
+
+            _bd.ResultsFood.Add(results);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private async Task UpdateResultsAsync(Guid monthlyFollowUpID, AnswersMFUsFoodDto answers, CancellationToken cancellationToken)
+        {
+            var totalPts = TotalPts(answers);
+            var classification = Classification(totalPts);
+
+            var resultsToUpdate = await _bd.ResultsFood.FirstOrDefaultAsync(e => e.monthlyFollowUpID == monthlyFollowUpID, cancellationToken);
+
+            resultsToUpdate.totalPts = totalPts;
+            resultsToUpdate.classification = classification;
+
+            _validationValues.ValidationValues(resultsToUpdate);
+
+            _bd.ResultsFood.Update(resultsToUpdate);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
         }
 
         private async Task ExistMonth(string monthStr, int year, CancellationToken cancellationToken)
@@ -155,16 +229,17 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         private float TotalPts(AnswersMFUsFoodDto values)
         {
-            float total = values.question1 + values.question2 + values.question3 + values.question4 + values.question5 +
-                          values.question6 + values.question7 + values.question8 + values.question9;
+            float total = values.answerQuestion1 + values.answerQuestion2 + values.answerQuestion3 + values.answerQuestion4 + 
+                          values.answerQuestion5 + values.answerQuestion6 + values.answerQuestion7 + values.answerQuestion8 + 
+                          values.answerQuestion9;
 
-            if (values.question1 == 10) { total = total + 2; }
-            if (values.question2 == 10) { total = total + 2; }
-            if (values.question3 == 10) { total = total + 2; }
-            if (values.question4 == 10) { total = total + 2; }
+            if (values.answerQuestion1 == 10) { total = total + 2; }
+            if (values.answerQuestion2 == 10) { total = total + 2; }
+            if (values.answerQuestion3 == 10) { total = total + 2; }
+            if (values.answerQuestion4 == 10) { total = total + 2; }
 
-            if (values.question5 == 10) { total = total + 1; }
-            if (values.question6 == 10) { total = total + 1; }
+            if (values.answerQuestion5 == 10) { total = total + 1; }
+            if (values.answerQuestion6 == 10) { total = total + 1; }
 
             return total;
         }

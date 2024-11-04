@@ -1,6 +1,6 @@
 ﻿namespace AppVidaSana.ProducesResponseType.Authenticator
 {
-    public class ResponseResetPassword
+    public class ResetPasswordResponse
     {
         public string message { get; set; } = "Ok.";
 
