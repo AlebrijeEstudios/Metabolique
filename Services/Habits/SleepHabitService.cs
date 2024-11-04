@@ -1,133 +1,70 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
-using AppVidaSana.Exceptions.Habits;
-using AppVidaSana.Models.Dtos.Habits_Dtos;
+using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
-using System.ComponentModel.DataAnnotations;
+using AppVidaSana.ValidationValues;
+using Microsoft.AspNetCore.JsonPatch;
+using AppVidaSana.Exceptions.Habits;
 
 namespace AppVidaSana.Services.Habits
 {
     public class SleepHabitService : ISleepHabit
     {
         private readonly AppDbContext _bd;
+        private ValidationValuesDB _validationValues;
         private readonly IMapper _mapper;
 
         public SleepHabitService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
+            _validationValues = new ValidationValuesDB();
         }
 
-        public string AddSleepHours(SleepingHoursDto sleepingHours)
+        public SleepHabitInfoDto AddSleepHours(SleepHabitDto values)
         {
-            var user = _bd.Accounts.Find(sleepingHours.accountID);
+            var habitSleepExist = _bd.HabitsSleep.Any(e => e.accountID == values.accountID
+                                                      && e.sleepDateHabit == values.dateRegister);
 
-            if (user == null)
-            {
-                throw new UserNotFoundException();
-            }
+            if (habitSleepExist) { throw new RepeatRegistrationException(); }
 
             SleepHabit sleepHabit = new SleepHabit
             {
-                accountID = sleepingHours.accountID,
-                sleepDateHabit = sleepingHours.sleepDateHabit,
-                sleepHours = sleepingHours.sleepHours,
-                perceptionOfRelaxation = sleepingHours.perceptionOfRelaxation,
-                account = null
+                accountID = values.accountID,
+                sleepDateHabit = values.dateRegister,
+                sleepHours = values.sleepHours,
+                perceptionOfRelaxation = values.perceptionOfRelaxation
             };
 
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(sleepingHours, null, null);
+            _validationValues.ValidationValues(sleepHabit);
 
-            if (!Validator.TryValidateObject(sleepingHours, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
+            _bd.HabitsSleep.Add(sleepHabit);
 
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
-            _bd.habitsSleep.Add(sleepHabit);
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
-            return "Los datos han sido guardados correctamente.";
+            var habitSleep = _bd.HabitsSleep.FirstOrDefault(e => e.accountID == values.accountID
+                                                            && e.sleepDateHabit == values.dateRegister);
+
+            var infoHabitsSleep = _mapper.Map<SleepHabitInfoDto>(habitSleep);
+
+            return infoHabitsSleep;
         }
 
-        public List<GetSleepingHoursDto> GetSleepingHours(Guid idAccount, DateOnly date)
+        public SleepHabitInfoDto UpdateSleepHours(Guid sleepHabitID, JsonPatchDocument values)
         {
-            var habits = _bd.habitsSleep
-            .Where(e => e.accountID == idAccount && e.sleepDateHabit == date)
-            .ToList();
+            var habitSleep = _bd.HabitsSleep.Find(sleepHabitID);
 
-            if (habits.Count == 0)
-            {
-                throw new HoursSleepNotFoundException();
-            }
+            if (habitSleep == null) { throw new HabitNotFoundException("No hay información de horas de sueño. Inténtelo de nuevo."); }
 
-            var habitsSleep = _mapper.Map<List<GetSleepingHoursDto>>(habits);
+            values.ApplyTo(habitSleep);
 
-            return habitsSleep;
-        }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
-        public string UpdateSleepHours(UpdateSleepingHoursDto values)
-        {
-            var habit = _bd.habitsSleep.Find(values.sleepHabitID);
+            var infoHabitsSleep = _mapper.Map<SleepHabitInfoDto>(habitSleep);
 
-            if (habit == null)
-            {
-                throw new HabitNotFoundException();
-            }
-
-            habit.sleepHours = values.sleepHours;
-            habit.perceptionOfRelaxation = values.perceptionOfRelaxation;
-
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(habit, null, null);
-
-            if (!Validator.TryValidateObject(habit, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
-
-            _bd.habitsSleep.Update(habit);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            return "Actualización completada.";
-        } 
-        
-        public string DeleteSleepHours(Guid idHabit)
-        {
-            var habit = _bd.habitsSleep.Find(idHabit);
-
-            if (habit == null)
-            {
-                throw new HabitNotFoundException();
-            }
-
-            _bd.habitsSleep.Remove(habit);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            return "Se ha eliminado correctamente.";
+            return infoHabitsSleep;
         }
         
         public bool Save()

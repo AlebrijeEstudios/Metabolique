@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Seguimientos_Mensuales.Resultados
 {
@@ -12,25 +12,25 @@ namespace AppVidaSana.Models.Seguimientos_Mensuales.Resultados
         public Guid monthlyFollowUpID { get; set; }
 
         [Required(ErrorMessage = "El campo resultado del componente 1 es obligatorio")]
-        public int resultComponent1 { get; set; }
+        public byte resultComponent1 { get; set; }
 
         [Required(ErrorMessage = "El campo resultado del componente 2 es obligatorio")]
-        public int resultComponent2 { get; set; }
+        public byte resultComponent2 { get; set; }
 
         [Required(ErrorMessage = "El campo resultado del componente 3 es obligatorio")]
-        public int resultComponent3 { get; set; }
+        public byte resultComponent3 { get; set; }
 
         [Required(ErrorMessage = "El campo resultado del componente 4 es obligatorio")]
-        public int resultComponent4 { get; set; }
+        public byte resultComponent4 { get; set; }
 
         [Required(ErrorMessage = "El campo resultado del componente 5 es obligatorio")]
-        public int resultComponent5 { get; set; }
+        public byte resultComponent5 { get; set; }
 
         [Required(ErrorMessage = "El campo resultado del componente 6 es obligatorio")]
-        public int resultComponent6 { get; set; }
+        public byte resultComponent6 { get; set; }
 
         [Required(ErrorMessage = "El campo resultado del componente 7 es obligatorio")]
-        public int resultComponent7 { get; set; }
+        public byte resultComponent7 { get; set; }
 
         [Required(ErrorMessage = "El campo clasificacion global es obligatorio")]
         public int globalClassification { get; set; }

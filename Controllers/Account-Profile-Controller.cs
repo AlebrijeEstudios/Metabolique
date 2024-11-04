@@ -1,16 +1,16 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.ProducesReponseType;
+using AppVidaSana.Exceptions;
+using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
+using AppVidaSana.ProducesReponseType;
+using AppVidaSana.ProducesResponseType;
+using AppVidaSana.ProducesResponseType.Account;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
-using AppVidaSana.ProducesResponseType.Account;
-using Microsoft.AspNetCore.RateLimiting;
-using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Exceptions;
 
 namespace AppVidaSana.Controllers
 {
@@ -18,16 +18,18 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/accounts")]
-    [EnableRateLimiting("sliding")]
+    [RequestTimeout("CustomPolicy")]
     public class AccountProfileController : ControllerBase
     {
         private readonly IAccount _AccountService;
         private readonly IProfile _ProfileService;
+        private readonly IAuthentication_Authorization _AuthService;
 
-        public AccountProfileController(IAccount AccountService, IProfile ProfileService)
+        public AccountProfileController(IAccount AccountService, IProfile ProfileService, IAuthentication_Authorization AuthService)
         {
             _AccountService = AccountService;
             _ProfileService = ProfileService;
+            _AuthService = AuthService;
         }
 
         /// <summary>
@@ -42,37 +44,34 @@ namespace AppVidaSana.Controllers
         ///     }
         ///     
         /// </remarks>
-        /// <response code="200">Returns account information if found. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return an error message if the user is not found. The information is stored in the attribute called 'response'.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnGetAccount))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        /// <response code="200">Returns account information if found.</response>
+        /// <response code="404">Return an error message if the user is not found.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
-        [HttpGet("{id:guid}")]
+        [HttpGet("{accountID:guid}")]
         [Produces("application/json")]
-        public IActionResult GetAccount(Guid id)
+        public async Task<IActionResult> GetAccount(Guid accountID)
         {
             try
             {
-                ReturnAccountDto info = _AccountService.GetAccount(id);
+                var account = await _AccountService.GetAccountAsync(accountID, HttpContext.RequestAborted);
 
-                ReturnGetAccount response = new ReturnGetAccount
+                AccountResponse response = new AccountResponse
                 {
-                    account = info
+                    account = account
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, account = response.account });
             }
             catch (UserNotFoundException ex)
             {
-
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
         }
 
@@ -88,104 +87,88 @@ namespace AppVidaSana.Controllers
         ///     }
         ///     
         /// </remarks>
-        /// <response code="201">Returns a token to validate in the app. The information is stored in the attribute called 'response'.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
-        /// <response code="401">Returns a message that you were unable to log in. The information is stored in the attribute called 'response'.</response>        
-        /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response>
-        /// <response code="408">Returns a message indicating that the time to scan either the email or password has expired. The information is stored in the attribute called 'timeOut'.</response>
-        /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response>
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnCreateAccount))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status408RequestTimeout, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        /// <response code="201">Returns a token to validate in the app.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message that you were unable to log in.</response>        
+        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AuthResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [AllowAnonymous]
         [HttpPost("account-profile")]
         [Produces("application/json")]
-        public IActionResult CreateAccount([FromBody] CreateAccountProfileDto account)
+        [RequestTimeout("CustomPolicy")]
+        public async Task<IActionResult> CreateAccount([FromBody] AccountDto values)
         {
             try
             {
-                var ac = _AccountService.CreateAccount(account);
-                var profile = _ProfileService.CreateProfile(ac.accountID, account);
+                var accountID = await _AccountService.CreateAccountAsync(values, HttpContext.RequestAborted);
 
-                if(ac.messageException != "")
-                {
-                    ReturnExceptionMessage timeOut = new ReturnExceptionMessage
-                    {
-                        status = ac.messageException
-                    };
-                    return StatusCode(StatusCodes.Status408RequestTimeout, new { timeOut });
-                }
+                _ProfileService.CreateProfileAsync(accountID, values, HttpContext.RequestAborted);
 
-                if (!profile)
+                LoginDto login = new LoginDto
                 {
-                    throw new UnstoredValuesException();
-                }
-
-                LoginAccountDto login = new LoginAccountDto
-                {
-                    email = account.email,
-                    password = account.password
+                    email = values.email,
+                    password = values.password
                 };
 
-                TokenUserDto token = _AccountService.LoginAccount(login);
+                var token = await _AuthService.LoginAccountAsync(login, HttpContext.RequestAborted);
 
-                ReturnCreateAccount response = new ReturnCreateAccount
+                AuthResponse response = new AuthResponse
                 {
                     auth = token
                 };
 
-                return StatusCode(StatusCodes.Status201Created, new { response });
-            }
-            catch (ValuesInvalidException ex)
-            {
-                ReturnExceptionList response = new ReturnExceptionList
-                {
-                    status = ex.Errors
-                };
-
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, auth = response.auth });
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
-            catch (UserNotFoundException ex)
+            catch (NoRoleAssignmentException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
-            catch (LoginException ex)
+            catch (FailLoginException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status401Unauthorized, new { response });
+                return StatusCode(StatusCodes.Status401Unauthorized, new { message = response.message, status = response.status });
             }
-            catch (ErrorDatabaseException ex)
+            catch (ValuesInvalidException ex)
             {
-                ReturnExceptionList response = new ReturnExceptionList
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+            }
+            catch (ErrorDatabaseException ex)
+            {
+                ExceptionListMessages response = new ExceptionListMessages
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
         }
 
@@ -201,115 +184,112 @@ namespace AppVidaSana.Controllers
         ///     }
         ///     
         /// </remarks>
-        /// <response code="200">Returns a message that the update has been successful. The information is stored in the attribute called 'response'.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response>     
-        /// <response code="409">Returns a series of messages indicating that some values are invalid. The information is stored in the attribute called 'response'.</response> 
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnUpdateDeleteAccount))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ReturnExceptionList))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        /// <response code="200">Returns a message that the update has been successful.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>     
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response> 
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
-        [HttpPut("{id:guid}")] 
+        [HttpPut]
         [Produces("application/json")]
-        public IActionResult UpdateAccount(Guid id, [FromBody] ReturnAccountDto account)
+        public async Task<IActionResult> UpdateAccount([FromBody] InfoAccountDto values)
         {
             try
             {
-                var values = _AccountService.UpdateAccount(id, account);
-                var res = _ProfileService.UpdateProfile(values.accountID, values);
+                var profile = await _AccountService.UpdateAccountAsync(values, HttpContext.RequestAborted);
+                var message = await _ProfileService.UpdateProfileAsync(profile, HttpContext.RequestAborted);
 
-                ReturnUpdateDeleteAccount response = new ReturnUpdateDeleteAccount
+                ResponseMessage response = new ResponseMessage
                 {
-                    status = res
+                    status = message
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
 
-            }catch(UserNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (UserNotFoundException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
             catch (ValuesInvalidException ex)
             {
-                ReturnExceptionList response = new ReturnExceptionList
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
             catch (ErrorDatabaseException ex)
             {
-                ReturnExceptionList response = new ReturnExceptionList
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
 
-                return StatusCode(StatusCodes.Status409Conflict, new { response });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
         }
 
         /// <summary>
         /// This driver deletes the user's account and everything related to it.
         /// </summary>
-        /// <response code="200">Returns a message that the elimination has been successful. The information is stored in the attribute called 'response'.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed. The information is stored in the attribute called 'response'.</response>
-        /// <response code="404">Return a message that the user does not exist in the Accounts table. The information is stored in the attribute called 'response'.</response> 
-        /// <response code="429">Returns a message indicating that the limit of allowed requests has been reached.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnUpdateDeleteAccount))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ReturnExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RateLimiting))]
+        /// <response code="200">Returns a message that the elimination has been successful.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response> 
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
-        [HttpDelete("{id:guid}")]
+        [HttpDelete("{accountID:guid}")]
         [Produces("application/json")]
-        public IActionResult DeleteAccount(Guid id)
+        public async Task<IActionResult> DeleteAccount(Guid accountID)
         {
             try
             {
-                var res = _AccountService.DeleteAccount(id);
+                var message = await _AccountService.DeleteAccountAsync(accountID, HttpContext.RequestAborted);
 
-                ReturnUpdateDeleteAccount response = new ReturnUpdateDeleteAccount
+                ResponseMessage response = new ResponseMessage
                 {
-                    status = res
+                    status = message
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { response });
-            }
-            catch (UserNotFoundException ex)
-            {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { response });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
             }
             catch (UnstoredValuesException ex)
             {
-                ReturnExceptionMessage response = new ReturnExceptionMessage
+                ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, new { response });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (UserNotFoundException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
         }
 

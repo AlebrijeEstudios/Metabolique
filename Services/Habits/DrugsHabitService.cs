@@ -1,134 +1,72 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
 using AppVidaSana.Models.Habitos;
-using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Services.IServices.IHabits.IHabits;
+using AppVidaSana.ValidationValues;
 using AutoMapper;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace AppVidaSana.Services.Habits
 {
     public class DrugsHabitService : IDrugsHabit
     {
-        private readonly AppDbContext _bd;
+        private readonly AppDbContext _bd; 
+        private ValidationValuesDB _validationValues;
         private readonly IMapper _mapper;
 
         public DrugsHabitService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
+            _validationValues = new ValidationValuesDB();
         }
 
-        public string AddDrugsConsumed(DrugsConsumedDto drugsConsumed)
+        public DrugsHabitInfoDto AddDrugsConsumed(DrugsHabitDto values)
         {
-            var user = _bd.Accounts.Find(drugsConsumed.accountID);
+            var habitDrugsExisting = _bd.HabitsDrugs.Any(e => e.accountID == values.accountID
+                                                         && e.drugsDateHabit == values.dateRegister);
 
-            if (user == null)
-            {
-                throw new UserNotFoundException();
-            }
+            if (habitDrugsExisting) { throw new RepeatRegistrationException(); }
 
             DrugsHabit drugHabit = new DrugsHabit
             {
-                accountID = drugsConsumed.accountID,
-                drugsDateHabit = drugsConsumed.drugsDateHabit,
-                cigarettesSmoked = drugsConsumed.cigarettesSmoked,
-                predominantEmotionalState = drugsConsumed.predominantEmotionalState,
-                account = null
+                accountID = values.accountID,
+                drugsDateHabit = values.dateRegister,
+                cigarettesSmoked = values.cigarettesSmoked,
+                predominantEmotionalState = values.predominantEmotionalState
             };
 
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(drugHabit, null, null);
+            _validationValues.ValidationValues(drugHabit);
 
-            if (!Validator.TryValidateObject(drugHabit, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
+            _bd.HabitsDrugs.Add(drugHabit);
 
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
-            _bd.habitsDrugs.Add(drugHabit);
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
-            return "Los datos han sido guardados correctamente.";
+            var habitDrugs = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == values.accountID
+                                                            && e.drugsDateHabit == values.dateRegister);
+
+            var infoHabitsDrugs = _mapper.Map<DrugsHabitInfoDto>(habitDrugs);
+
+            return infoHabitsDrugs;
         }
 
-        public GetDrugsConsumedDto GetDrugsConsumed(Guid idAccount, DateOnly date)
+        public DrugsHabitInfoDto UpdateDrugsConsumed(Guid drugsHabitID, JsonPatchDocument values)
         {
-            var habit = _bd.habitsDrugs
-            .Where(e => e.accountID == idAccount && e.drugsDateHabit == date);
+            var habitDrugs = _bd.HabitsDrugs.Find(drugsHabitID);
 
-            if (habit == null)
-            {
-                throw new HabitNotFoundException();
-            }
+            if (habitDrugs == null) { throw new HabitNotFoundException("No hay información de consumo de drogas. Inténtelo de nuevo."); }
 
-            var habitDrug = _mapper.Map<GetDrugsConsumedDto>(habit);
+            values.ApplyTo(habitDrugs);
 
-            return habitDrug;
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            var infoHabitsDrugs = _mapper.Map<DrugsHabitInfoDto>(habitDrugs);
+
+            return infoHabitsDrugs;
         }
 
-        public string UpdateDrugsConsumed(UpdateDrugsConsumedDto values)
-        {
-            var habit = _bd.habitsDrugs.Find(values.drugsHabitID);
-
-            if (habit == null)
-            {
-                throw new HabitNotFoundException();
-            }
-
-            habit.cigarettesSmoked = values.cigarettesSmoked;
-            habit.predominantEmotionalState = values.predominantEmotionalState;
-
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(habit, null, null);
-
-            if (!Validator.TryValidateObject(habit, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
-
-            _bd.habitsDrugs.Update(habit);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            return "Actualización completada.";
-        }
-        
-        public string DeleteDrugsConsumed(Guid idHabit)
-        {
-            var habit = _bd.habitsDrugs.Find(idHabit);
-
-            if (habit == null)
-            {
-                throw new HabitNotFoundException();
-            }
-
-            _bd.habitsDrugs.Remove(habit);
-
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
-
-            return "Se ha eliminado correctamente.";
-        }
-        
         public bool Save()
         {
             try

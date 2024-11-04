@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AppVidaSana.Models.Monthly_Follow_Ups;
+using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Seguimientos_Mensuales
 {
-   
     public class MFUsExercise
     {
         [Key]
@@ -13,11 +13,8 @@ namespace AppVidaSana.Models.Seguimientos_Mensuales
         [ForeignKey("Account")]
         public Guid accountID { get; set; }
 
-        [Required(ErrorMessage = "El campo mes es obligatorio.")]
-        public string month { get; set; } = null!;
-
-        [Required(ErrorMessage = "El campo año es obligatorio.")]
-        public int year { get; set; }
+        [ForeignKey("MFUsMonths")]
+        public Guid monthID { get; set; }
 
         [Required(ErrorMessage = "El campo pregunta1 es obligatorio.")]
         public int question1 { get; set; }
@@ -40,25 +37,11 @@ namespace AppVidaSana.Models.Seguimientos_Mensuales
         [Required(ErrorMessage = "El campo pregunta7 es obligatorio.")]
         public int question7 { get; set; }
 
-        [Required(ErrorMessage = "El campo actividad caminata es obligatorio.")]
-        public float actWalking { get; set; }
-
-        [Required(ErrorMessage = "El campo actividad física moderada es obligatorio.")]
-        public float actModerate { get; set; }
-
-        [Required(ErrorMessage = "El campo actividad física vigorosa es obligatorio.")]
-        public float actVigorous { get; set; }
-
-        [Required(ErrorMessage = "El campo totalMET es obligatorio.")]
-        public float totalMET { get; set; }
-
-        [Required(ErrorMessage = "El campo conducta sedentaria es obligatorio.")]
-        public string sedentaryBehavior { get; set; } = null!;
-
-        [Required(ErrorMessage = "El campo nivelAF es obligatorio.")]
-        public string levelAF { get; set; } = null!;
-
         public Account? account { get; set; }
+
+        public ExerciseResults? results { get; set; }
+
+        public MFUsMonths? months { get; set; }
 
     }
 }

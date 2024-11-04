@@ -1,18 +1,15 @@
-﻿using AppVidaSana.Models.Dtos.Habits_Dtos;
+﻿using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep;
+using AppVidaSana.Models.Habitos;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace AppVidaSana.Services.IServices.IHabits
 {
     public interface ISleepHabit
     {
-        List<GetSleepingHoursDto> GetSleepingHours(Guid idAccount, DateOnly date);
+        SleepHabitInfoDto AddSleepHours(SleepHabitDto values);
 
-        string AddSleepHours(SleepingHoursDto sleepingHours);
-
-        string UpdateSleepHours(UpdateSleepingHoursDto values);
-
-        string DeleteSleepHours(Guid idHabit);
+        SleepHabitInfoDto UpdateSleepHours(Guid sleepHabitID, JsonPatchDocument values);
 
         bool Save();
-
     }
 }

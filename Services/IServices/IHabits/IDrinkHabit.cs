@@ -1,14 +1,12 @@
 ﻿using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 
-namespace AppVidaSana.Services.IServices.IHabits
+namespace AppVidaSana.Services.IServices.IHabits.IHabits
 {
     public interface IDrinkHabit
     {
-        List<GetDrinksConsumedDto> GetDrinksConsumed(Guid idAccount, DateOnly date);
+        GetDrinksConsumedDto AddDrinksConsumed(DrinksConsumedDto drinksConsumed);
 
-        string AddDrinksConsumed(DrinksConsumedDto drinksConsumed);
-
-        string UpdateDrinksConsumed(UpdateDrinksConsumedDto values);
+        GetDrinksConsumedDto UpdateDrinksConsumed(UpdateDrinksConsumedDto values);
 
         string DeleteDrinksConsumed(Guid idHabit);
 

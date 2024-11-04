@@ -1,14 +1,12 @@
-﻿using AppVidaSana.Models;
-using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
+﻿using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 
 namespace AppVidaSana.Services.IServices
 {
     public interface IProfile
     {
-        bool CreateProfile(Guid id, CreateAccountProfileDto profile);
+        void CreateProfileAsync(Guid accountID, AccountDto values, CancellationToken cancellationToken);
 
-        string UpdateProfile(Guid id, ProfileUserDto profile);
+        Task<string> UpdateProfileAsync(ProfileDto values, CancellationToken cancellationToken);
 
         bool Save();
     }

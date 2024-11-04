@@ -1,38 +1,37 @@
-using DotNetEnv;
+using AppVidaSana.Api;
+using AppVidaSana.Api.Key;
 using AppVidaSana.Data;
+using AppVidaSana.JsonFormat;
 using AppVidaSana.Mappers;
 using AppVidaSana.Services;
+using AppVidaSana.Services.Habits;
 using AppVidaSana.Services.IServices;
+using AppVidaSana.Services.IServices.IHabits;
+using AppVidaSana.Services.IServices.IHabits.IHabits;
+using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
+using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
+using AppVidaSana.Services.Monthly_Follows_Ups;
+using AppVidaSana.Services.Seguimientos_Mensuales;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
-using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
-using AppVidaSana.Services.Seguimientos_Mensuales;
-using AppVidaSana.Api.Key;
-using AppVidaSana.Api;
 using System.Reflection;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Threading.RateLimiting;
-using System.Net;
-using AppVidaSana.ProducesResponseType;
-using System.Text.Json;
-using AppVidaSana.Services.IServices.IHabits;
-using AppVidaSana.Services.Habits;
-using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
-using AppVidaSana.Services.Monthly_Follows_Ups;
+using System.Text;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRINGL");
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
-var token = Environment.GetEnvironmentVariable("TOKEN") ?? "ABCD67890_secure_key_32_characters";
-var key = Encoding.ASCII.GetBytes(token);
+var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
+var keyBytes = Encoding.ASCII.GetBytes(token);
 
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString)); 
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<ApiDbContext>(options => options.UseInMemoryDatabase(nameof(ApiDbContext)));
 
 var myrulesCORS = "RulesCORS";
 builder.Services.AddCors(opt =>
@@ -48,46 +47,36 @@ builder.Services.AddCors(opt =>
     });
 });
 
-var myOptions = new MyRateLimitOptions();
-builder.Configuration.GetSection("MyRateLimitOptions").Bind(myOptions);
-var slidingPolicy = "sliding";
-RateLimiting response = new RateLimiting();
-var jsonResponse = JsonSerializer.Serialize(response);
-
-builder.Services.AddRateLimiter(options =>
-{ 
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    
-
-    options.OnRejected = async (context, token) =>
-    {
-        context.HttpContext.Response.ContentType = "application/json";
-        await context.HttpContext.Response.WriteAsync(jsonResponse, token);
-    };
-
-    options.AddSlidingWindowLimiter(policyName: slidingPolicy, op =>
-    {
-        op.PermitLimit = myOptions.PermitLimit;
-        op.Window = TimeSpan.FromSeconds(myOptions.Window);
-        op.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        op.QueueLimit = myOptions.QueueLimit;
-        op.SegmentsPerWindow = myOptions.SegmentsPerWindow;
-    });
-});
-
-builder.Services.AddControllers().AddJsonOptions(opt =>
+builder.Services.AddRequestTimeouts(options =>
 {
-    opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    options.DefaultPolicy =
+        new RequestTimeoutPolicy
+        {
+            Timeout = TimeSpan.FromMilliseconds(1000),
+            TimeoutStatusCode = StatusCodes.Status503ServiceUnavailable
+        };
+    options.AddPolicy("CustomPolicy",
+        new RequestTimeoutPolicy
+        {
+            Timeout = TimeSpan.FromMilliseconds(30000),
+            TimeoutStatusCode = StatusCodes.Status503ServiceUnavailable
+        });
 });
 
-builder.Services.AddScoped<IAccount, AccountService>();
-builder.Services.AddScoped<IProfile, ProfileService>();
-builder.Services.AddScoped<IExercise, ExerciseService>();
-builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
-builder.Services.AddScoped<IDrinkHabit, DrinkHabitService>();
-builder.Services.AddScoped<ISleepHabit, SleepHabitService>();
-builder.Services.AddScoped<IDrugsHabit, DrugsHabitService>();
-builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
+
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+    options.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
+});
+
+builder.Services.AddControllers().AddNewtonsoftJson();
+
+builder.Services.AddControllers(options =>
+{
+    options.InputFormatters.Insert(0, MyJPIF.GetJsonPatchInputFormatter());
+});
 
 builder.Services.AddControllersWithViews();
 
@@ -95,10 +84,22 @@ builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddDbContext<ApiDbContext>(options =>
-    options.UseInMemoryDatabase(nameof(ApiDbContext)));
+builder.Services.AddScoped<IAccount, AccountService>();
+builder.Services.AddScoped<IProfile, ProfileService>();
+builder.Services.AddScoped<IAuthentication_Authorization, Authentication_AuthorizationService>();
+builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
+builder.Services.AddScoped<IMFUsFood, MFUsFoodService>();
+builder.Services.AddScoped<IExercise, ExerciseService>();
+builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
+builder.Services.AddScoped<IHabitsGeneral, HabitGeneralService>();
+builder.Services.AddScoped<IDrinkHabit, DrinkHabitService>();
+builder.Services.AddScoped<IDrugsHabit, DrugsHabitService>();
+builder.Services.AddScoped<ISleepHabit, SleepHabitService>();
+builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
+builder.Services.AddScoped<IMedication, MedicationService>();
+builder.Services.AddScoped<ISideEffects, MedicationService>();
+builder.Services.AddScoped<IMFUsMedications, MFUsMedicationService>();
 
-builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -106,17 +107,20 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = "metaboliqueapi",
-        ValidAudience = "metabolique.com",
-        IssuerSigningKey = new SymmetricSecurityKey(key)
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+        ClockSkew = TimeSpan.Zero
     };
 });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
     .AddScheme<ApiKeySchemeOptions, ApiKeySchemeHandler>(
@@ -125,13 +129,13 @@ builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
             options.HeaderName = "Metabolique_API_KEY";
         });
 
-
 builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { 
-        Title = "Metabolique_API", 
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Metabolique_API",
         Version = "v1",
         Description = "An ASP.NET Core web API to manage medical tracking elements of a user's medical record."
     });
@@ -174,8 +178,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors(myrulesCORS);
+app.UseRequestTimeouts();
 app.UseAuthentication();
-app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",

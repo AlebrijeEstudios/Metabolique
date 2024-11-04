@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Habitos
 {
@@ -18,7 +18,7 @@ namespace AppVidaSana.Models.Habitos
         public string typeDrink { get; set; } = null!;
 
         [Required(ErrorMessage = "El campo cantidad consumida es obligatorio")]
-        public int amountConsumed { get; set; }
+        public string amountConsumed { get; set; } = null!;
 
         public Account? account { get; set; }
     }

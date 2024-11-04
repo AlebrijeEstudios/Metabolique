@@ -1,26 +1,16 @@
-﻿using AppVidaSana.Models;
-using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Models.Dtos.Cuenta_Perfil_Dtos;
+﻿using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 
 namespace AppVidaSana.Services.IServices
 {
     public interface IAccount
     {
-        ReturnAccountDto GetAccount(Guid accountid);
+        Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken);
 
-        CreateAccountReturn CreateAccount(CreateAccountProfileDto account);
+        Task<Guid> CreateAccountAsync(AccountDto values, CancellationToken cancellationToken);
 
-        ProfileUserDto UpdateAccount(Guid id, ReturnAccountDto infoAccount);
+        Task<ProfileDto> UpdateAccountAsync(InfoAccountDto values, CancellationToken cancellationToken);
 
-        string DeleteAccount(Guid userid);
-
-        TokenUserDto RequestPasswordResetToken(ForgotPasswordDto request);
-
-        TokenUserDto LoginAccount(LoginAccountDto login);
-
-        bool ResetPassword(ResetPasswordDto model);
-
-        void SendPasswordResetEmail(string email, string resetLink);
+        Task<string> DeleteAccountAsync(Guid accountID, CancellationToken cancellationToken);
 
         bool Save();
     }

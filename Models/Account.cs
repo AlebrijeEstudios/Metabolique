@@ -1,8 +1,10 @@
-﻿using AppVidaSana.Models.Alimentación;
-using AppVidaSana.Models.Graphics;
+﻿using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Habitos;
+using AppVidaSana.Models.Medications;
+using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models
 {
@@ -21,33 +23,22 @@ namespace AppVidaSana.Models
         [Required(ErrorMessage = "El campo contraseña es obligatoria.")]
         public string password { get; set; } = null!;
 
-        public string role { get; set; } = "User";
+        [ForeignKey("Roles")]
+        public Guid roleID { get; set; }
+
+        public Roles? roles { get; set; }
 
         public Profiles? profile { get; set; }
 
-        public ICollection<Breakfast> breakfasts { get; set; } = new List<Breakfast>();
+        public HistorialRefreshToken? historialRefreshToken { get; set; }
 
-        public ICollection<Lunch> lunches { get; set; } = new List<Lunch>();
-
-        public ICollection<Meal> meals { get; set; } = new List<Meal>();
-
-        public ICollection<Snack> snacks { get; set; } = new List<Snack>();
-
-        public ICollection<Dinner> dinners { get; set; } = new List<Dinner>();
-
-        public ICollection<MFUsNutrition> MFUsNutrition { get; set; } = new List<MFUsNutrition>();
+        public ICollection<MFUsFood> MFUsFood { get; set; } = new List<MFUsFood>();
 
         public ICollection<Exercise> exercises { get; set; } = new List<Exercise>();
 
         public ICollection<MFUsExercise> MFUsExercise { get; set; } = new List<MFUsExercise>();
 
-        public ICollection<GExercise> graphicsValuesExercise { get; set; } = new List<GExercise>();
-
-        public ICollection<Medication> medications { get; set; } = new List<Medication>();
-        
-        public ICollection<SideEffect> sideEffects { get; set; } = new List<SideEffect>();
-
-        public ICollection<MFUsMedications> MFUsMedications { get; set; } = new List<MFUsMedications>();
+        public ICollection<ActiveMinutes> activeMinutes { get; set; } = new List<ActiveMinutes>();
 
         public ICollection<DrinkHabit> habitsDrink { get; set; } = new List<DrinkHabit>();
 
@@ -56,6 +47,12 @@ namespace AppVidaSana.Models
         public ICollection<SleepHabit> habitsSleep { get; set; } = new List<SleepHabit>();
 
         public ICollection<MFUsHabits> MFUsHabits { get; set; } = new List<MFUsHabits>();
+
+        public ICollection<PeriodsMedications> periodsMedications { get; set; } = new List<PeriodsMedications>();
+
+        public ICollection<SideEffects> sideEffects { get; set; } = new List<SideEffects>();
+
+        public ICollection<MFUsMedication> MFUsMedications { get; set; } = new List<MFUsMedication>();
 
     }
 }
