@@ -14,9 +14,9 @@ namespace AppVidaSana.Models.Habitos
         [Required(ErrorMessage = "El campo fecha es obligatorio")]
         public DateOnly sleepDateHabit { get; set; }
 
-        public int? sleepHours { get; set; }
+        public int? sleepHours  { get; set; }
 
-        public string? perceptionOfRelaxation { get; set; }
+        public string? perceptionOfRelaxation  { get; set; }
 
         public Account? account { get; set; }
 

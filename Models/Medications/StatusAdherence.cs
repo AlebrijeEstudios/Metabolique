@@ -10,7 +10,7 @@ namespace AppVidaSana.Models.Medications
 
         public string statusAdherence { get; set; } = null!;
 
-        public ICollection<MFUsMedication> mfuMed { get; set; } = new List<MFUsMedication>();
+        public ICollection<MFUsMedication> mfuMed { get; set; } = new List<MFUsMedication>();    
 
     }
 }
