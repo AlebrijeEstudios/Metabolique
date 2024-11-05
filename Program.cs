@@ -64,19 +64,19 @@ builder.Services.AddRequestTimeouts(options =>
 });
 
 
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-    options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
-    options.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
-});
-
-builder.Services.AddControllers().AddNewtonsoftJson();
-
 builder.Services.AddControllers(options =>
 {
     options.InputFormatters.Insert(0, MyJPIF.GetJsonPatchInputFormatter());
-});
+})
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+})
+.AddNewtonsoftJson(options =>
+{
+    options.SerializerSettings.Converters.Add(new TimeOnlyJsonConverter());
+}); 
 
 builder.Services.AddControllersWithViews();
 

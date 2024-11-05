@@ -55,16 +55,16 @@ namespace AppVidaSana.Services
             var monthExist = await _bd.Months.FirstOrDefaultAsync(e => e.month == date.ToString("MMMM", cultureInfo)
                                                                   && e.year == Convert.ToInt32(date.ToString("yyyy")), 
                                                                   cancellationToken);
-            
-            var mfuExist = await _bd.MFUsExercise.AnyAsync(e => e.accountID == accountID
-                                                     && e.monthID == monthExist.monthID, cancellationToken);
-
+           
             if (monthExist is null)
             {
                 infoGeneral = GeneratedInfoGeneralExercise(exercises, activeMinutes, status);
 
                 return infoGeneral;
             }
+            
+            var mfuExist = await _bd.MFUsExercise.AnyAsync(e => e.accountID == accountID
+                                                           && e.monthID == monthExist.monthID, cancellationToken);
 
             if (mfuExist)
             {
