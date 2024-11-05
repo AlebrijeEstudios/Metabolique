@@ -9,6 +9,7 @@ using AppVidaSana.ProducesResponseType.Exercise;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AppVidaSana.Controllers
@@ -17,6 +18,7 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/exercises")]
+    [RequestTimeout("CustomPolicy")]
     public class ExerciseController : ControllerBase
     {
         private readonly IExercise _ExerciseService;
