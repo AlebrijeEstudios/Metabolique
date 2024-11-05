@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace AppVidaSana.JsonFormat
 {
@@ -8,15 +6,14 @@ namespace AppVidaSana.JsonFormat
     {
         private const string TimeFormat = "HH:mm";
 
-        public override TimeOnly Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override void WriteJson(JsonWriter writer, TimeOnly value, JsonSerializer serializer)
         {
-            var timeString = reader.GetString();
-            return TimeOnly.ParseExact(timeString, TimeFormat, CultureInfo.InvariantCulture);
+            writer.WriteValue(value.ToString(TimeFormat));
         }
 
-        public override void Write(Utf8JsonWriter writer, TimeOnly value, JsonSerializerOptions options)
+        public override TimeOnly ReadJson(JsonReader reader, Type objectType, TimeOnly existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            writer.WriteStringValue(value.ToString(TimeFormat, CultureInfo.InvariantCulture));
+            return TimeOnly.ParseExact((string)reader.Value, TimeFormat);
         }
     }
 }
