@@ -17,7 +17,7 @@ namespace AppVidaSana.Models.Food
         [Required(ErrorMessage = "El campo fecha es obligatorio")]
         public DateOnly userFeedDate { get; set; }
 
-        [Required(ErrorMessage = "El campo respuesta de la pregunta 1 es obligatorio")]
+        [Required(ErrorMessage = "El campo hora es obligatorio")]
         public TimeOnly userFeedTime { get; set; }
 
         [Required(ErrorMessage = "El campo nivel de saciedad es obligatorio")]
@@ -31,5 +31,7 @@ namespace AppVidaSana.Models.Food
         public Account? account { get; set; }
 
         public DailyMeals? dailyMeals { get; set; }
+
+        public ICollection<FoodConsumed> foodsConsumed { get; set; } = new List<FoodConsumed>();
     }
 }

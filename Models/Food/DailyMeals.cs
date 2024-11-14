@@ -1,6 +1,15 @@
-﻿namespace AppVidaSana.Models.Food
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AppVidaSana.Models.Food
 {
     public class DailyMeals
     {
+        [Key]
+        public Guid dailyMealID { get; set; } = Guid.NewGuid();
+
+        public string dailyMeal { get; set; } = null!;
+
+        public ICollection<UserFeeds> userFeeds { get; set; } = new List<UserFeeds>();
+
     }
 }

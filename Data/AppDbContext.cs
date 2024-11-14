@@ -1,5 +1,6 @@
 ﻿using AppVidaSana.Models;
 using AppVidaSana.Models.Exercises;
+using AppVidaSana.Models.Food;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
@@ -19,6 +20,9 @@ namespace AppVidaSana.Data
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Profiles> Profiles { get; set; }
+        public DbSet<UserFeeds> UserFeeds { get; set; }
+        public DbSet<FoodConsumed> FoodsConsumed { get; set; }
+        public DbSet<DailyMeals> DailyMeals { get; set; }
         public DbSet<MFUsFood> MFUsFood { get; set; }
         public DbSet<FoodResults> ResultsFood { get; set; }
         public DbSet<Exercise> Exercises { get; set; }
@@ -64,6 +68,30 @@ namespace AppVidaSana.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             //Food and MFUsFood
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.userFeeds)
+                .WithOne(userFeeds => userFeeds.account)
+                .HasForeignKey(userFeeds => userFeeds.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DailyMeals>()
+                .HasMany(dailyMeal => dailyMeal.userFeeds)
+                .WithOne(userFeeds => userFeeds.dailyMeals)
+                .HasForeignKey(userFeeds => userFeeds.dailyMealID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFeeds>()
+                .HasMany(userFeed => userFeed.foodsConsumed)
+                .WithOne(foodConsumed => foodConsumed.userFeeds)
+                .HasForeignKey(foodConsumed => foodConsumed.userFeedID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.caloriesConsumed)
+                .WithOne(graphic => graphic.account)
+                .HasForeignKey(graphic => graphic.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.MFUsFood)
                 .WithOne(MFUsFood => MFUsFood.account)
