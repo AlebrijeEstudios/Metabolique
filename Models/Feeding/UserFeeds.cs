@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AppVidaSana.Models.Food
+namespace AppVidaSana.Models.Feeding
 {
     public class UserFeeds
     {

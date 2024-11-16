@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AppVidaSana.Models.Food
+namespace AppVidaSana.Models.Feeding
 {
     public class DailyMeals
     {

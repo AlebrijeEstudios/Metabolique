@@ -1,6 +1,6 @@
 ﻿using AppVidaSana.Models;
 using AppVidaSana.Models.Exercises;
-using AppVidaSana.Models.Food;
+using AppVidaSana.Models.Feeding;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
@@ -67,7 +67,7 @@ namespace AppVidaSana.Data
                 .HasForeignKey(account => account.roleID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            //Food and MFUsFood
+            //Feeding and MFUsFood
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.userFeeds)
                 .WithOne(userFeeds => userFeeds.account)

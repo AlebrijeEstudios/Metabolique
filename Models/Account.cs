@@ -1,5 +1,5 @@
 ﻿using AppVidaSana.Models.Exercises;
-using AppVidaSana.Models.Food;
+using AppVidaSana.Models.Feeding;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
