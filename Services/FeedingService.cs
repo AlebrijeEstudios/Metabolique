@@ -26,7 +26,7 @@ namespace AppVidaSana.Services
         public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
         {
             var foodsConsumed = await _bd.FoodsConsumed.Where(e => e.userFeedID == userFeedID).ToListAsync(cancellationToken);
-            var foodsConsumedMapped = _mapper.Map<List<FoodConsumedDto>>(foodsConsumed);
+            var foodsConsumedMapped = _mapper.Map<List<FoodsConsumedDto>>(foodsConsumed);
 
             var userFeeding = await _bd.UserFeeds.FirstOrDefaultAsync(e => e.userFeedID == userFeedID, cancellationToken);
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(userFeeding);

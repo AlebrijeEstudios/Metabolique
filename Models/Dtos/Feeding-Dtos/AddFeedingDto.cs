@@ -4,7 +4,7 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 {
     public class AddFeedingDto
     {
-        [JsonRequired] public Guid accountID { get; set; }
+        [JsonRequired] public Guid accountID { get; set; } 
 
         [JsonRequired] public DateOnly userFeedDate { get; set; }
 
@@ -12,7 +12,7 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 
         [JsonRequired] public string dailyMeal { get; set; } = null!;
 
-        [JsonRequired] public List<FoodConsumedDto> foodsConsumed { get; set; } = null!;
+        [JsonRequired] public List<FoodsConsumedDto> foodsConsumed { get; set; } = null!;
 
         [JsonRequired] public string satietyLevel { get; set; } = null!;
 
@@ -21,3 +21,4 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
         public string? saucerPictureUrl { get; set; }
     }
 }
+
