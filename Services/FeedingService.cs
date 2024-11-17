@@ -4,6 +4,7 @@ using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services
 {
@@ -22,17 +23,29 @@ namespace AppVidaSana.Services
             _datesInRange = new DatesInRange();
         }
 
-        public Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
+        public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
         {
+            var foodsConsumed = await _bd.FoodsConsumed.Where(e => e.userFeedID == userFeedID).ToListAsync(cancellationToken);
+            var foodsConsumedMapped = _mapper.Map<List<FoodConsumedDto>>(foodsConsumed);
+
+            var userFeeding = await _bd.UserFeeds.FirstOrDefaultAsync(e => e.userFeedID == userFeedID, cancellationToken);
+            var userFeedingMapped = _mapper.Map<UserFeedsDto>(userFeeding);
+
+            userFeedingMapped.foodsConsumed = foodsConsumedMapped;
+
+            return userFeedingMapped;
+        }
+
+        public async Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        {
+            var userFeedingList = await _bd.UserFeeds.Where(e => e.accountID == accountID
+                                                            && e.userFeedDate == date).ToListAsync(cancellationToken);
+
+
             throw new NotImplementedException();
         }
 
-        public Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<FeedingService> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)
+        public Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

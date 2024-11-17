@@ -88,6 +88,7 @@ builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IAuthentication_Authorization, Authentication_AuthorizationService>();
 builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
+builder.Services.AddScoped<IFeeding, FeedingService>();
 builder.Services.AddScoped<IMFUsFood, MFUsFoodService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
 builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();

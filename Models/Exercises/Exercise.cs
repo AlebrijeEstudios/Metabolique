@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Exercises
 {
-    public class Exercise
+    public class Exercise 
     {
         [Key]
         public Guid exerciseID { get; set; } = Guid.NewGuid();

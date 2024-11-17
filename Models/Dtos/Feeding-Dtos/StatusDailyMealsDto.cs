@@ -4,7 +4,7 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 {
     public class StatusDailyMealsDto
     {
-        [JsonRequired] public Guid userFeedID { get; set; }
+        [JsonRequired] public Guid userFeedID { get; set; } 
 
         [JsonRequired] public string nameDailyMeal { get; set; } = null!;
 

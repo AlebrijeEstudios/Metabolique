@@ -6,7 +6,7 @@ namespace AppVidaSana.Models.Feeding
     public class UserFeeds
     {
         [Key]
-        public Guid userFeedID { get; set; } = Guid.NewGuid();
+        public Guid userFeedID { get; set; } = Guid.NewGuid(); 
 
         [ForeignKey("Account")]
         public Guid accountID { get; set; }

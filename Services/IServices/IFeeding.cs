@@ -8,7 +8,7 @@ namespace AppVidaSana.Services.IServices
 
         Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken);
 
-        Task<FeedingService> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken);
+        Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken);
 
         Task<UserFeedsDto> UpdateFeedingAsync(UserFeedsDto values, CancellationToken cancellationToken);
 

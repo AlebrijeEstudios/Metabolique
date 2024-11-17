@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 {
-    public class CaloriesConsumedFeedingDto
+    public class CaloriesConsumedFeedingDto 
     {
         [JsonRequired] public DateOnly date { get; set; }
 
