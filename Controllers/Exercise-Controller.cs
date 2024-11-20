@@ -47,7 +47,7 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> GetExercises([FromQuery] Guid accountID, [FromQuery] DateOnly date)
+        public async Task<IActionResult> GetExercisesAsync([FromQuery] Guid accountID, [FromQuery] DateOnly date)
         {
 
             var infoExercises = await _ExerciseService.GetInfoGeneralExercisesAsync(accountID, date, HttpContext.RequestAborted);
@@ -88,7 +88,7 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
-        public async Task<IActionResult> AddExercises([FromBody] AddExerciseDto values)
+        public async Task<IActionResult> AddExercisesAsync([FromBody] AddExerciseDto values)
         {
             try
             {
@@ -119,16 +119,6 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
-            catch (UserNotFoundException ex)
-            {
-
-                ExceptionMessage response = new ExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
-            }
             catch (ErrorDatabaseException ex)
             {
                 ExceptionListMessages response = new ExceptionListMessages
@@ -155,7 +145,7 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
-        public async Task<IActionResult> UpdateExercises([FromBody] ExerciseDto values)
+        public async Task<IActionResult> UpdateExercisesAsync([FromBody] ExerciseDto values)
         {
             try
             {
@@ -209,7 +199,7 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{exerciseID:guid}")]
         [Produces("application/json")]
-        public async Task<IActionResult> DeleteExercise(Guid exerciseID)
+        public async Task<IActionResult> DeleteExerciseAsync(Guid exerciseID)
         {
             try
             {

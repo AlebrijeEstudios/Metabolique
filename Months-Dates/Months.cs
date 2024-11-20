@@ -28,12 +28,5 @@ namespace AppVidaSana.Months_Dates
 
             return months[month];
         }
-
-
-
-
-
-
-
     }
 }
