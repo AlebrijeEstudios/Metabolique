@@ -10,7 +10,8 @@ namespace AppVidaSana.JsonFormat
 
         public override DateOnly Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            var dateString = reader.GetString();
+            var dateString = reader.GetString()!;
+
             return DateOnly.ParseExact(dateString, DateFormat, CultureInfo.InvariantCulture);
         }
 

@@ -19,6 +19,7 @@ namespace AppVidaSana.Api
         }
     }
 
+    [AttributeUsage(AttributeTargets.Method)]
     public class ApiKeyAuthorizationFilterAttribute : TypeFilterAttribute
     {
         public ApiKeyAuthorizationFilterAttribute() : base(typeof(ApiKeyAuthorizationFilter))

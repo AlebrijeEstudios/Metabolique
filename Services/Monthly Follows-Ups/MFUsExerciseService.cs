@@ -6,9 +6,11 @@ using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
 using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using AppVidaSana.Models.Seguimientos_Mensuales;
+using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
 using AutoMapper;
 using System.ComponentModel.DataAnnotations;
+using System.Threading;
 
 namespace AppVidaSana.Services.Seguimientos_Mensuales
 {
@@ -16,38 +18,22 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
+        private Months _months;
 
         public MFUsExerciseService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
+            _months = new Months();
         }
 
         public RetrieveResponsesExerciseDto RetrieveAnswers(Guid id, int month, int year)
         {
-            var months = new Dictionary<int, string>
-            {
-                { 1, "Enero" },
-                { 2, "Febrero" },
-                { 3, "Marzo" },
-                { 4, "Abril" },
-                { 5, "Mayo" },
-                { 6, "Junio" },
-                { 7, "Julio" },
-                { 8, "Agosto" },
-                { 9, "Septiembre" },
-                { 10, "Octubre" },
-                { 11, "Noviembre" },
-                { 12, "Diciembre" }
-            };
-
-            var getMonth = months.ContainsKey(month) ? months[month] : "Mes no existente";
-
-            if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
+            var monthStr = _months.VerifyExistMonth(month);
 
             RetrieveResponsesExerciseDto responses;
 
-            var existMonth = _bd.Months.FirstOrDefault(e => e.month == getMonth && e.year == year);
+            var existMonth = _bd.Months.FirstOrDefault(e => e.month == monthStr && e.year == year);
 
             if (existMonth == null)
             {
@@ -80,42 +66,11 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         public RetrieveResponsesExerciseDto SaveAnswers(SaveResponsesExerciseDto values)
         {
-            var months = new Dictionary<int, string>
-            {
-                { 1, "Enero" },
-                { 2, "Febrero" },
-                { 3, "Marzo" },
-                { 4, "Abril" },
-                { 5, "Mayo" },
-                { 6, "Junio" },
-                { 7, "Julio" },
-                { 8, "Agosto" },
-                { 9, "Septiembre" },
-                { 10, "Octubre" },
-                { 11, "Noviembre" },
-                { 12, "Diciembre" }
-            };
+            var monthStr = _months.VerifyExistMonth(values.month);
 
-            var getMonth = months.ContainsKey(values.month) ? months[values.month] : "Mes no existente";
+            ExistMonth(monthStr, values.year);
 
-            if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
-
-            var existMonth = _bd.Months.Any(e => e.month == months[values.month] && e.year == values.year);
-
-            if (!existMonth)
-            {
-                MFUsMonths month = new MFUsMonths
-                {
-                    month = months[values.month],
-                    year = values.year
-                };
-
-                _bd.Months.Add(month);
-
-                if (!Save()) { throw new UnstoredValuesException(); }
-            }
-
-            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == months[values.month] && e.year == values.year).monthID;
+            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == monthStr && e.year == values.year).monthID;
 
             var answersExisting = _bd.MFUsExercise.Any(e => e.accountID == values.accountID && e.monthID == monthID);
 
@@ -124,8 +79,6 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             var accountExisting = _bd.Accounts.Find(values.accountID);
 
             if (accountExisting == null) { throw new UserNotFoundException(); }
-
-            string LevelAF = "BAJO";
 
             AnswersDto answers = new AnswersDto
             {
@@ -148,17 +101,9 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             bool levelHigh = levelActHigh(values.question1, METactvigorous, METactmoderate, METactwalking);
             bool levelModerate = levelActModerate(answers, METactvigorous, METactmoderate, METactwalking);
 
-            if (levelHigh)
-            {
-                LevelAF = "ALTO";
-            }
-            else
-            {
-                if (levelModerate)
-                {
-                    LevelAF = "MODERADO";
-                }
-            }
+            string LevelAF = "BAJO";
+
+            LevelAF = (levelHigh && levelModerate || levelHigh && !levelModerate) ? "ALTO" : "MODERADO";
 
             MFUsExercise mfus = new MFUsExercise
             {
@@ -232,8 +177,6 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 question7 = values.question7
             };
 
-            string LevelAF = "BAJO";
-
             float METactvigorous = actVigorous(values.question1, values.question2);
             float METactmoderate = actModerate(values.question3, values.question4);
             float METactwalking = actWalking(values.question5, values.question6);
@@ -244,17 +187,9 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             bool levelHigh = levelActHigh(values.question1, METactvigorous, METactmoderate, METactwalking);
             bool levelModerate = levelActModerate(answers, METactvigorous, METactmoderate, METactwalking);
 
-            if (levelHigh)
-            {
-                LevelAF = "ALTO";
-            }
-            else
-            {
-                if (levelModerate)
-                {
-                    LevelAF = "MODERADO";
-                }
-            }
+            string LevelAF = "BAJO";
+
+            LevelAF = (levelHigh && levelModerate || levelHigh && !levelModerate) ? "ALTO" : "MODERADO";
 
             var resultsToUpdate = _bd.ResultsExercise.FirstOrDefault(e => e.monthlyFollowUpID == values.monthlyFollowUpID);
 
@@ -309,6 +244,24 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
+        private void ExistMonth(string monthStr, int year)
+        {
+            var existMonth = _bd.Months.Any(e => e.month == monthStr && e.year == year);
+
+            if (!existMonth)
+            {
+                MFUsMonths month = new MFUsMonths
+                {
+                    month = monthStr,
+                    year = year
+                };
+
+                _bd.Months.Add(month);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+            }
+        }
+
         private void ValidationSaveAnswers(MFUsExercise mfus)
         {
             var validationResults = new List<ValidationResult>();
@@ -343,17 +296,17 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         private static float actVigorous(int res1, int res2)
         {
-            return (float)8.0 * res2 * res1;
+            return (float) 8.0 * res2 * res1;
         }
 
         private static float actModerate(int res3, int res4)
         {
-            return (float)4.0 * res4 * res3;
+            return (float) 4.0 * res4 * res3;
         }
 
         private static float actWalking(int res5, int res6)
         {
-            return (float)3.3 * res6 * res5;
+            return (float) 3.3 * res6 * res5;
         }
 
         private static float totalMET(float met1, float met2, float met3)
@@ -363,54 +316,31 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         private static string sedentaryBehavior(int res7)
         {
-            string result = "AUSENTE";
-
-            if (res7 > 6)
-            {
-                result = "PRESENTE";
-            }
+            var result = (res7 > 6) ? "PRESENTE" : "AUSENTE";
 
             return result;
         }
 
         private static bool levelActHigh(int res1, float MET_AFvigorous, float MET_AFmoderate, float MET_AFwalking)
         {
-            bool criterion1 = false;
-            bool criterion2 = false;
+            bool criterion1, criterion2 = false;
 
-            if (res1 >= 3 && (int)MET_AFvigorous >= 1500)
-            {
-                criterion1 = true;
-            }
+            criterion1 = (res1 >= 3 && MET_AFvigorous >= 1500);
 
-            if ((int)(MET_AFwalking + MET_AFmoderate + MET_AFvigorous) >= 3000)
-            {
-                criterion2 = true;
-            }
+            criterion2 = (MET_AFwalking + MET_AFmoderate >= 3000) || (MET_AFwalking + MET_AFvigorous >= 3000);
 
             return criterion1 || criterion2;
         }
 
         private static bool levelActModerate(AnswersDto answers, float MET_AFvigorous, float MET_AFmoderate, float MET_AFwalking)
         {
-            bool criterion1 = false;
-            bool criterion2 = false;
-            bool criterion3 = false;
+            bool criterion1, criterion2, criterion3 = false;
 
-            if (answers.question1 >= 3 && answers.question2 >= 20)
-            {
-                criterion1 = true;
-            }
+            criterion1 = (answers.question1 >= 3 && answers.question2 >= 20);
 
-            if ((answers.question3 >= 5 && answers.question4 >= 30) || (answers.question5 >= 5 && answers.question6 >= 30))
-            {
-                criterion2 = true;
-            }
+            criterion2 = (answers.question3 >= 5 && answers.question4 >= 30) || (answers.question5 >= 5 && answers.question6 >= 30);
 
-            if (((answers.question1 + answers.question5) >= 5 && (int)(MET_AFvigorous + MET_AFwalking) >= 600) || ((answers.question3 + answers.question5) >= 5 && (int)(MET_AFmoderate + MET_AFwalking) >= 600))
-            {
-                criterion3 = true;
-            }
+            criterion3 = ((answers.question1 + answers.question5) >= 5 && (MET_AFvigorous + MET_AFwalking) >= 600) || ((answers.question3 + answers.question5) >= 5 && (MET_AFmoderate + MET_AFwalking) >= 600);
 
             return criterion1 || criterion2 || criterion3;
 

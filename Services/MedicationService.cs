@@ -313,6 +313,8 @@ namespace AppVidaSana.Services
         {
             List<InfoMedicationDto> listMedications = new List<InfoMedicationDto>();
 
+            List<Times> timesForMedication = new List<Times>();
+
             var groupPeriodsByMedicationID = periods.GroupBy(obj => obj.medicationID)
                                                     .ToDictionary(
                                                         g => g.Key,
@@ -327,31 +329,9 @@ namespace AppVidaSana.Services
 
                 var periodsForMedication = med.Value;
 
-                List<Times> timesForMedication = new List<Times>();
-
                 foreach (var period in periodsForMedication)
                 {
-                    var times = _bd.Times.Where(e => e.periodID == period.periodID
-                                                && e.dateMedication == dateActual).ToList();
-
-                    if (!(times.Count() > 0))
-                    {
-                        var days = GetDatesInRange(period.initialFrec, dateActual);
-
-                        foreach (var day in days)
-                        {
-                            var existTimes = _bd.Times.Any(e => e.periodID == period.periodID
-                                                           && e.dateMedication == day);
-
-                            if (!existTimes)
-                            {
-                                CreateTimes(period.periodID, day, period.timesPeriod);
-                            }
-                        }
-
-                        times = _bd.Times.Where(e => e.periodID == period.periodID
-                                                && e.dateMedication == dateActual).ToList();
-                    }
+                    var times = TimesForPeriod(period, dateActual);
 
                     timesForMedication.AddRange(times);
 
@@ -380,23 +360,42 @@ namespace AppVidaSana.Services
             return listMedications;
         }
 
+        private List<Times> TimesForPeriod(PeriodsMedications period, DateOnly dateActual)
+        {
+            var times = _bd.Times.Where(e => e.periodID == period.periodID
+                                        && e.dateMedication == dateActual).ToList();
+
+            if (!(times.Count() > 0))
+            {
+                var days = GetDatesInRange(period.initialFrec, dateActual);
+
+                foreach (var day in days)
+                {
+                    var existTimes = _bd.Times.Any(e => e.periodID == period.periodID
+                                                   && e.dateMedication == day);
+
+                    if (!existTimes)
+                    {
+                        CreateTimes(period.periodID, day, period.timesPeriod);
+                    }
+                }
+
+                times = _bd.Times.Where(e => e.periodID == period.periodID
+                                        && e.dateMedication == dateActual).ToList();
+            }
+
+            return times;
+        }
+
         private List<WeeklyAttachmentDto> WeeklyList(Guid accountID, DateOnly dateActual)
         {
             int totalMedications = 0, medicationsConsumed = 0;
             List<WeeklyAttachmentDto> weeklyList = new List<WeeklyAttachmentDto>();
             DateOnly dateFinal = dateActual.AddDays(-6);
 
-            var getTimes = from pMed in _bd.Set<PeriodsMedications>()
-                           join t in _bd.Set<Times>()
-                           on pMed.periodID equals t.periodID
-                           where pMed.accountID == accountID
-                           select new { t };
+            var timeList = GetTimesForPeriodMedication(accountID);
 
-            var timeList = getTimes.ToList();
-
-            timeList = timeList.OrderBy(x => x.t.time).ToList();
-
-            var groupObjectsByID = timeList.GroupBy(obj => obj.t.periodID)
+            var groupTimesByID = timeList.GroupBy(obj => obj.periodID)
                                             .ToDictionary(
                                                 g => g.Key,
                                                 g => g.ToList()
@@ -406,24 +405,21 @@ namespace AppVidaSana.Services
 
             foreach (var date in dates)
             {
-                foreach (var time in groupObjectsByID)
+                foreach (var time in groupTimesByID)
                 {
                     var period = _bd.PeriodsMedications.Find(time.Key);
 
                     if (period == null) { throw new UnstoredValuesException(); }
 
-                    var list = time.Value.Where(e => e.t.dateMedication == date
-                                                && period.initialFrec <= e.t.dateMedication
-                                                && e.t.dateMedication <= period.finalFrec).ToList();
+                    var listTimes = time.Value.Where(e => e.dateMedication == date
+                                                     && period.initialFrec <= e.dateMedication
+                                                     && e.dateMedication <= period.finalFrec).ToList();
 
-                    if (list.Count() > 0)
+                    if (listTimes.Count() > 0)
                     {
-                        foreach (var l in list)
-                        {
-                            totalMedications++;
+                        medicationsConsumed = time.Value.Count(e => e.medicationStatus == true);
 
-                            if (l.t.medicationStatus) { medicationsConsumed++; }
-                        }
+                        totalMedications = listTimes.Count();
                     }
 
                 }
@@ -442,6 +438,20 @@ namespace AppVidaSana.Services
             }
 
             return weeklyList;
+        }
+
+        private List<Times> GetTimesForPeriodMedication(Guid accountID)
+        {
+            var getTimes = from pMed in _bd.Set<PeriodsMedications>()
+                           join t in _bd.Set<Times>()
+                           on pMed.periodID equals t.periodID
+                           where pMed.accountID == accountID
+                           orderby t.time
+                           select t;
+
+            var timeList = getTimes.ToList();
+
+            return timeList;
         }
 
         private List<SideEffectsListDto> SideEffects(Guid accountID, DateOnly dateActual)

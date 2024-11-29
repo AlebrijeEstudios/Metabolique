@@ -3,6 +3,7 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Medications_Dtos;
 using AppVidaSana.Models.Monthly_Follow_Ups;
+using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
 using AutoMapper;
 using System.ComponentModel.DataAnnotations;
@@ -12,39 +13,21 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
     public class MFUsMedicationService : IMFUsMedications
     {
         private readonly AppDbContext _bd;
-        private readonly IMapper _mapper;
+        private Months _months;
 
         public MFUsMedicationService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
-            _mapper = mapper;
+            _months = new Months();
         }
 
         public RetrieveResponsesMedicationsDto RetrieveAnswers(Guid id, int month, int year)
         {
-            var months = new Dictionary<int, string>
-            {
-                { 1, "Enero" },
-                { 2, "Febrero" },
-                { 3, "Marzo" },
-                { 4, "Abril" },
-                { 5, "Mayo" },
-                { 6, "Junio" },
-                { 7, "Julio" },
-                { 8, "Agosto" },
-                { 9, "Septiembre" },
-                { 10, "Octubre" },
-                { 11, "Noviembre" },
-                { 12, "Diciembre" }
-            };
-
-            var getMonth = months.ContainsKey(month) ? months[month] : "Mes no existente";
-
-            if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
+            var monthStr = _months.VerifyExistMonth(month);
 
             RetrieveResponsesMedicationsDto responses;
 
-            var existMonth = _bd.Months.FirstOrDefault(e => e.month == months[month] && e.year == year);
+            var existMonth = _bd.Months.FirstOrDefault(e => e.month == monthStr && e.year == year);
 
             if (existMonth == null)
             {
@@ -77,42 +60,11 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         public RetrieveResponsesMedicationsDto SaveAnswers(SaveResponsesMedicationsDto values)
         {
-            var months = new Dictionary<int, string>
-            {
-                { 1, "Enero" },
-                { 2, "Febrero" },
-                { 3, "Marzo" },
-                { 4, "Abril" },
-                { 5, "Mayo" },
-                { 6, "Junio" },
-                { 7, "Julio" },
-                { 8, "Agosto" },
-                { 9, "Septiembre" },
-                { 10, "Octubre" },
-                { 11, "Noviembre" },
-                { 12, "Diciembre" }
-            };
+            var monthStr = _months.VerifyExistMonth(values.month);
 
-            var getMonth = months.ContainsKey(values.month) ? months[values.month] : "Mes no existente";
+            ExistMonth(monthStr, values.year);
 
-            if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
-
-            var existMonth = _bd.Months.Any(e => e.month == months[values.month] && e.year == values.year);
-
-            if (!existMonth)
-            {
-                MFUsMonths month = new MFUsMonths
-                {
-                    month = months[values.month],
-                    year = values.year
-                };
-
-                _bd.Months.Add(month);
-
-                if (!Save()) { throw new UnstoredValuesException(); }
-            }
-
-            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == months[values.month] && e.year == values.year).monthID;
+            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == monthStr && e.year == values.year).monthID;
 
             var answersExisting = _bd.MFUsMedication.Any(e => e.accountID == values.accountID && e.monthID == monthID);
 
@@ -197,6 +149,24 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             catch (Exception)
             {
                 return false;
+            }
+        }
+
+        private void ExistMonth(string monthStr, int year)
+        {
+            var existMonth = _bd.Months.Any(e => e.month == monthStr && e.year == year);
+
+            if (!existMonth)
+            {
+                MFUsMonths month = new MFUsMonths
+                {
+                    month = monthStr,
+                    year = year
+                };
+
+                _bd.Months.Add(month);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
         }
 
