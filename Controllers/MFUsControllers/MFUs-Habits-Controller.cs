@@ -38,15 +38,15 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult AddResponsesHabits([FromBody] SaveResponsesHabitsDto responses)
+        public async Task<IActionResult> AddAnswersHabitsAsync([FromBody] SaveResponsesHabitsDto responses)
         {
             try
             {
-                var res = _MFUsHabitsService.SaveAnswers(responses);
+                var results = await _MFUsHabitsService.SaveAnswersAsync(responses, HttpContext.RequestAborted);
 
                 ReturnResponsesAndResultsMFUsHabits response = new ReturnResponsesAndResultsMFUsHabits
                 {
-                    mfus = res
+                    mfus = results
                 };
 
                 return StatusCode(StatusCodes.Status201Created, new { message = response.message, mfus = response.mfus });
@@ -99,15 +99,15 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public IActionResult RetrieveResponsesHabits([FromQuery] Guid accountID, [FromQuery] int month, [FromQuery] int year)
+        public async Task<IActionResult> RetrieveAnswersHabits([FromQuery] Guid accountID, [FromQuery] int month, [FromQuery] int year)
         {
             try
             {
-                var res = _MFUsHabitsService.RetrieveAnswers(accountID, month, year);
+                var results = await _MFUsHabitsService.RetrieveAnswersAsync(accountID, month, year, HttpContext.RequestAborted);
 
                 ReturnResponsesAndResultsMFUsHabits response = new ReturnResponsesAndResultsMFUsHabits
                 {
-                    mfus = res
+                    mfus = results
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfus = response.mfus });
@@ -137,15 +137,15 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
-        public IActionResult UpdateResponsesHabits([FromBody] UpdateResponsesHabitsDto responses)
+        public async Task<IActionResult> UpdateAnswersHabits([FromBody] UpdateResponsesHabitsDto responses)
         {
             try
             {
-                var res = _MFUsHabitsService.UpdateAnswers(responses);
+                var results = await _MFUsHabitsService.UpdateAnswersAsync(responses, HttpContext.RequestAborted);
 
                 ReturnResponsesAndResultsMFUsHabits response = new ReturnResponsesAndResultsMFUsHabits
                 {
-                    mfus = res
+                    mfus = results
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfus = response.mfus });

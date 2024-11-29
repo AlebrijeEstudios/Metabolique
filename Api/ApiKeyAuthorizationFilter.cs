@@ -14,11 +14,11 @@ namespace AppVidaSana.Api
             if (string.IsNullOrEmpty(apiKeyHeader) || (storedApiKey != headerApiKey))
             {
                 context.Result = new UnauthorizedResult();
-                return;
             }
         }
     }
 
+    [AttributeUsage(AttributeTargets.Method)]
     public class ApiKeyAuthorizationFilterAttribute : TypeFilterAttribute
     {
         public ApiKeyAuthorizationFilterAttribute() : base(typeof(ApiKeyAuthorizationFilter))

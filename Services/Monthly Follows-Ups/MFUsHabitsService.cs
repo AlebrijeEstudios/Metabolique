@@ -1,13 +1,14 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
 using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
+using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
+using AppVidaSana.ValidationValues;
 using AutoMapper;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services.Monthly_Follows_Ups
 {
@@ -15,56 +16,44 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
+        private readonly Months _months;
+        private readonly ValidationValuesDB _validationValues;
 
         public MFUsHabitsService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
+            _months = new Months();
+            _validationValues = new ValidationValuesDB();
         }
 
-        public RetrieveResponsesHabitsDto RetrieveAnswers(Guid id, int month, int year)
+        public async Task<RetrieveResponsesHabitsDto?> RetrieveAnswersAsync(Guid accountID, int month, int year, CancellationToken cancellationToken)
         {
-            var months = new Dictionary<int, string>
-            {
-                { 1, "Enero" },
-                { 2, "Febrero" },
-                { 3, "Marzo" },
-                { 4, "Abril" },
-                { 5, "Mayo" },
-                { 6, "Junio" },
-                { 7, "Julio" },
-                { 8, "Agosto" },
-                { 9, "Septiembre" },
-                { 10, "Octubre" },
-                { 11, "Noviembre" },
-                { 12, "Diciembre" }
-            };
+            var monthStr = _months.VerifyExistMonth(month);
 
-            var getMonth = months.ContainsKey(month) ? months[month] : "Mes no existente";
+            RetrieveResponsesHabitsDto? responses;
 
-            if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
+            var existMonth = await _bd.Months.FirstOrDefaultAsync(e => e.month == monthStr && e.year == year, cancellationToken);
 
-            RetrieveResponsesHabitsDto responses;
-
-            var existMonth = _bd.Months.FirstOrDefault(e => e.month == months[month] && e.year == year);
-
-            if (existMonth == null)
+            if (existMonth is null)
             {
                 responses = null;
                 return responses;
             }
 
-            var mfuHabits = _bd.MFUsHabits.FirstOrDefault(c => c.accountID == id && c.monthID == existMonth.monthID);
+            var mfuHabits = await _bd.MFUsHabits.FirstOrDefaultAsync(c => c.accountID == accountID 
+                                                                     && c.monthID == existMonth.monthID, cancellationToken);
 
-            if (mfuHabits == null)
+            if (mfuHabits is null)
             {
                 responses = null;
                 return responses;
             }
 
-            var mfuHabitsResults = _bd.ResultsHabits.FirstOrDefault(c => c.monthlyFollowUpID == mfuHabits.monthlyFollowUpID);
+            var mfuHabitsResults = await _bd.ResultsHabits.FirstOrDefaultAsync(c => c.monthlyFollowUpID == mfuHabits.monthlyFollowUpID, 
+                                                                               cancellationToken);
 
-            if (mfuHabitsResults == null)
+            if (mfuHabitsResults is null)
             {
                 responses = null;
                 return responses;
@@ -77,57 +66,25 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             return responses;
         }
 
-        public RetrieveResponsesHabitsDto SaveAnswers(SaveResponsesHabitsDto values)
+        public async Task<RetrieveResponsesHabitsDto?> SaveAnswersAsync(SaveResponsesHabitsDto values, CancellationToken cancellationToken)
         {
-            var months = new Dictionary<int, string>
-            {
-                { 1, "Enero" },
-                { 2, "Febrero" },
-                { 3, "Marzo" },
-                { 4, "Abril" },
-                { 5, "Mayo" },
-                { 6, "Junio" },
-                { 7, "Julio" },
-                { 8, "Agosto" },
-                { 9, "Septiembre" },
-                { 10, "Octubre" },
-                { 11, "Noviembre" },
-                { 12, "Diciembre" }
-            };
+            var monthStr = _months.VerifyExistMonth(values.month);
 
-            var getMonth = months.ContainsKey(values.month) ? months[values.month] : "Mes no existente";
+            await ExistMonthAsync(monthStr, values.year, cancellationToken);
 
-            if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
+            var month = await _bd.Months.FirstOrDefaultAsync(e => e.month == monthStr && e.year == values.year, cancellationToken);
 
-            var existMonth = _bd.Months.Any(e => e.month == months[values.month] && e.year == values.year);
+            if (month is null) { throw new UnstoredValuesException(); }
 
-            if (!existMonth)
-            {
-                MFUsMonths month = new MFUsMonths
-                {
-                    month = months[values.month],
-                    year = values.year
-                };
-
-                _bd.Months.Add(month);
-
-                if (!Save()) { throw new UnstoredValuesException(); }
-            }
-
-            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == months[values.month] && e.year == values.year).monthID;
-
-            var answersExisting = _bd.MFUsHabits.Any(e => e.accountID == values.accountID && e.monthID == monthID);
+            var answersExisting = await _bd.MFUsHabits.AnyAsync(e => e.accountID == values.accountID 
+                                                                && e.monthID == month.monthID, cancellationToken);
 
             if (answersExisting) { throw new RepeatRegistrationException(); }
-
-            var accountExisting = _bd.Accounts.Find(values.accountID);
-
-            if (accountExisting == null) { throw new UserNotFoundException(); }
 
             MFUsHabits answers = new MFUsHabits
             {
                 accountID = values.accountID,
-                monthID = monthID,
+                monthID = month.monthID,
                 answerQuestion1 = values.answerQuestion1,
                 answerQuestion2 = values.answerQuestion2,
                 answerQuestion3 = values.answerQuestion3,
@@ -147,13 +104,11 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 answerQuestion9 = values.answerQuestion9
             };
 
-            ValidationSaveAnswers(answers);
+            _validationValues.ValidationValues(answers);
 
             _bd.MFUsHabits.Add(answers);
 
             if (!Save()) { throw new UnstoredValuesException(); }
-
-            var answersRecentlyAdd = _bd.MFUsHabits.FirstOrDefault(e => e.accountID == values.accountID && e.monthID == monthID);
 
             byte resultComponent1 = values.answerQuestion6;
             byte resultComponent2 = component2(values.answerQuestion2, values.answerQuestion5a);
@@ -168,10 +123,9 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             string classificationPSQI = classification(total);
 
-
             SaveResultsHabitsDto results = new SaveResultsHabitsDto
             {
-                monthlyFollowUpID = answersRecentlyAdd.monthlyFollowUpID,
+                monthlyFollowUpID = answers.monthlyFollowUpID,
                 resultComponent1 = resultComponent1,
                 resultComponent2 = resultComponent2,
                 resultComponent3 = resultComponent3,
@@ -185,16 +139,16 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             SaveResults(results);
 
-            var responses = RetrieveAnswers(values.accountID, values.month, values.year);
+            var responses = await RetrieveAnswersAsync(values.accountID, values.month, values.year, cancellationToken);
 
             return responses;
         }
 
-        public RetrieveResponsesHabitsDto UpdateAnswers(UpdateResponsesHabitsDto values)
+        public async Task<RetrieveResponsesHabitsDto?> UpdateAnswersAsync(UpdateResponsesHabitsDto values, CancellationToken cancellationToken)
         {
-            var mfuToUpdate = _bd.MFUsHabits.Find(values.monthlyFollowUpID);
+            var mfuToUpdate = await _bd.MFUsHabits.FindAsync(new object[] { values.monthlyFollowUpID }, cancellationToken);
 
-            if (mfuToUpdate == null) { throw new UnstoredValuesException(); }
+            if (mfuToUpdate is null) { throw new UnstoredValuesException(); }
 
             mfuToUpdate.answerQuestion1 = values.answerQuestion1;
             mfuToUpdate.answerQuestion2 = values.answerQuestion2;
@@ -215,7 +169,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             mfuToUpdate.answerQuestion8 = values.answerQuestion8;
             mfuToUpdate.answerQuestion9 = values.answerQuestion9;
 
-            ValidationSaveAnswers(mfuToUpdate);
+            _validationValues.ValidationValues(mfuToUpdate);
 
             _bd.MFUsHabits.Update(mfuToUpdate);
 
@@ -234,7 +188,10 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             string classificationPSQI = classification(total);
 
-            var resultsToUpdate = _bd.ResultsHabits.FirstOrDefault(e => e.monthlyFollowUpID == values.monthlyFollowUpID);
+            var resultsToUpdate = await _bd.ResultsHabits.FirstOrDefaultAsync(e => e.monthlyFollowUpID == values.monthlyFollowUpID,
+                                                                              cancellationToken);
+
+            if (resultsToUpdate is null) { throw new UnstoredValuesException(); }
 
             resultsToUpdate.resultComponent1 = resultComponent1;
             resultsToUpdate.resultComponent2 = resultComponent2;
@@ -246,13 +203,13 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             resultsToUpdate.globalClassification = total;
             resultsToUpdate.classification = classificationPSQI;
 
-            ValidationSaveResults(resultsToUpdate);
+            _validationValues.ValidationValues(resultsToUpdate);
 
             _bd.ResultsHabits.Update(resultsToUpdate);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var responses = RetrieveAnswers(mfuToUpdate.accountID, values.month, values.year);
+            var responses = await RetrieveAnswersAsync(mfuToUpdate.accountID, values.month, values.year, cancellationToken);
 
             return responses;
         }
@@ -285,42 +242,28 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 classification = values.classification
             };
 
-            ValidationSaveResults(results);
+            _validationValues.ValidationValues(results);
 
             _bd.ResultsHabits.Add(results);
 
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private void ValidationSaveAnswers(MFUsHabits mfus)
+        private async Task ExistMonthAsync(string monthStr, int year, CancellationToken cancellationToken)
         {
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(mfus, null, null);
+            var existMonth = await _bd.Months.AnyAsync(e => e.month == monthStr && e.year == year, cancellationToken);
 
-            if (!Validator.TryValidateObject(mfus, validationContext, validationResults, true))
+            if (!existMonth)
             {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
+                MFUsMonths month = new MFUsMonths
                 {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
-        }
+                    month = monthStr,
+                    year = year
+                };
 
-        private void ValidationSaveResults(HabitsResults results)
-        {
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(results, null, null);
+                _bd.Months.Add(month);
 
-            if (!Validator.TryValidateObject(results, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
         }
 
@@ -341,13 +284,13 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
         {
             byte value = 0;
 
-            if ((float)response4 > 7) { return value; }
+            if ((float) response4 > 7) { return value; }
 
-            if ((float)response4 >= 6 && (float)response4 <= 7) { value = 1; }
+            if ((float) response4 >= 6 && (float) response4 <= 7) { value = 1; }
 
-            if ((float)response4 >= 5 && (float)response4 <= 6) { value = 2; }
+            if ((float) response4 >= 5 && (float) response4 <= 6) { value = 2; }
 
-            if ((float)response4 < 5) { value = 3; }
+            if ((float) response4 < 5) { value = 3; }
 
             return value;
         }
@@ -366,7 +309,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             if (bedHours == 0) { return 3; }
 
-            float ES = ((float)response4 / bedHours) * 100;
+            float ES = ((float) response4 / bedHours) * 100;
 
             if (ES > 85) { return value; }
 

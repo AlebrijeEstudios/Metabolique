@@ -38,15 +38,15 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult AddResponsesMedications([FromBody] SaveResponsesMedicationsDto responses)
+        public async Task<IActionResult> AddAnswersMedications([FromBody] SaveResponsesMedicationsDto responses)
         {
             try
             {
-                var res = _MFUsMedicationsService.SaveAnswers(responses);
+                var results = await _MFUsMedicationsService.SaveAnswersAsync(responses, HttpContext.RequestAborted);
 
                 ReturnResponsesAndResultsMFUsMedications response = new ReturnResponsesAndResultsMFUsMedications
                 {
-                    mfus = res
+                    mfus = results
                 };
 
                 return StatusCode(StatusCodes.Status201Created, new { message = response.message, mfus = response.mfus });
@@ -99,15 +99,15 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public IActionResult RetrieveResponsesMedications([FromQuery] Guid accountID, [FromQuery] int month, [FromQuery] int year)
+        public async Task<IActionResult> RetrieveAnswersMedications([FromQuery] Guid accountID, [FromQuery] int month, [FromQuery] int year)
         {
             try
             {
-                var res = _MFUsMedicationsService.RetrieveAnswers(accountID, month, year);
+                var results = await _MFUsMedicationsService.RetrieveAnswersAsync(accountID, month, year, HttpContext.RequestAborted);
 
                 ReturnResponsesAndResultsMFUsMedications response = new ReturnResponsesAndResultsMFUsMedications
                 {
-                    mfus = res
+                    mfus = results
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfus = response.mfus });
@@ -137,15 +137,15 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
-        public IActionResult UpdateResponsesMedications([FromBody] UpdateResponsesMedicationsDto responses)
+        public async Task<IActionResult> UpdateAnswersMedications([FromBody] UpdateResponsesMedicationsDto responses)
         {
             try
             {
-                var res = _MFUsMedicationsService.UpdateAnswers(responses);
+                var results = await _MFUsMedicationsService.UpdateAnswersAsync(responses, HttpContext.RequestAborted);
 
                 ReturnResponsesAndResultsMFUsMedications response = new ReturnResponsesAndResultsMFUsMedications
                 {
-                    mfus = res
+                    mfus = results
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfus = response.mfus });

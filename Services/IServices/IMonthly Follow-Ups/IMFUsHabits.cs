@@ -4,11 +4,11 @@ namespace AppVidaSana.Services.IServices.IMonthly_Follow_Ups
 {
     public interface IMFUsHabits
     {
-        RetrieveResponsesHabitsDto SaveAnswers(SaveResponsesHabitsDto values);
+        Task<RetrieveResponsesHabitsDto?> RetrieveAnswersAsync(Guid accountID, int month, int year, CancellationToken cancellationToken);
+        
+        Task<RetrieveResponsesHabitsDto?> SaveAnswersAsync(SaveResponsesHabitsDto values, CancellationToken cancellationToken);
 
-        RetrieveResponsesHabitsDto RetrieveAnswers(Guid id, int month, int year);
-
-        RetrieveResponsesHabitsDto UpdateAnswers(UpdateResponsesHabitsDto values);
+        Task<RetrieveResponsesHabitsDto?> UpdateAnswersAsync(UpdateResponsesHabitsDto values, CancellationToken cancellationToken);
 
         bool Save();
 

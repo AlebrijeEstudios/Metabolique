@@ -37,7 +37,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
-        public async Task<IActionResult> AddAnswersFood([FromBody] MFUsFoodDto values)
+        public async Task<IActionResult> AddAnswersFoodAsync([FromBody] MFUsFoodDto values)
         {
             try
             {
@@ -89,7 +89,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> RetrieveAnswersFood([FromQuery] Guid accountID, [FromQuery] int month, [FromQuery] int year)
+        public async Task<IActionResult> RetrieveAnswersFoodAsync([FromQuery] Guid accountID, [FromQuery] int month, [FromQuery] int year)
         {
             try
             {
@@ -127,7 +127,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
-        public async Task<IActionResult> UpdateAnswersFood([FromBody] UpdateAnswersMFUsFoodDto values)
+        public async Task<IActionResult> UpdateAnswersFoodAsync([FromBody] UpdateAnswersMFUsFoodDto values)
         {
             try
             {

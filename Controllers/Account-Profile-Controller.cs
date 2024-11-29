@@ -23,9 +23,9 @@ namespace AppVidaSana.Controllers
     {
         private readonly IAccount _AccountService;
         private readonly IProfile _ProfileService;
-        private readonly IAuthentication_Authorization _AuthService;
+        private readonly IAuthenticationAuthorization _AuthService;
 
-        public AccountProfileController(IAccount AccountService, IProfile ProfileService, IAuthentication_Authorization AuthService)
+        public AccountProfileController(IAccount AccountService, IProfile ProfileService, IAuthenticationAuthorization AuthService)
         {
             _AccountService = AccountService;
             _ProfileService = ProfileService;
@@ -108,7 +108,7 @@ namespace AppVidaSana.Controllers
             {
                 var accountID = await _AccountService.CreateAccountAsync(values, HttpContext.RequestAborted);
 
-                _ProfileService.CreateProfileAsync(accountID, values, HttpContext.RequestAborted);
+                _ProfileService.CreateProfileAsync(accountID, values);
 
                 LoginDto login = new LoginDto
                 {

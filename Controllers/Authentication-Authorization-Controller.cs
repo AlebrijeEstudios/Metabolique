@@ -18,9 +18,9 @@ namespace AppVidaSana.Controllers
     [RequestTimeout("CustomPolicy")]
     public class AuthenticationAuthorizationController : ControllerBase
     {
-        private readonly IAuthentication_Authorization _AuthService;
+        private readonly IAuthenticationAuthorization _AuthService;
 
-        public AuthenticationAuthorizationController(IAuthentication_Authorization AuthService)
+        public AuthenticationAuthorizationController(IAuthenticationAuthorization AuthService)
         {
             _AuthService = AuthService;
         }
@@ -32,10 +32,12 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message that you were unable to log in.</response>  
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="500">Returns a message indicating internal server errors.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPost("login")]
         [Produces("application/json")]
@@ -79,6 +81,15 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
+            catch (NullTokenException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = response.message, status = response.status });
+            }
         }
 
         /// <summary>
@@ -87,9 +98,11 @@ namespace AppVidaSana.Controllers
         /// <response code="200">The tokens were successfully generated.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="500">Returns a message indicating internal server errors.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPost("refresh-token")]
         [Produces("application/json")]
@@ -123,6 +136,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+            }
+            catch (NullTokenException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = response.message, status = response.status });
             }
         }
 

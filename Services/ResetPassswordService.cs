@@ -2,6 +2,7 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Account_Profile.ResetPasswordException;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.KeyToken;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.Tokens;
@@ -16,18 +17,16 @@ namespace AppVidaSana.Services
     public class ResetPassswordService : IResetPassword
     {
         private readonly AppDbContext _bd;
-        private readonly string keyToken;
-        private ValidationValuesDB _validationValues;
-        private ValidationValuesAccount _verifyValues;
-        private GeneratorTokens _generatorTokens;
+        private readonly ValidationValuesDB _validationValues;
+        private readonly GeneratorTokens _generatorTokens;
+        private readonly KeyTokenEnv _keyToken;
 
         public ResetPassswordService(AppDbContext bd)
         {
             _bd = bd;
-            keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
-            _verifyValues = new ValidationValuesAccount();
             _validationValues = new ValidationValuesDB();
             _generatorTokens = new GeneratorTokens();
+            _keyToken = new KeyTokenEnv();
         }
         
         public async Task<string> PasswordResetTokenAsync(EmailDto value, CancellationToken cancellationToken)
@@ -44,7 +43,7 @@ namespace AppVidaSana.Services
 
             DateTime durationToken = DateTime.UtcNow.AddMinutes(15);
 
-            var accessToken = _generatorTokens.Tokens(keyToken, claims, durationToken);
+            var accessToken = _generatorTokens.Tokens(_keyToken.GetKeyTokenEnv(), claims, durationToken);
 
             return accessToken;
         }
@@ -69,12 +68,12 @@ namespace AppVidaSana.Services
                 errors.Add(ex.Message);
             }
 
-            if (errors.Any()) { throw new ValuesInvalidException(errors); }
+            if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
         }
 
         public async Task<bool> ResetPasswordAsync(ResetPasswordDto values, CancellationToken cancellationToken)
         {
-            var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.token, keyToken);
+            var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.token, _keyToken.GetKeyTokenEnv());
 
             var usernameClaimType = principal.FindFirst(ClaimTypes.Name)?.Value;
 
@@ -88,7 +87,7 @@ namespace AppVidaSana.Services
 
             try
             {
-                string verifyStatusPassword = _verifyValues.verifyPassword(values.password);
+                string verifyStatusPassword = verifyPassword(values.password);
 
                 if (verifyStatusPassword != "") { errors.Add(verifyStatusPassword); }
 
@@ -127,6 +126,21 @@ namespace AppVidaSana.Services
                 return false;
 
             }
+        }
+
+        private static string verifyPassword(string password)
+        {
+            if (password.Length < 8)
+            {
+                return "La contraseña debe tener al menos 8 caracteres.";
+            }
+
+            if (!RegexPatterns.RegexPatterns.Passwordregex.IsMatch(password))
+            {
+                return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico.";
+            }
+
+            return "";
         }
     }
 }

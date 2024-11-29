@@ -1,64 +1,54 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Medications_Dtos;
 using AppVidaSana.Models.Monthly_Follow_Ups;
+using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
+using AppVidaSana.ValidationValues;
 using AutoMapper;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services.Monthly_Follows_Ups
 {
     public class MFUsMedicationService : IMFUsMedications
     {
         private readonly AppDbContext _bd;
-        private readonly IMapper _mapper;
+        private readonly Months _months;
+        private readonly ValidationValuesDB _validationValues;
 
         public MFUsMedicationService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
-            _mapper = mapper;
+            _months = new Months();
+            _validationValues = new ValidationValuesDB();
         }
 
-        public RetrieveResponsesMedicationsDto RetrieveAnswers(Guid id, int month, int year)
+        public async Task<RetrieveResponsesMedicationsDto?> RetrieveAnswersAsync(Guid accountID, int month, int year, CancellationToken cancellationToken)
         {
-            var months = new Dictionary<int, string>
-            {
-                { 1, "Enero" },
-                { 2, "Febrero" },
-                { 3, "Marzo" },
-                { 4, "Abril" },
-                { 5, "Mayo" },
-                { 6, "Junio" },
-                { 7, "Julio" },
-                { 8, "Agosto" },
-                { 9, "Septiembre" },
-                { 10, "Octubre" },
-                { 11, "Noviembre" },
-                { 12, "Diciembre" }
-            };
+            var monthStr = _months.VerifyExistMonth(month);
 
-            var getMonth = months.ContainsKey(month) ? months[month] : "Mes no existente";
+            RetrieveResponsesMedicationsDto? responses;
 
-            if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
+            var existMonth = await _bd.Months.FirstOrDefaultAsync(e => e.month == monthStr && e.year == year, cancellationToken);
 
-            RetrieveResponsesMedicationsDto responses;
-
-            var existMonth = _bd.Months.FirstOrDefault(e => e.month == months[month] && e.year == year);
-
-            if (existMonth == null)
+            if (existMonth is null)
             {
                 responses = null;
                 return responses;
             }
 
-            var mfuMedications = _bd.MFUsMedication.FirstOrDefault(c => c.accountID == id && c.monthID == existMonth.monthID);
+            var mfuMedications = await _bd.MFUsMedication.FirstOrDefaultAsync(c => c.accountID == accountID 
+                                                                              && c.monthID == existMonth.monthID, cancellationToken);
 
-            if (mfuMedications == null)
+            if (mfuMedications is null)
             {
                 responses = null;
                 return responses;
             }
+
+            var statusAdherence = await _bd.StatusAdherence.FindAsync(new object[] { mfuMedications.statusID }, cancellationToken);
+
+            if (statusAdherence is null) { throw new UnstoredValuesException(); }
 
             responses = new RetrieveResponsesMedicationsDto
             {
@@ -69,121 +59,88 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 answerQuestion2 = mfuMedications.answerQuestion2,
                 answerQuestion3 = mfuMedications.answerQuestion3,
                 answerQuestion4 = mfuMedications.answerQuestion4,
-                statusAdherence = _bd.StatusAdherence.Find(mfuMedications.statusID).statusAdherence
+                statusAdherence = statusAdherence.statusAdherence
             };
 
             return responses;
         }
 
-        public RetrieveResponsesMedicationsDto SaveAnswers(SaveResponsesMedicationsDto values)
+        public async Task<RetrieveResponsesMedicationsDto?> SaveAnswersAsync(SaveResponsesMedicationsDto values, CancellationToken cancellationToken)
         {
-            var months = new Dictionary<int, string>
-            {
-                { 1, "Enero" },
-                { 2, "Febrero" },
-                { 3, "Marzo" },
-                { 4, "Abril" },
-                { 5, "Mayo" },
-                { 6, "Junio" },
-                { 7, "Julio" },
-                { 8, "Agosto" },
-                { 9, "Septiembre" },
-                { 10, "Octubre" },
-                { 11, "Noviembre" },
-                { 12, "Diciembre" }
-            };
+            var monthStr = _months.VerifyExistMonth(values.month);
 
-            var getMonth = months.ContainsKey(values.month) ? months[values.month] : "Mes no existente";
+            await ExistMonthAsync(monthStr, values.year, cancellationToken);
 
-            if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
+            var month = await _bd.Months.FirstOrDefaultAsync(e => e.month == monthStr
+                                                             && e.year == values.year, cancellationToken);
 
-            var existMonth = _bd.Months.Any(e => e.month == months[values.month] && e.year == values.year);
+            if (month is null) { throw new UnstoredValuesException(); }
 
-            if (!existMonth)
-            {
-                MFUsMonths month = new MFUsMonths
-                {
-                    month = months[values.month],
-                    year = values.year
-                };
-
-                _bd.Months.Add(month);
-
-                if (!Save()) { throw new UnstoredValuesException(); }
-            }
-
-            Guid monthID = _bd.Months.FirstOrDefault(e => e.month == months[values.month] && e.year == values.year).monthID;
-
-            var answersExisting = _bd.MFUsMedication.Any(e => e.accountID == values.accountID && e.monthID == monthID);
+            var answersExisting = await _bd.MFUsMedication.AnyAsync(e => e.accountID == values.accountID 
+                                                                    && e.monthID == month.monthID, cancellationToken);
 
             if (answersExisting) { throw new RepeatRegistrationException(); }
 
-            var accountExisting = _bd.Accounts.Find(values.accountID);
-
-            if (accountExisting == null) { throw new UserNotFoundException(); }
-
-            var statusID = _bd.StatusAdherence.FirstOrDefault(e => e.statusAdherence == "Negativo").statusID;
+            var statusAdherenceID = await GetStatusAdherenceID("Negativo", cancellationToken);
 
             if (!values.answerQuestion1 && values.answerQuestion2 && !values.answerQuestion3 && !values.answerQuestion4)
             {
-                statusID = _bd.StatusAdherence.FirstOrDefault(e => e.statusAdherence == "Positivo").statusID;
+                statusAdherenceID = await GetStatusAdherenceID("Positivo", cancellationToken);
             }
 
             MFUsMedication answers = new MFUsMedication
             {
                 accountID = values.accountID,
-                monthID = monthID,
+                monthID = month.monthID,
                 answerQuestion1 = values.answerQuestion1,
                 answerQuestion2 = values.answerQuestion2,
                 answerQuestion3 = values.answerQuestion3,
                 answerQuestion4 = values.answerQuestion4,
-                statusID = statusID
+                statusID = statusAdherenceID
             };
 
-            ValidationSaveAnswers(answers);
+            _validationValues.ValidationValues(answers);
 
             _bd.MFUsMedication.Add(answers);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var answersRecentlyAdd = _bd.MFUsMedication.FirstOrDefault(e => e.accountID == values.accountID && e.monthID == monthID);
-
-            var responses = RetrieveAnswers(values.accountID, values.month, values.year);
+            var responses = await RetrieveAnswersAsync(values.accountID, values.month, values.year, cancellationToken);
 
             return responses;
 
         }
 
-        public RetrieveResponsesMedicationsDto UpdateAnswers(UpdateResponsesMedicationsDto values)
+        public async Task<RetrieveResponsesMedicationsDto?> UpdateAnswersAsync(UpdateResponsesMedicationsDto values, CancellationToken cancellationToken)
         {
-            var mfuToUpdate = _bd.MFUsMedication.Find(values.monthlyFollowUpID);
+            var mfuToUpdate = await _bd.MFUsMedication.FindAsync(new object[] { values.monthlyFollowUpID }, cancellationToken);
 
             if (mfuToUpdate == null) { throw new UnstoredValuesException(); }
 
-            Guid statusID = mfuToUpdate.statusID;
+            Guid statusAdherenceID = mfuToUpdate.statusID;
 
             if (!values.answerQuestion1 && values.answerQuestion2 && !values.answerQuestion3 && !values.answerQuestion4)
             {
-                statusID = _bd.StatusAdherence.FirstOrDefault(e => e.statusAdherence == "Positivo").statusID;
+                statusAdherenceID = await GetStatusAdherenceID("Positivo", cancellationToken);
             }
             else
             {
-                statusID = _bd.StatusAdherence.FirstOrDefault(e => e.statusAdherence == "Negativo").statusID;
+                statusAdherenceID = await GetStatusAdherenceID("Negativo", cancellationToken);
             }
 
             mfuToUpdate.answerQuestion1 = values.answerQuestion1;
             mfuToUpdate.answerQuestion2 = values.answerQuestion2;
             mfuToUpdate.answerQuestion3 = values.answerQuestion3;
             mfuToUpdate.answerQuestion4 = values.answerQuestion4;
-            mfuToUpdate.statusID = statusID;
+            mfuToUpdate.statusID = statusAdherenceID;
 
-            ValidationSaveAnswers(mfuToUpdate);
+            _validationValues.ValidationValues(mfuToUpdate);
 
             _bd.MFUsMedication.Update(mfuToUpdate);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var responses = RetrieveAnswers(mfuToUpdate.accountID, values.month, values.year);
+            var responses = await RetrieveAnswersAsync(mfuToUpdate.accountID, values.month, values.year, cancellationToken);
 
             return responses;
         }
@@ -200,21 +157,31 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             }
         }
 
-        private void ValidationSaveAnswers(MFUsMedication mfus)
+        private async Task ExistMonthAsync(string monthStr, int year, CancellationToken cancellationToken)
         {
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(mfus, null, null);
+            var existMonth = await _bd.Months.AnyAsync(e => e.month == monthStr && e.year == year, cancellationToken);
 
-            if (!Validator.TryValidateObject(mfus, validationContext, validationResults, true))
+            if (!existMonth)
             {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
+                MFUsMonths month = new MFUsMonths
                 {
-                    throw new ErrorDatabaseException(errors);
-                }
+                    month = monthStr,
+                    year = year
+                };
+
+                _bd.Months.Add(month);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
         }
 
+        private async Task<Guid> GetStatusAdherenceID(string status, CancellationToken cancellationToken)
+        {
+            var statusAdherence = await _bd.StatusAdherence.FirstOrDefaultAsync(e => e.statusAdherence == status, cancellationToken);
+
+            if (statusAdherence is null) { throw new UnstoredValuesException(); }
+
+            return statusAdherence.statusID;
+        }
     }
 }

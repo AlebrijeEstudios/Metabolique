@@ -1,6 +1,7 @@
 using AppVidaSana.Api;
 using AppVidaSana.Api.Key;
 using AppVidaSana.Data;
+using AppVidaSana.Exceptions;
 using AppVidaSana.JsonFormat;
 using AppVidaSana.Mappers;
 using AppVidaSana.Services;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
@@ -71,10 +73,10 @@ builder.Services.AddControllers(options =>
 .AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-    options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
 })
 .AddNewtonsoftJson(options =>
 {
+    options.SerializerSettings.Converters.Add(new DateOnlyJsonConverter());
     options.SerializerSettings.Converters.Add(new TimeOnlyJsonConverter());
 }); 
 
@@ -86,7 +88,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
-builder.Services.AddScoped<IAuthentication_Authorization, Authentication_AuthorizationService>();
+builder.Services.AddScoped<IAuthenticationAuthorization, AuthenticationAuthorizationService>();
 builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
 builder.Services.AddScoped<IMFUsFood, MFUsFoodService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
@@ -159,6 +161,12 @@ builder.Services.AddSwaggerGen(c =>
             },
             Array.Empty<string>()
         }
+    });
+    c.MapType<DateOnly>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "date",
+        Example = new OpenApiString(DateTime.Today.ToString("yyyy-MM-dd"))
     });
 
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";

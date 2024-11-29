@@ -17,10 +17,10 @@ namespace AppVidaSana.Services
     public class ExerciseService : IExercise
     {
         private readonly AppDbContext _bd;
-        private ValidationValuesDB _validationValues;
-        private DatesInRange _datesInRange;
         private readonly IMapper _mapper;
-
+        private readonly ValidationValuesDB _validationValues;
+        private readonly DatesInRange _datesInRange;
+        
         public ExerciseService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
@@ -114,7 +114,7 @@ namespace AppVidaSana.Services
 
         public async Task<ExerciseDto> UpdateExerciseAsync(ExerciseDto values, CancellationToken cancellationToken)
         {
-            var exercise = await _bd.Exercises.FindAsync(values.exerciseID, cancellationToken);
+            var exercise = await _bd.Exercises.FindAsync(new object[] { values.exerciseID }, cancellationToken);
 
             if (exercise is null) { throw new ExerciseNotFoundException(); }
 
@@ -123,6 +123,8 @@ namespace AppVidaSana.Services
                 var previousTotal = await _bd.ActiveMinutes.FirstOrDefaultAsync(e => 
                                                                                 e.dateExercise == exercise.dateExercise,
                                                                                 cancellationToken);
+
+                if (previousTotal is null) { throw new UnstoredValuesException(); }
 
                 int currentTotal = previousTotal.totalTimeSpent - exercise.timeSpent;
                 int newTotal = currentTotal + values.timeSpent;
@@ -153,7 +155,7 @@ namespace AppVidaSana.Services
 
         public async Task<string> DeleteExerciseAsync(Guid exerciseID, CancellationToken cancellationToken)
         {
-            var exerciseExisting = await _bd.Exercises.FindAsync(exerciseID, cancellationToken);
+            var exerciseExisting = await _bd.Exercises.FindAsync(new object[] { exerciseID }, cancellationToken);
 
             if (exerciseExisting is null) { throw new ExerciseNotFoundException(); }
 
@@ -164,6 +166,8 @@ namespace AppVidaSana.Services
             var previousTotal = await _bd.ActiveMinutes.FirstOrDefaultAsync(e => 
                                                                             e.dateExercise == exerciseExisting.dateExercise,
                                                                             cancellationToken);
+
+            if (previousTotal is null) { throw new UnstoredValuesException(); }
 
             if (exerciseForDate >= 2)
             {
@@ -207,7 +211,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        private InfoGeneralExerciseDto GeneratedInfoGeneralExercise(List<ExerciseDto> exercises, 
+        private static InfoGeneralExerciseDto GeneratedInfoGeneralExercise(List<ExerciseDto> exercises, 
                                                                     List<ActiveMinutesExerciseDto> activeMinutes, bool status)
         {
             InfoGeneralExerciseDto infoGeneral = new InfoGeneralExerciseDto

@@ -13,8 +13,9 @@ namespace AppVidaSana.Services.Habits
     public class DrugsHabitService : IDrugsHabit
     {
         private readonly AppDbContext _bd; 
-        private ValidationValuesDB _validationValues;
         private readonly IMapper _mapper;
+        private readonly ValidationValuesDB _validationValues;
+        
 
         public DrugsHabitService(AppDbContext bd, IMapper mapper)
         {

@@ -32,9 +32,11 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns a message indicating that the email has been sent correctly or on the contrary it was not sent because there is no account associated to that email and/or the email could not be sent due to external factors.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response> 
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="500">Returns a message indicating internal server errors.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
@@ -69,6 +71,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+            }
+            catch (NullTokenException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = response.message, status = response.status });
             }
         }
 
@@ -107,9 +118,11 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns a message that the update has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response> 
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="500">Returns a message indicating internal server errors.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResetPasswordResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPut("reset-password")]
         [Produces("application/json")]
@@ -180,6 +193,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+            }
+            catch (NullTokenException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = response.message, status = response.status });
             }
         }
     }
