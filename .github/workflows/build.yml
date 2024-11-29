@@ -2,7 +2,8 @@ name: SonarQube Cloud
 on:
   push:
     branches:
-      - "*"
+      - main
+      - dev2
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
