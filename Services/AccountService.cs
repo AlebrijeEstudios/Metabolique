@@ -15,7 +15,7 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private ValidationValuesDB _validationValues;
+        private readonly ValidationValuesDB _validationValues;
 
         public AccountService(AppDbContext bd, IMapper mapper)
         {

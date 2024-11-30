@@ -282,17 +282,13 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         private static byte component3(int response4)
         {
-            byte value = 0;
+            if (response4 > 7) return 0;  
 
-            if ((float)response4 > 7) { return value; }
+            if (response4 >= 6 && response4 <= 7) return 1;  
 
-            if ((float)response4 >= 6 && (float)response4 <= 7) { value = 1; }
+            if (response4 >= 5 && response4 < 6) return 2;  
 
-            if ((float)response4 >= 5 && (float)response4 <= 6) { value = 2; }
-
-            if ((float)response4 < 5) { value = 3; }
-
-            return value;
+            return 3;  
         }
 
         private static byte component4(TimeOnly response1, TimeOnly response3, int response4)

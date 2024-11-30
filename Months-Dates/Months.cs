@@ -22,7 +22,7 @@ namespace AppVidaSana.Months_Dates
                 { 12, "Diciembre" }
             };
 
-            var getMonth = months.ContainsKey(month) ? months[month] : "Mes no existente";
+            var getMonth = months.GetValueOrDefault(month, "Mes no existente");
 
             if (getMonth == "Mes no existente") { throw new UnstoredValuesException(); }
 

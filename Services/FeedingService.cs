@@ -14,16 +14,14 @@ namespace AppVidaSana.Services
     public class FeedingService : IFeeding
     {
         private readonly AppDbContext _bd;
-        private ValidationValuesDB _validationValues;
-        private DatesInRange _datesInRange;
         private readonly IMapper _mapper;
-
+        private readonly ValidationValuesDB _validationValues;
+  
         public FeedingService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
             _validationValues = new ValidationValuesDB();
-            _datesInRange = new DatesInRange();
         }
 
         public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
@@ -54,6 +52,8 @@ namespace AppVidaSana.Services
 
             var dailyMeal = await _bd.DailyMeals.FirstOrDefaultAsync(e => e.dailyMeal == values.dailyMeal, cancellationToken);
 
+            if (dailyMeal is null) { throw new UnstoredValuesException(); }
+
             var feedingExisting = await _bd.UserFeeds.FirstOrDefaultAsync(e => e.accountID == values.accountID
                                                                           && e.dailyMealID == dailyMeal.dailyMealID
                                                                           && e.userFeedDate == values.userFeedDate
@@ -81,7 +81,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            AddFoodsConsumedAsync(userFeed.userFeedID, values.foodsConsumed, cancellationToken);
+            AddFoodsConsumed(userFeed.userFeedID, values.foodsConsumed);
 
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(userFeed);
 
@@ -98,7 +98,9 @@ namespace AppVidaSana.Services
 
             var dailyMeal = await _bd.DailyMeals.FirstOrDefaultAsync(e => e.dailyMeal == values.dailyMeal, cancellationToken);
 
-            if(userFeed.dailyMealID != dailyMeal.dailyMealID)
+            if (dailyMeal is null) { throw new UnstoredValuesException(); }
+
+            if (userFeed.dailyMealID != dailyMeal.dailyMealID)
             {
                 userFeed.dailyMealID = dailyMeal.dailyMealID;
             }
@@ -113,7 +115,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            UpdateFoodsConsumedAsync(userFeed.userFeedID, values.foodsConsumed, cancellationToken);
+            await UpdateFoodsConsumedAsync(userFeed.userFeedID, values.foodsConsumed, cancellationToken);
 
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(userFeed);
 
@@ -149,7 +151,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        private void AddFoodsConsumedAsync(Guid userFeedID, List<FoodsConsumedDto> foods, CancellationToken cancellationToken)
+        private void AddFoodsConsumed(Guid userFeedID, List<FoodsConsumedDto> foods)
         {
             var foodsConsumed = _mapper.Map<List<FoodConsumed>>(foods);
 
@@ -162,7 +164,7 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private async void UpdateFoodsConsumedAsync(Guid userFeedID, List<FoodsConsumedDto> foods, CancellationToken cancellationToken)
+        private async Task UpdateFoodsConsumedAsync(Guid userFeedID, List<FoodsConsumedDto> foods, CancellationToken cancellationToken)
         {
             var foodsToEliminate = await _bd.FoodsConsumed.Where(e => e.userFeedID == userFeedID).ToListAsync(cancellationToken);
 
@@ -170,20 +172,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            AddFoodsConsumedAsync(userFeedID, foods, cancellationToken);
+            AddFoodsConsumed(userFeedID, foods);
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }

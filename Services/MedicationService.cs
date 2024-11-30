@@ -171,7 +171,7 @@ namespace AppVidaSana.Services
         {
             var recordsToDelete = _bd.Times.Where(e => e.periodID == id && e.dateMedication >= date).ToList();
 
-            if (recordsToDelete.Count() == 0)
+            if (recordsToDelete.Count == 0)
             {
                 return "Este registro no existe, inténtelo de nuevo.";
             }
@@ -419,11 +419,11 @@ namespace AppVidaSana.Services
                                                      && period.initialFrec <= e.dateMedication
                                                      && e.dateMedication <= period.finalFrec).ToList();
 
-                    if (listTimes.Count() > 0)
+                    if (listTimes.Count > 0)
                     {
                         medicationsConsumed = time.Value.Count(e => e.medicationStatus == true);
 
-                        totalMedications = listTimes.Count();
+                        totalMedications = listTimes.Count;
                     }
 
                 }
@@ -764,7 +764,7 @@ namespace AppVidaSana.Services
                     {
                         periodID = periodID,
                         dateMedication = values.updateDate,
-                        time = TimeOnly.Parse(sub),
+                        time = TimeOnly.Parse(sub, CultureInfo.InvariantCulture),
                         medicationStatus = false
                     };
 
