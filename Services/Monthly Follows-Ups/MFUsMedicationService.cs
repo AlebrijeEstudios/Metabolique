@@ -117,15 +117,11 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             if (mfuToUpdate == null) { throw new UnstoredValuesException(); }
 
-            Guid statusAdherenceID = mfuToUpdate.statusID;
+            var statusAdherenceID = await GetStatusAdherenceID("Negativo", cancellationToken);
 
             if (!values.answerQuestion1 && values.answerQuestion2 && !values.answerQuestion3 && !values.answerQuestion4)
             {
                 statusAdherenceID = await GetStatusAdherenceID("Positivo", cancellationToken);
-            }
-            else
-            {
-                statusAdherenceID = await GetStatusAdherenceID("Negativo", cancellationToken);
             }
 
             mfuToUpdate.answerQuestion1 = values.answerQuestion1;

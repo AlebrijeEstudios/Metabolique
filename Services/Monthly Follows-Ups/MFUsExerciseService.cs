@@ -17,7 +17,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private Months _months;
+        private readonly Months _months;
         private readonly ValidationValuesDB _validationValues;
 
         public MFUsExerciseService(AppDbContext bd, IMapper mapper)
@@ -106,7 +106,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
             string LevelAF = "BAJO";
 
-            LevelAF = (levelHigh && levelModerate || levelHigh && !levelModerate) ? "ALTO" : "MODERADO";
+            LevelAF = levelHigh ? "ALTO" : "MODERADO";
 
             MFUsExercise mfus = new MFUsExercise
             {
@@ -189,7 +189,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
             string LevelAF = "BAJO";
 
-            LevelAF = (levelHigh && levelModerate || levelHigh && !levelModerate) ? "ALTO" : "MODERADO";
+            LevelAF = levelHigh ? "ALTO" : "MODERADO";
 
             var resultsToUpdate = await _bd.ResultsExercise.FirstOrDefaultAsync(e => e.monthlyFollowUpID == values.monthlyFollowUpID, 
                                                                                 cancellationToken);
