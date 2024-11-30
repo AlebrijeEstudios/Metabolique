@@ -1,6 +1,5 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.ProducesReponseType;
@@ -193,9 +192,11 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="404">Returns a message indicating that an exercise does not exist in the Exercises table.</response>     
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{exerciseID:guid}")]
         [Produces("application/json")]
@@ -229,6 +230,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
+            }
+            catch (ErrorDatabaseException ex)
+            {
+                ExceptionListMessages response = new ExceptionListMessages
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
         }
     }

@@ -11,7 +11,7 @@ namespace AppVidaSana.Services
     public class ProfileService : IProfile
     {
         private readonly AppDbContext _bd;
-        private ValidationValuesDB _validationValues;
+        private readonly ValidationValuesDB _validationValues;
 
         public ProfileService(AppDbContext bd)
         {
@@ -19,7 +19,7 @@ namespace AppVidaSana.Services
             _validationValues = new ValidationValuesDB();
         }
 
-        public async void CreateProfileAsync(Guid accountID, AccountDto values, CancellationToken cancellationToken)
+        public void CreateProfile(Guid accountID, AccountDto values)
         {
             Profiles profile = new Profiles
             {
@@ -40,12 +40,12 @@ namespace AppVidaSana.Services
 
         public async Task<string> UpdateProfileAsync(ProfileDto values, CancellationToken cancellationToken)
         {
-            var profile = await _bd.Profiles.FindAsync(values.accountID, cancellationToken);
+            var profile = await _bd.Profiles.FindAsync(new object[] { values.accountID }, cancellationToken);
 
             if (profile is null) { throw new UserNotFoundException(); }
 
             profile.sex = values.sex;
-            profile.birthDate = profile.birthDate;
+            profile.birthDate = values.birthDate;
             profile.stature = values.stature;
             profile.weight = values.weight;
             profile.protocolToFollow = values.protocolToFollow;

@@ -3,7 +3,7 @@ using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 
 namespace AppVidaSana.Services.IServices
 {
-    public interface IAuthentication_Authorization
+    public interface IAuthenticationAuthorization
     {
         Task<TokensDto> LoginAccountAsync(LoginDto login, CancellationToken cancellationToken);
 

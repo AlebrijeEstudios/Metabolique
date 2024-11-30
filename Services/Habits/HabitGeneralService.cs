@@ -1,4 +1,5 @@
 ﻿using AppVidaSana.Data;
+using AppVidaSana.GraphicValues;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits;
@@ -12,11 +13,13 @@ namespace AppVidaSana.Services.Habits
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
+        private readonly DatesInRange _datesInRange;
 
         public HabitGeneralService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
+            _datesInRange = new DatesInRange();
         }
 
         public ReturnInfoHabitsDto GetInfoGeneralHabits(Guid idAccount, DateOnly date)
@@ -33,7 +36,7 @@ namespace AppVidaSana.Services.Habits
 
             DateOnly dateFinal = date.AddDays(-6);
 
-            var dates = GetDatesInRange(dateFinal, date);
+            var dates = _datesInRange.GetDatesInRange(dateFinal, date);
 
             foreach (var item in dates)
             {
@@ -110,21 +113,6 @@ namespace AppVidaSana.Services.Habits
             };
 
             return info;
-        }
-
-        private static List<DateOnly> GetDatesInRange(DateOnly startDate, DateOnly endDate)
-        {
-            List<DateOnly> dates = new List<DateOnly>();
-
-            if (endDate >= startDate)
-            {
-                for (DateOnly date = startDate; date <= endDate; date = date.AddDays(1))
-                {
-                    dates.Add(date);
-                }
-            }
-
-            return dates;
         }
     }
 }

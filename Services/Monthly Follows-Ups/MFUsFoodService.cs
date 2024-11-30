@@ -15,8 +15,8 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private Months _months;
-        private ValidationValuesDB _validationValues;
+        private readonly Months _months;
+        private readonly ValidationValuesDB _validationValues;
 
         public MFUsFoodService(AppDbContext bd, IMapper mapper)
         {
@@ -40,7 +40,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 return results;
             }
 
-            var mfuFood = await _bd.MFUsFood.FirstOrDefaultAsync(c => c.accountID == accountID 
+            var mfuFood = await _bd.MFUsFood.FirstOrDefaultAsync(c => c.accountID == accountID
                                                                  && c.monthID == existMonth.monthID, cancellationToken);
 
             if (mfuFood is null)
@@ -68,12 +68,14 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
         {
             var monthStr = _months.VerifyExistMonth(values.month);
 
-            await ExistMonth(monthStr, values.year, cancellationToken);
+            await ExistMonthAsync(monthStr, values.year, cancellationToken);
 
-            var month = await _bd.Months.FirstOrDefaultAsync(e => e.month == monthStr 
+            var month = await _bd.Months.FirstOrDefaultAsync(e => e.month == monthStr
                                                              && e.year == values.year, cancellationToken);
 
-            var answersExisting = await _bd.MFUsFood.AnyAsync(e => e.accountID == values.accountID 
+            if (month is null) { throw new UnstoredValuesException(); }
+
+            var answersExisting = await _bd.MFUsFood.AnyAsync(e => e.accountID == values.accountID
                                                               && e.monthID == month.monthID, cancellationToken);
 
             if (answersExisting) { throw new RepeatRegistrationException(); }
@@ -112,7 +114,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 answerQuestion9 = values.answerQuestion9
             };
 
-            SaveResultsAsync(mfus.monthlyFollowUpID, answers);
+            SaveResults(mfus.monthlyFollowUpID, answers);
 
             var responses = await RetrieveAnswersAsync(values.accountID, values.month, values.year, cancellationToken);
 
@@ -121,7 +123,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         public async Task<ResultsMFUsFoodDto?> UpdateAnswersAsync(UpdateAnswersMFUsFoodDto values, CancellationToken cancellationToken)
         {
-            var mfuToUpdate = await _bd.MFUsFood.FindAsync(values.monthlyFollowUpID, cancellationToken);
+            var mfuToUpdate = await _bd.MFUsFood.FindAsync(new object[] { values.monthlyFollowUpID }, cancellationToken);
 
             if (mfuToUpdate is null) { throw new UnstoredValuesException(); }
 
@@ -160,7 +162,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             return responses;
         }
-        
+
         public bool Save()
         {
             try
@@ -173,7 +175,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             }
         }
 
-        private void SaveResultsAsync(Guid monthlyFollowUpID, AnswersMFUsFoodDto answers)
+        private void SaveResults(Guid monthlyFollowUpID, AnswersMFUsFoodDto answers)
         {
             var totalPts = TotalPts(answers);
             var classification = Classification(totalPts);
@@ -197,7 +199,10 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             var totalPts = TotalPts(answers);
             var classification = Classification(totalPts);
 
-            var resultsToUpdate = await _bd.ResultsFood.FirstOrDefaultAsync(e => e.monthlyFollowUpID == monthlyFollowUpID, cancellationToken);
+            var resultsToUpdate = await _bd.ResultsFood.FirstOrDefaultAsync(e => e.monthlyFollowUpID == monthlyFollowUpID,
+                                                                            cancellationToken);
+
+            if (resultsToUpdate is null) { throw new UnstoredValuesException(); }
 
             resultsToUpdate.totalPts = totalPts;
             resultsToUpdate.classification = classification;
@@ -209,7 +214,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private async Task ExistMonth(string monthStr, int year, CancellationToken cancellationToken)
+        private async Task ExistMonthAsync(string monthStr, int year, CancellationToken cancellationToken)
         {
             var existMonth = await _bd.Months.AnyAsync(e => e.month == monthStr && e.year == year, cancellationToken);
 
@@ -227,24 +232,26 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             }
         }
 
-        private float TotalPts(AnswersMFUsFoodDto values)
+        private static float TotalPts(AnswersMFUsFoodDto values)
         {
-            float total = values.answerQuestion1 + values.answerQuestion2 + values.answerQuestion3 + values.answerQuestion4 + 
-                          values.answerQuestion5 + values.answerQuestion6 + values.answerQuestion7 + values.answerQuestion8 + 
+            float tolerancia = 0.0001f;
+
+            float total = values.answerQuestion1 + values.answerQuestion2 + values.answerQuestion3 + values.answerQuestion4 +
+                          values.answerQuestion5 + values.answerQuestion6 + values.answerQuestion7 + values.answerQuestion8 +
                           values.answerQuestion9;
 
-            if (values.answerQuestion1 == 10) { total = total + 2; }
-            if (values.answerQuestion2 == 10) { total = total + 2; }
-            if (values.answerQuestion3 == 10) { total = total + 2; }
-            if (values.answerQuestion4 == 10) { total = total + 2; }
+            if (Math.Abs(values.answerQuestion1 - 10) < tolerancia) { total = total + 2; }
+            if (Math.Abs(values.answerQuestion2 - 10) < tolerancia) { total = total + 2; }
+            if (Math.Abs(values.answerQuestion3 - 10) < tolerancia) { total = total + 2; }
+            if (Math.Abs(values.answerQuestion4 - 10) < tolerancia) { total = total + 2; }
 
-            if (values.answerQuestion5 == 10) { total = total + 1; }
-            if (values.answerQuestion6 == 10) { total = total + 1; }
+            if (Math.Abs(values.answerQuestion5 - 10) < tolerancia) { total = total + 1; }
+            if (Math.Abs(values.answerQuestion6 - 10) < tolerancia) { total = total + 1; }
 
             return total;
         }
 
-        private string Classification(float totalPts)
+        private static string Classification(float totalPts)
         {
             string classif = "";
 
@@ -254,6 +261,5 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             return classif;
         }
-
     }
 }

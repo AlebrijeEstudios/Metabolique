@@ -5,8 +5,8 @@ using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Services.IServices.IHabits.IHabits;
+using AppVidaSana.ValidationValues;
 using AutoMapper;
-using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.Services.Habits
 {
@@ -14,11 +14,13 @@ namespace AppVidaSana.Services.Habits
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
+        private readonly ValidationValuesDB _validationValues;
 
         public DrinkHabitService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
+            _validationValues = new ValidationValuesDB();
         }
 
         public GetDrinksConsumedDto AddDrinksConsumed(DrinksConsumedDto drinksConsumed)
@@ -48,23 +50,11 @@ namespace AppVidaSana.Services.Habits
                 amountConsumed = drinksConsumed.amountConsumed
             };
 
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(drinkHabit, null, null);
+            _validationValues.ValidationValues(drinkHabit);
 
-            if (!Validator.TryValidateObject(drinkHabit, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
             _bd.HabitsDrink.Add(drinkHabit);
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
+
+            if (!Save()) { throw new UnstoredValuesException(); }
 
             GetDrinksConsumedDto drinks = GetDrinksConsumed(drinksConsumed.accountID, drinksConsumed.drinkDateHabit,
                                                             drinksConsumed.typeDrink, drinksConsumed.amountConsumed);
@@ -85,25 +75,11 @@ namespace AppVidaSana.Services.Habits
             habit.typeDrink = values.typeDrink;
             habit.amountConsumed = values.amountConsumed;
 
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(habit, null, null);
-
-            if (!Validator.TryValidateObject(habit, validationContext, validationResults, true))
-            {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-
-                if (errors.Count > 0)
-                {
-                    throw new ErrorDatabaseException(errors);
-                }
-            }
+            _validationValues.ValidationValues(habit);
 
             _bd.HabitsDrink.Update(habit);
 
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
             GetDrinksConsumedDto drinks = GetDrinksConsumed(values.accountID, values.drinkDateHabit,
                                                             values.typeDrink, values.amountConsumed);
@@ -120,15 +96,9 @@ namespace AppVidaSana.Services.Habits
                 throw new HabitNotFoundException("No existe información de bebidas consumidas. Inténtelo de nuevo.");
             }
 
-            Guid id = habit.accountID;
-            DateOnly date = habit.drinkDateHabit;
-
             _bd.HabitsDrink.Remove(habit);
 
-            if (!Save())
-            {
-                throw new UnstoredValuesException();
-            }
+            if (!Save()) { throw new UnstoredValuesException(); }
 
             return "Se ha eliminado correctamente.";
         }
@@ -152,14 +122,7 @@ namespace AppVidaSana.Services.Habits
                                                         && e.typeDrink == type &&
                                                         e.amountConsumed == amount);
 
-            GetDrinksConsumedDto habitsDrink;
-
-            if (habits == null)
-            {
-                habitsDrink = _mapper.Map<GetDrinksConsumedDto>(habits);
-            }
-
-            habitsDrink = _mapper.Map<GetDrinksConsumedDto>(habits);
+            var habitsDrink = _mapper.Map<GetDrinksConsumedDto>(habits);
 
             return habitsDrink;
         }

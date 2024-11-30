@@ -1,7 +1,6 @@
 using AppVidaSana.Api;
 using AppVidaSana.Api.Key;
 using AppVidaSana.Data;
-using AppVidaSana.Exceptions;
 using AppVidaSana.JsonFormat;
 using AppVidaSana.Mappers;
 using AppVidaSana.Services;
@@ -73,12 +72,12 @@ builder.Services.AddControllers(options =>
 .AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-    options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
 })
 .AddNewtonsoftJson(options =>
 {
+    options.SerializerSettings.Converters.Add(new DateOnlyJsonConverter());
     options.SerializerSettings.Converters.Add(new TimeOnlyJsonConverter());
-}); 
+});
 
 builder.Services.AddControllersWithViews();
 
@@ -88,7 +87,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
-builder.Services.AddScoped<IAuthentication_Authorization, Authentication_AuthorizationService>();
+builder.Services.AddScoped<IAuthenticationAuthorization, AuthenticationAuthorizationService>();
 builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
 builder.Services.AddScoped<IFeeding, FeedingService>();
 builder.Services.AddScoped<IMFUsFood, MFUsFoodService>();

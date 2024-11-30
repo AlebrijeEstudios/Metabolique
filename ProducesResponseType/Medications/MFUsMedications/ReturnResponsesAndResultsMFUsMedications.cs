@@ -6,6 +6,6 @@ namespace AppVidaSana.ProducesResponseType.Medications.MFUsMedications
     {
         public string message { get; set; } = "Ok.";
 
-        public RetrieveResponsesMedicationsDto mfus { get; set; } = null!;
+        public RetrieveResponsesMedicationsDto? mfus { get; set; } = null!;
     }
 }

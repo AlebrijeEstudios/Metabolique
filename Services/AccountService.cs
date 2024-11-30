@@ -16,14 +16,12 @@ namespace AppVidaSana.Services
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
         private ValidationValuesDB _validationValues;
-        private ValidationValuesAccount _verifyValues;
 
         public AccountService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
             _validationValues = new ValidationValuesDB();
-            _verifyValues = new ValidationValuesAccount();
         }
 
         public async Task<Guid> CreateAccountAsync(AccountDto values, CancellationToken cancellationToken)
@@ -32,7 +30,7 @@ namespace AppVidaSana.Services
 
             try
             {
-                string verifyStatusEmail = await _verifyValues.verifyEmail(values.email, _bd, cancellationToken);
+                string verifyStatusEmail = await verifyEmailAsync(values.email, cancellationToken);
 
                 if (verifyStatusEmail != "") { errors.Add(verifyStatusEmail); }
             }
@@ -43,7 +41,7 @@ namespace AppVidaSana.Services
 
             try
             {
-                string verifyStatusPassword = _verifyValues.verifyPassword(values.password);
+                string verifyStatusPassword = verifyPassword(values.password);
 
                 if (verifyStatusPassword != "") { errors.Add(verifyStatusPassword); }
             }
@@ -72,12 +70,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var user = await _bd.Accounts.FirstOrDefaultAsync(u =>
-                                                              u.email.ToLower() == account.email.ToLower(), cancellationToken);
-
-            if (user is null) { throw new UnstoredValuesException(); }
-
-            Guid accountID = user.accountID;
+            Guid accountID = account.accountID;
 
             return accountID;
 
@@ -85,8 +78,8 @@ namespace AppVidaSana.Services
 
         public async Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
-            var account = await _bd.Accounts.FindAsync(accountID, cancellationToken);
-            var profile = await _bd.Profiles.FindAsync(accountID, cancellationToken);
+            var account = await _bd.Accounts.FindAsync(new object[] { accountID }, cancellationToken);
+            var profile = await _bd.Profiles.FindAsync(new object[] { accountID }, cancellationToken);
 
             if (account is null || profile is null) { throw new UserNotFoundException(); }
 
@@ -100,7 +93,7 @@ namespace AppVidaSana.Services
         {
             List<string?> errors = new List<string?>();
 
-            var user = await _bd.Accounts.FindAsync(values.accountID, cancellationToken);
+            var user = await _bd.Accounts.FindAsync(new object[] { values.accountID }, cancellationToken);
 
             if (user is null) { throw new UserNotFoundException(); }
 
@@ -108,12 +101,9 @@ namespace AppVidaSana.Services
             {
                 try
                 {
-                    string verifyStatusEmail = await _verifyValues.verifyEmail(values.email, _bd, cancellationToken);
+                    string verifyStatusEmail = await verifyEmailAsync(values.email, cancellationToken);
 
-                    if (verifyStatusEmail != "")
-                    {
-                        errors.Add(verifyStatusEmail);
-                    }
+                    if (verifyStatusEmail != "") { errors.Add(verifyStatusEmail); }
                 }
                 catch (EmailValidationTimeoutException ex)
                 {
@@ -147,7 +137,7 @@ namespace AppVidaSana.Services
 
         public async Task<string> DeleteAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
-            var account = await _bd.Accounts.FindAsync(accountID, cancellationToken);
+            var account = await _bd.Accounts.FindAsync(new object[] { accountID }, cancellationToken);
 
             if (account is null) { throw new UserNotFoundException(); }
 
@@ -169,6 +159,38 @@ namespace AppVidaSana.Services
                 return false;
 
             }
+        }
+
+        private async Task<string> verifyEmailAsync(string email, CancellationToken cancellationToken)
+        {
+            var existingEmail = await _bd.Accounts.AnyAsync(c => c.email == email, cancellationToken);
+
+            if (!RegexPatterns.RegexPatterns.Emailregex.IsMatch(email))
+            {
+                return "El correo electrónico no tiene un formato válido.";
+            }
+
+            if (existingEmail!)
+            {
+                return "Este correo electrónico está ligado a una cuenta existente.";
+            }
+
+            return "";
+        }
+
+        private static string verifyPassword(string password)
+        {
+            if (password.Length < 8)
+            {
+                return "La contraseña debe tener al menos 8 caracteres.";
+            }
+
+            if (!RegexPatterns.RegexPatterns.Passwordregex.IsMatch(password))
+            {
+                return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico.";
+            }
+
+            return "";
         }
     }
 }

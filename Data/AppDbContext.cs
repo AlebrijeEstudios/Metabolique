@@ -15,6 +15,8 @@ namespace AppVidaSana.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+        private const string TIME = "TIME(0)";
+
         public DbSet<HistorialRefreshToken> HistorialRefreshTokens { get; set; }
         public DbSet<MFUsMonths> Months { get; set; }
         public DbSet<Account> Accounts { get; set; }
@@ -181,11 +183,11 @@ namespace AppVidaSana.Data
 
             modelBuilder.Entity<MFUsHabits>()
                .Property(e => e.answerQuestion1)
-               .HasColumnType("TIME(0)");
+               .HasColumnType(TIME);
 
             modelBuilder.Entity<MFUsHabits>()
               .Property(e => e.answerQuestion3)
-              .HasColumnType("TIME(0)");
+              .HasColumnType(TIME);
 
             //Medications
             modelBuilder.Entity<Account>()
@@ -208,7 +210,7 @@ namespace AppVidaSana.Data
 
             modelBuilder.Entity<Times>()
               .Property(e => e.time)
-              .HasColumnType("TIME(0)");
+              .HasColumnType(TIME);
 
             //SideEffects
             modelBuilder.Entity<Account>()
@@ -219,11 +221,11 @@ namespace AppVidaSana.Data
 
             modelBuilder.Entity<SideEffects>()
               .Property(e => e.initialTime)
-              .HasColumnType("TIME(0)");
+              .HasColumnType(TIME);
 
             modelBuilder.Entity<SideEffects>()
               .Property(e => e.finalTime)
-              .HasColumnType("TIME(0)");
+              .HasColumnType(TIME);
 
             //MFUsMedications
             modelBuilder.Entity<Account>()

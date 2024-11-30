@@ -171,7 +171,6 @@ namespace AppVidaSana.Controllers
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnAddUpdateMedication))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
@@ -250,8 +249,10 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>    
+        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPut("status")]
         [Produces("application/json")]
@@ -277,6 +278,15 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (ErrorDatabaseException ex)
+            {
+                ExceptionListMessages response = new ExceptionListMessages
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
         }
 

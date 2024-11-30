@@ -13,8 +13,8 @@ namespace AppVidaSana.Services.Habits
     public class SleepHabitService : ISleepHabit
     {
         private readonly AppDbContext _bd;
-        private ValidationValuesDB _validationValues;
         private readonly IMapper _mapper;
+        private readonly ValidationValuesDB _validationValues;
 
         public SleepHabitService(AppDbContext bd, IMapper mapper)
         {
@@ -66,7 +66,7 @@ namespace AppVidaSana.Services.Habits
 
             return infoHabitsSleep;
         }
-        
+
         public bool Save()
         {
             try

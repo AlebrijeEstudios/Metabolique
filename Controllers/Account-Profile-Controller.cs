@@ -23,9 +23,9 @@ namespace AppVidaSana.Controllers
     {
         private readonly IAccount _AccountService;
         private readonly IProfile _ProfileService;
-        private readonly IAuthentication_Authorization _AuthService;
+        private readonly IAuthenticationAuthorization _AuthService;
 
-        public AccountProfileController(IAccount AccountService, IProfile ProfileService, IAuthentication_Authorization AuthService)
+        public AccountProfileController(IAccount AccountService, IProfile ProfileService, IAuthenticationAuthorization AuthService)
         {
             _AccountService = AccountService;
             _ProfileService = ProfileService;
@@ -51,7 +51,7 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpGet("{accountID:guid}")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetAccount(Guid accountID)
+        public async Task<IActionResult> GetAccountAsync(Guid accountID)
         {
             try
             {
@@ -102,13 +102,13 @@ namespace AppVidaSana.Controllers
         [HttpPost("account-profile")]
         [Produces("application/json")]
         [RequestTimeout("CustomPolicy")]
-        public async Task<IActionResult> CreateAccount([FromBody] AccountDto values)
+        public async Task<IActionResult> CreateAccountAsync([FromBody] AccountDto values)
         {
             try
             {
                 var accountID = await _AccountService.CreateAccountAsync(values, HttpContext.RequestAborted);
 
-                _ProfileService.CreateProfileAsync(accountID, values, HttpContext.RequestAborted);
+                _ProfileService.CreateProfile(accountID, values);
 
                 LoginDto login = new LoginDto
                 {
@@ -195,7 +195,7 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
-        public async Task<IActionResult> UpdateAccount([FromBody] InfoAccountDto values)
+        public async Task<IActionResult> UpdateAccountAsync([FromBody] InfoAccountDto values)
         {
             try
             {
@@ -260,7 +260,7 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{accountID:guid}")]
         [Produces("application/json")]
-        public async Task<IActionResult> DeleteAccount(Guid accountID)
+        public async Task<IActionResult> DeleteAccountAsync(Guid accountID)
         {
             try
             {

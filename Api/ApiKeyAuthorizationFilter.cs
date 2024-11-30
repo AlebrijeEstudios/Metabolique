@@ -14,7 +14,6 @@ namespace AppVidaSana.Api
             if (string.IsNullOrEmpty(apiKeyHeader) || (storedApiKey != headerApiKey))
             {
                 context.Result = new UnauthorizedResult();
-                return;
             }
         }
     }
