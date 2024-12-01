@@ -26,13 +26,13 @@ namespace AppVidaSana.Services
 
         public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
         {
-            var foodsConsumed = await _bd.FoodsConsumed.Where(e => e.userFeedID == userFeedID).ToListAsync(cancellationToken);
-            var foodsConsumedMapped = _mapper.Map<List<FoodsConsumedDto>>(foodsConsumed);
+            //var foodsConsumed = await _bd.FoodsConsumed.Where(e => e.userFeedID == userFeedID).ToListAsync(cancellationToken);
+            //var foodsConsumedMapped = _mapper.Map<List<FoodsConsumedDto>>(foodsConsumed);
 
             var userFeeding = await _bd.UserFeeds.FirstOrDefaultAsync(e => e.userFeedID == userFeedID, cancellationToken);
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(userFeeding);
 
-            userFeedingMapped.foodsConsumed = foodsConsumedMapped;
+            //userFeedingMapped.foodsConsumed = foodsConsumedMapped;
 
             return userFeedingMapped;
         }
@@ -81,7 +81,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            AddFoodsConsumed(userFeed.userFeedID, values.foodsConsumed);
+            //AddFoodsConsumed(userFeed.userFeedID, values.foodsConsumed);
 
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(userFeed);
 
@@ -115,7 +115,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            await UpdateFoodsConsumedAsync(userFeed.userFeedID, values.foodsConsumed, cancellationToken);
+            //await UpdateFoodsConsumedAsync(userFeed.userFeedID, values.foodsConsumed, cancellationToken);
 
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(userFeed);
 
@@ -151,7 +151,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        private void AddFoodsConsumed(Guid userFeedID, List<FoodsConsumedDto> foods)
+        /*private void AddFoodsConsumed(Guid userFeedID, List<FoodsConsumedDto> foods)
         {
             var foodsConsumed = _mapper.Map<List<FoodConsumed>>(foods);
 
@@ -173,6 +173,6 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
 
             AddFoodsConsumed(userFeedID, foods);
-        }
+        }*/
     }
 }

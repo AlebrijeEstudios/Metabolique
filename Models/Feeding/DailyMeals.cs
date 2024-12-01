@@ -7,6 +7,7 @@ namespace AppVidaSana.Models.Feeding
         [Key]
         public Guid dailyMealID { get; set; } = Guid.NewGuid();
 
+        [Required(ErrorMessage = "El campo comida del dia es obligatorio")]
         public string dailyMeal { get; set; } = null!;
 
         public ICollection<UserFeeds> userFeeds { get; set; } = new List<UserFeeds>();

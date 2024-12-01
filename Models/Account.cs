@@ -31,10 +31,12 @@ namespace AppVidaSana.Models
 
         public Profiles? profile { get; set; }
 
+        public UserCalories? userCalories { get; set; }
+
         public HistorialRefreshToken? historialRefreshToken { get; set; }
 
         public ICollection<UserFeeds> userFeeds { get; set; } = new List<UserFeeds>();
-        public ICollection<CaloriesConsumed> caloriesConsumed { get; set; } = new List<CaloriesConsumed>();
+        public ICollection<CaloriesRequiredPerDay> caloriesRequiredPerDays { get; set; } = new List<CaloriesRequiredPerDay>();
         public ICollection<MFUsFood> MFUsFood { get; set; } = new List<MFUsFood>();
 
         public ICollection<Exercise> exercises { get; set; } = new List<Exercise>();

@@ -32,6 +32,7 @@ namespace AppVidaSana.Models.Feeding
 
         public DailyMeals? dailyMeals { get; set; }
 
-        public ICollection<FoodConsumed> foodsConsumed { get; set; } = new List<FoodConsumed>();
+        public ICollection<UserFeedNutritionalValues> userFeedNutritionalValues { get; set; } = new List<UserFeedNutritionalValues>();
+
     }
 }

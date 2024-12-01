@@ -8,15 +8,15 @@ namespace AppVidaSana.Models.Feeding
         [Key]
         public Guid caloriesConsumedID { get; set; } = Guid.NewGuid();
 
-        [ForeignKey("Account")]
-        public Guid accountID { get; set; }
+        [ForeignKey("CaloriesRequiredPerDay")]
+        public Guid caloriesPerDayID { get; set; }
 
         [Required(ErrorMessage = "El campo fecha es obligatoria")]
-        public DateOnly dateUserFeed { get; set; }
+        public DateOnly dateCaloriesConsumed { get; set; }
 
         [Required(ErrorMessage = "El campo tiempo total es obligatorio")]
         public float totalCaloriesConsumed { get; set; }
 
-        public Account? account { get; set; }
+        public CaloriesRequiredPerDay? caloriesRequiredPerDay { get; set; }
     }
 }
