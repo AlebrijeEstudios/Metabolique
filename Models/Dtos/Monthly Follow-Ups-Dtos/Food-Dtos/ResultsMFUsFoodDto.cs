@@ -8,7 +8,7 @@ namespace AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Food_Dtos
         [JsonRequired] public string month { get; set; } = null!;
         [JsonRequired] public int year { get; set; }
 
-        [JsonRequired] public float answerQuestion1 { get; set; }
+        [JsonRequired] public float answerQuestion1 { get; set; } 
         [JsonRequired] public float answerQuestion2 { get; set; }
         [JsonRequired] public float answerQuestion3 { get; set; }
         [JsonRequired] public float answerQuestion4 { get; set; }

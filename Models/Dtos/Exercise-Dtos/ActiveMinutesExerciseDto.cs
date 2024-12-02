@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.Models.Dtos.Graphics_Dtos
 {
-    public class GraphicValuesExerciseDto
+    public class ActiveMinutesExerciseDto
     {
         [JsonRequired] public DateOnly date { get; set; }
 

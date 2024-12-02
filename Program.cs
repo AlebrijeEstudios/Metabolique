@@ -1,6 +1,7 @@
 using AppVidaSana.Api;
 using AppVidaSana.Api.Key;
 using AppVidaSana.Data;
+using AppVidaSana.Exceptions;
 using AppVidaSana.JsonFormat;
 using AppVidaSana.Mappers;
 using AppVidaSana.Services;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
@@ -28,9 +30,10 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
 
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
-var key = Encoding.ASCII.GetBytes(token);
+var keyBytes = Encoding.ASCII.GetBytes(token);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<ApiDbContext>(options => options.UseInMemoryDatabase(nameof(ApiDbContext)));
 
 var myrulesCORS = "RulesCORS";
 builder.Services.AddCors(opt =>
@@ -70,17 +73,22 @@ builder.Services.AddControllers(options =>
 .AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-    options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
 })
 .AddNewtonsoftJson(options =>
 {
+    options.SerializerSettings.Converters.Add(new DateOnlyJsonConverter());
     options.SerializerSettings.Converters.Add(new TimeOnlyJsonConverter());
-});
+}); 
 
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddAutoMapper(typeof(Mapper));
+
+builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
-builder.Services.AddScoped<IAuthentication_Authorization, Authentication_AuthorizationService>();
+builder.Services.AddScoped<IAuthenticationAuthorization, AuthenticationAuthorizationService>();
 builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
 builder.Services.AddScoped<IMFUsFood, MFUsFoodService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
@@ -94,16 +102,6 @@ builder.Services.AddScoped<IMedication, MedicationService>();
 builder.Services.AddScoped<ISideEffects, MedicationService>();
 builder.Services.AddScoped<IMFUsMedications, MFUsMedicationService>();
 
-builder.Services.AddControllersWithViews();
-
-builder.Services.AddAutoMapper(typeof(Mapper));
-
-builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddDbContext<ApiDbContext>(options =>
-    options.UseInMemoryDatabase(nameof(ApiDbContext)));
-
-builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -111,17 +109,20 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = "metaboliqueapi",
-        ValidAudience = "metabolique.com",
-        IssuerSigningKey = new SymmetricSecurityKey(key)
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+        ClockSkew = TimeSpan.Zero
     };
 });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
     .AddScheme<ApiKeySchemeOptions, ApiKeySchemeHandler>(
@@ -129,7 +130,6 @@ builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
         {
             options.HeaderName = "Metabolique_API_KEY";
         });
-
 
 builder.Services.AddControllers();
 
@@ -161,6 +161,12 @@ builder.Services.AddSwaggerGen(c =>
             },
             Array.Empty<string>()
         }
+    });
+    c.MapType<DateOnly>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "date",
+        Example = new OpenApiString(DateTime.Today.ToString("yyyy-MM-dd"))
     });
 
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -201,7 +207,7 @@ async Task Seed()
 
     if (string.IsNullOrEmpty(apiKeyEnv))
     {
-        throw new InvalidOperationException("La variable de entorno 'API_KEY' no está configurada.");
+        throw new InvalidOperationException("La variable de entorno 'API_KEY' no estï¿½ configurada.");
     }
 
     if (!await context.ApiKeys.AnyAsync())

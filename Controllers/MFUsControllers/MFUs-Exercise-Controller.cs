@@ -35,19 +35,19 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnResponsesAndResultsMFUsExercise))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult AddResponsesExercise([FromBody] SaveResponsesExerciseDto responses)
+        public async Task<IActionResult> AddAnswersExerciseAsync([FromBody] SaveResponsesExerciseDto responses)
         {
             try
             {
-                var res = _MFUsExerciseService.SaveAnswers(responses);
+                var results = await _MFUsExerciseService.SaveAnswersAsync(responses, HttpContext.RequestAborted);
 
                 ReturnResponsesAndResultsMFUsExercise response = new ReturnResponsesAndResultsMFUsExercise
                 {
-                    mfus = res
+                    mfus = results
                 };
 
                 return StatusCode(StatusCodes.Status201Created, new { message = response.message, mfus = response.mfus });
@@ -81,7 +81,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };
@@ -100,15 +100,15 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public IActionResult RetrieveResponses([FromQuery] Guid accountID, [FromQuery] int month, [FromQuery] int year)
+        public async Task<IActionResult> RetrieveAnswersAsync([FromQuery] Guid accountID, [FromQuery] int month, [FromQuery] int year)
         {
             try
             {
-                RetrieveResponsesExerciseDto res = _MFUsExerciseService.RetrieveAnswers(accountID, month, year);
+                var results = await _MFUsExerciseService.RetrieveAnswersAsync(accountID, month, year, HttpContext.RequestAborted);
 
                 ReturnResponsesAndResultsMFUsExercise response = new ReturnResponsesAndResultsMFUsExercise
                 {
-                    mfus = res
+                    mfus = results
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfus = response.mfus });
@@ -133,19 +133,19 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnResponsesAndResultsMFUsExercise))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionDB))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
-        public IActionResult UpdateResponsesExercise([FromBody] UpdateResponsesExerciseDto responses)
+        public async Task<IActionResult> UpdateAnswersExerciseAsync([FromBody] UpdateResponsesExerciseDto responses)
         {
             try
             {
-                var res = _MFUsExerciseService.UpdateAnswers(responses);
+                var results = await _MFUsExerciseService.UpdateAnswersAsync(responses, HttpContext.RequestAborted);
 
                 ReturnResponsesAndResultsMFUsExercise response = new ReturnResponsesAndResultsMFUsExercise
                 {
-                    mfus = res
+                    mfus = results
                 };
 
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfus = response.mfus });
@@ -161,7 +161,7 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
             }
             catch (ErrorDatabaseException ex)
             {
-                ExceptionDB response = new ExceptionDB
+                ExceptionListMessages response = new ExceptionListMessages
                 {
                     status = ex.Errors
                 };

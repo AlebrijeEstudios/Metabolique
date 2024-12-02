@@ -1,6 +1,5 @@
-﻿using System.Globalization;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
+using System.Globalization;
 
 namespace AppVidaSana.JsonFormat
 {
@@ -8,15 +7,14 @@ namespace AppVidaSana.JsonFormat
     {
         private const string DateFormat = "yyyy-MM-dd";
 
-        public override DateOnly Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override DateOnly ReadJson(JsonReader reader, Type objectType, DateOnly existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            var dateString = reader.GetString();
-            return DateOnly.ParseExact(dateString, DateFormat, CultureInfo.InvariantCulture);
+            return DateOnly.ParseExact((string) reader.Value!, DateFormat, CultureInfo.InvariantCulture);
         }
 
-        public override void Write(Utf8JsonWriter writer, DateOnly value, JsonSerializerOptions options)
+        public override void WriteJson(JsonWriter writer, DateOnly value, JsonSerializer serializer)
         {
-            writer.WriteStringValue(value.ToString(DateFormat, CultureInfo.InvariantCulture));
+            writer.WriteValue(value.ToString(DateFormat, CultureInfo.InvariantCulture));
         }
     }
 

@@ -14,9 +14,9 @@ namespace AppVidaSana.Models.Habitos
         [Required(ErrorMessage = "El campo fecha es obligatorio")]
         public DateOnly drugsDateHabit { get; set; }
 
-        public int? cigarettesSmoked { get; set; }
+        public int? cigarettesSmoked  { get; set; }
 
-        public string? predominantEmotionalState { get; set; }
+        public string? predominantEmotionalState  { get; set; }
 
         public Account? account { get; set; }
     }

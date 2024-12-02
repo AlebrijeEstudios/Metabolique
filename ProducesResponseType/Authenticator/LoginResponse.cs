@@ -2,10 +2,10 @@
 
 namespace AppVidaSana.ProducesResponseType.Authenticator
 {
-    public class ResponseLogin
+    public class LoginResponse
     {
         public string message { get; set; } = "Ok.";
 
-        public TokenDto auth { get; set; } = null!;
+        public TokensDto auth { get; set; } = null!;
     }
 }

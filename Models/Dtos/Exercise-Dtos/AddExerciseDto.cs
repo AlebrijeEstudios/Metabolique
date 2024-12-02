@@ -6,7 +6,7 @@ namespace AppVidaSana.Models.Dtos.Ejercicio_Dtos
     {
 
         [JsonRequired] public Guid accountID { get; set; }
-
+         
         [JsonRequired] public DateOnly dateExercise { get; set; }
 
         [JsonRequired] public string typeExercise { get; set; } = null!;

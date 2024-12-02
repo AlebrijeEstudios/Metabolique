@@ -1,105 +1,54 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
+using AppVidaSana.Exceptions.Account_Profile.ResetPasswordException;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.KeyToken;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.Services.IServices;
+using AppVidaSana.Tokens;
 using AppVidaSana.ValidationValues;
 using Azure;
 using Azure.Communication.Email;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 
 namespace AppVidaSana.Services
 {
     public class ResetPassswordService : IResetPassword
     {
         private readonly AppDbContext _bd;
-        private readonly string keyToken;
+        private readonly ValidationValuesDB _validationValues;
+        private readonly GeneratorTokens _generatorTokens;
+        private readonly KeyTokenEnv _keyToken;
 
         public ResetPassswordService(AppDbContext bd)
         {
             _bd = bd;
-            keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
+            _validationValues = new ValidationValuesDB();
+            _generatorTokens = new GeneratorTokens();
+            _keyToken = new KeyTokenEnv();
         }
-
-        public async Task<bool> ResetPassword(ResetPasswordDto values, CancellationToken cancellationToken)
+        
+        public async Task<string> PasswordResetTokenAsync(EmailDto value, CancellationToken cancellationToken)
         {
-            if (values.password != values.confirmPassword) { throw new ComparedPasswordException(); }
-
-            List<string?> errors = new List<string?>();
-
-            string message = "";
-
-            try
-            {
-                string verifyStatusPassword = VerifyValues.verifyPassword(values.password);
-
-                if (verifyStatusPassword != "") { errors.Add(verifyStatusPassword); }
-
-            }
-            catch (PasswordValidationTimeoutException ex)
-            {
-                message = ex.Message;
-                errors.Add(message);
-            }
-
-            if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
-
-            var claimPrincipal = GetPrincipalFromExpiredToken(values.token);
-
-            if (claimPrincipal == null) { return false; }
-
-            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == values.email, cancellationToken);
-
-            if (account == null) { return false; }
-
-            account.password = BCrypt.Net.BCrypt.HashPassword(values.confirmPassword);
-
-            _bd.Accounts.Update(account);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
-
-            return true;
-        }
-
-        public async Task<TokenDto> PasswordResetToken(EmailDto value, CancellationToken cancellationToken)
-        {
-            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == value.email, cancellationToken);
+            var account = await _bd.Accounts.FirstOrDefaultAsync(e => e.email == value.email, cancellationToken);
 
             if (account == null) { throw new EmailNotSendException(); }
 
-            var tok = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(keyToken);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
+            Claim[] claims = new Claim[]
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                        new Claim(ClaimTypes.Name, account.username.ToString()),
-                        new Claim(ClaimTypes.Email, account.email.ToString()),
-                }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                Issuer = "metaboliqueapi",
-                Audience = "metabolique.com",
-                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                new Claim(ClaimTypes.Name, account.username.ToString()),
+                new Claim(ClaimTypes.Email, account.email.ToString())
             };
 
-            var token = tok.CreateToken(tokenDescriptor);
+            DateTime durationToken = DateTime.UtcNow.AddMinutes(15);
 
-            TokenDto ut = new TokenDto()
-            {
-                token = tok.WriteToken(token),
-                accountID = account.accountID
+            var accessToken = _generatorTokens.Tokens(_keyToken.GetKeyTokenEnv(), claims, durationToken);
 
-            };
-
-            return ut;
+            return accessToken;
         }
 
-        public async void SendEmail(string email, string resetLink)
+        public async void SendEmailAsync(string email, string resetLink)
         {
             List<string?> errors = new List<string?>();
 
@@ -119,7 +68,51 @@ namespace AppVidaSana.Services
                 errors.Add(ex.Message);
             }
 
-            if (errors.Any()) { throw new ValuesInvalidException(errors); }
+            if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
+        }
+
+        public async Task<bool> ResetPasswordAsync(ResetPasswordDto values, CancellationToken cancellationToken)
+        {
+            var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.token, _keyToken.GetKeyTokenEnv());
+
+            var usernameClaimType = principal.FindFirst(ClaimTypes.Name)?.Value;
+
+            var emailClaimType = principal.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (values.email != emailClaimType) { throw new ComparedEmailException(); }
+
+            if (values.password != values.confirmPassword) { throw new ComparedPasswordException(); }
+
+            List<string?> errors = new List<string?>();
+
+            try
+            {
+                string verifyStatusPassword = verifyPassword(values.password);
+
+                if (verifyStatusPassword != "") { errors.Add(verifyStatusPassword); }
+
+            }
+            catch (PasswordValidationTimeoutException ex)
+            {
+                errors.Add(ex.Message);
+            }
+
+            if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
+
+            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.username == usernameClaimType
+                                                                 && u.email == values.email, cancellationToken);
+
+            if (account == null) { return false; }
+
+            account.password = BCrypt.Net.BCrypt.HashPassword(values.confirmPassword);
+
+            _validationValues.ValidationValues(account);
+
+            _bd.Accounts.Update(account);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            return true;
         }
 
         public bool Save()
@@ -135,32 +128,19 @@ namespace AppVidaSana.Services
             }
         }
 
-        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        private static string verifyPassword(string password)
         {
-            var key = Encoding.ASCII.GetBytes(keyToken);
-            var tokenValidationParameters = new TokenValidationParameters
+            if (password.Length < 8)
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = "metaboliqueapi",
-                ValidAudience = "metabolique.com",
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateLifetime = false
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken securityToken;
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
-
-            var jwtSecurityToken = securityToken as JwtSecurityToken;
-
-            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new SecurityTokenException("Invalid token");
+                return "La contraseña debe tener al menos 8 caracteres.";
             }
 
-            return principal;
+            if (!RegexPatterns.RegexPatterns.Passwordregex.IsMatch(password))
+            {
+                return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico.";
+            }
+
+            return "";
         }
     }
 }

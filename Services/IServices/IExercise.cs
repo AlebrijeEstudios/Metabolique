@@ -5,15 +5,15 @@ namespace AppVidaSana.Services.IServices
 {
     public interface IExercise
     {
-        List<ExerciseListDto> GetExercises(Guid id, DateOnly date);
+        Task<List<ExerciseDto>> GetExercisesAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken); 
 
-        ExerciseAndValuesGraphicDto ExercisesAndValuesGraphic(Guid id, DateOnly date);
+        Task<InfoGeneralExerciseDto> GetInfoGeneralExercisesAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken);
 
-        ExerciseListDto AddExercises(AddExerciseDto exercise);
+        Task<ExerciseDto> AddExerciseAsync(AddExerciseDto values, CancellationToken cancellationToken);
 
-        ExerciseListDto UpdateExercises(ExerciseListDto exercise);
+        Task<ExerciseDto> UpdateExerciseAsync(ExerciseDto values, CancellationToken cancellationToken);
 
-        string DeleteExercise(Guid idexercise);
+        Task<string> DeleteExerciseAsync(Guid exerciseID, CancellationToken cancellationToken);
 
         bool Save();
     }

@@ -28,7 +28,7 @@ namespace AppVidaSana.Models.Monthly_Follow_Ups
         public bool answerQuestion4 { get; set; }
 
         [ForeignKey("StatusAdherence")]
-        public Guid statusID { get; set; }
+        public Guid statusID  { get; set; }
 
         public StatusAdherence? status { get; set; }
 

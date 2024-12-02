@@ -1,75 +1,173 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.KeyToken;
+using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.Services.IServices;
+using AppVidaSana.Tokens;
 using AppVidaSana.ValidationValues;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
+using System.Security.Cryptography;
 
 namespace AppVidaSana.Services
 {
-    public class Authentication_AuthorizationService : IAuthentication_Authorization
+    public class AuthenticationAuthorizationService : IAuthenticationAuthorization
     {
         private readonly AppDbContext _bd;
-        private readonly string keyToken;
+        private readonly ValidationValuesDB _validationValues;
+        private readonly GeneratorTokens _generatorTokens;
+        private readonly KeyTokenEnv _keyToken;
 
-        public Authentication_AuthorizationService(AppDbContext bd)
+        public AuthenticationAuthorizationService(AppDbContext bd)
         {
             _bd = bd;
-            keyToken = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
+            _validationValues = new ValidationValuesDB();
+            _generatorTokens = new GeneratorTokens();
+            _keyToken = new KeyTokenEnv();
         }
 
-        public async Task<TokenDto> LoginAccount(LoginDto login, CancellationToken cancellationToken)
+        public async Task<TokensDto> LoginAccountAsync(LoginDto login, CancellationToken cancellationToken)
         {
-            var user = await _bd.Accounts.FirstOrDefaultAsync(u =>
-                                          u.email.ToLower() == login.email.ToLower(), cancellationToken);
+            var account = await _bd.Accounts.FirstOrDefaultAsync(u => 
+                                                                 u.email == login.email, cancellationToken);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(login.password, user.password))
+            if (account is null || !BCrypt.Net.BCrypt.Verify(login.password, account.password))
             {
                 throw new FailLoginException();
             }
 
-            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.roleID == user.roleID);
+            var accessToken = await CreateTokenAsync(account, cancellationToken);
+            var refreshToken = await CreateRefreshTokenAsync(account.accountID, cancellationToken);
 
-            if (role == null) { throw new NoRoleAssignmentException(); }
-
-            var tok = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(keyToken);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
+            TokensDto response = new TokensDto()
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                        new Claim(ClaimTypes.Name, user.username.ToString()),
-                        new Claim(ClaimTypes.Email, user.email.ToString()),
-                        new Claim(ClaimTypes.Role, role.role)
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                Issuer = "metaboliqueapi",
-                Audience = "metabolique.com",
-                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                accountID = account.accountID,
+                accessToken = accessToken,
+                refreshToken = refreshToken
             };
 
-            var token = tok.CreateToken(tokenDescriptor);
-            var account = _bd.Accounts.FirstOrDefault(u => u.email == login.email);
+            return response;
+        }
 
-            if (account == null)
+        public async Task<TokensDto> RefreshTokenAsync(TokensDto values, CancellationToken cancellationToken)
+        {
+            var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.accessToken, _keyToken.GetKeyTokenEnv());
+
+            var usernameClaimType = principal.FindFirst(ClaimTypes.Name)?.Value;
+
+            var user = await _bd.Accounts.FirstOrDefaultAsync(e => e.accountID == values.accountID
+                                                              && e.username == usernameClaimType, cancellationToken);
+
+            var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.refreshToken == values.refreshToken, cancellationToken);
+
+            if(user is null || historial is null) { throw new UnstoredValuesException(); }
+
+            var accessToken = await CreateTokenAsync(user, cancellationToken);
+            var refreshToken = await CreateRefreshTokenAsync(user.accountID, cancellationToken);
+
+            TokensDto response = new TokensDto()
             {
-                throw new UserNotFoundException();
+                accountID = user.accountID,
+                accessToken = accessToken,
+                refreshToken = refreshToken
+            };
+
+            return response;
+        }
+
+        private async Task<string> CreateTokenAsync(Account account, CancellationToken cancellationToken)
+        {
+            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID, cancellationToken);
+
+            Claim[] claims = new Claim[]
+            {
+                new Claim(ClaimTypes.Name, account.username.ToString()),
+                new Claim(ClaimTypes.Email, account.email.ToString()),
+                new Claim(ClaimTypes.Role, role!.role)
+            };
+
+            DateTime durationToken = DateTime.UtcNow.AddMinutes(30);
+
+            var accessToken = _generatorTokens.Tokens(_keyToken.GetKeyTokenEnv(), claims, durationToken);
+
+            return accessToken;
+        }
+
+        private async Task<string> CreateRefreshTokenAsync(Guid accountID, CancellationToken cancellationToken)
+        {
+            var refreshToken = GenerateRefreshToken();
+
+            var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+            
+            if(historial is null)
+            {
+                HistorialRefreshToken historialRefreshToken = new HistorialRefreshToken
+                {
+                    accountID = accountID,
+                    refreshToken = refreshToken,
+                    dateExpiration = DateTime.Now.AddDays(7)
+                };
+
+                _validationValues.ValidationValues(historialRefreshToken);
+
+                _bd.HistorialRefreshTokens.Add(historialRefreshToken);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                return refreshToken;
             }
 
-            TokenDto ut = new TokenDto()
+            if (historial.dateExpiration <= DateTime.Now)
             {
-                token = tok.WriteToken(token),
-                accountID = account.accountID
-            };
+                historial.refreshToken = refreshToken;
 
-            return ut;
+                historial.dateExpiration = DateTime.Now.AddDays(7);
+
+                UpdateRefreshTokenAsync(historial);
+
+                return refreshToken;
+            }
+
+            historial!.refreshToken = refreshToken;
+
+            UpdateRefreshTokenAsync(historial);
+
+            return refreshToken;
+        }
+
+        private void UpdateRefreshTokenAsync(HistorialRefreshToken values)
+        {
+            _validationValues.ValidationValues(values);
+
+            _bd.HistorialRefreshTokens.Update(values);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private static string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
+        }
+
+        public bool Save()
+        {
+            try
+            {
+                return _bd.SaveChanges() >= 0;
+            }
+            catch (Exception)
+            {
+                return false;
+
+            }
         }
     }
 }
