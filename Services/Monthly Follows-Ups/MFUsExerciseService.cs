@@ -104,9 +104,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             bool levelHigh = levelActHigh(values.question1, METactvigorous, METactmoderate, METactwalking);
             bool levelModerate = levelActModerate(answers, METactvigorous, METactmoderate, METactwalking);
 
-            string LevelAF = "BAJO";
-
-            LevelAF = levelHigh ? "ALTO" : "MODERADO";
+            var LevelAF = levelHigh ? "ALTO" : levelModerate ? "MODERADO" : "BAJO";
 
             MFUsExercise mfus = new MFUsExercise
             {
@@ -187,9 +185,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             bool levelHigh = levelActHigh(values.question1, METactvigorous, METactmoderate, METactwalking);
             bool levelModerate = levelActModerate(answers, METactvigorous, METactmoderate, METactwalking);
 
-            string LevelAF = "BAJO";
-
-            LevelAF = levelHigh ? "ALTO" : "MODERADO";
+            var LevelAF = levelHigh ? "ALTO" : levelModerate ? "MODERADO" : "BAJO";
 
             var resultsToUpdate = await _bd.ResultsExercise.FirstOrDefaultAsync(e => e.monthlyFollowUpID == values.monthlyFollowUpID, 
                                                                                 cancellationToken);
