@@ -1,7 +1,6 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Feeding;
-using AppVidaSana.GraphicValues;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Models.Feeding;
 using AppVidaSana.Services.IServices;
@@ -56,13 +55,10 @@ namespace AppVidaSana.Services
 
             var feedingExisting = await _bd.UserFeeds.FirstOrDefaultAsync(e => e.accountID == values.accountID
                                                                           && e.dailyMealID == dailyMeal.dailyMealID
-                                                                          && e.userFeedDate == values.userFeedDate
-                                                                          && e.userFeedTime == values.userFeedTime
-                                                                          && e.satietyLevel == values.satietyLevel
-                                                                          && e.emotionsLinked == values.emotionsLinked
-                                                                          && e.saucerPictureUrl == values.saucerPictureUrl, cancellationToken);
+                                                                          && e.userFeedDate == values.userFeedDate, cancellationToken);
 
             if (feedingExisting is not null) { throw new RepeatRegistrationException(); }
+
 
             UserFeeds userFeed = new UserFeeds
             {

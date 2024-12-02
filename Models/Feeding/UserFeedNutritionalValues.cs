@@ -14,6 +14,9 @@ namespace AppVidaSana.Models.Feeding
         [ForeignKey("NutritionalValues")]
         public Guid nutritionalValueID { get; set; }
 
+        [Required(ErrorMessage = "El campo frecuencia de alimento es obligatorio")]
+        public int MealFrequency { get; set; } 
+
         public UserFeeds? userFeeds { get; set; } 
         
         public NutritionalValues? nutritionalValues { get; set; } 

@@ -99,10 +99,10 @@ namespace AppVidaSana.Data
                 .HasForeignKey(caloriesRequiredPerDays => caloriesRequiredPerDays.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<CaloriesRequiredPerDay>()
-                .HasMany(caloriesRequiredPerDays => caloriesRequiredPerDays.caloriesConsumed)
-                .WithOne(caloriesConsumed => caloriesConsumed.caloriesRequiredPerDay)
-                .HasForeignKey(caloriesConsumed => caloriesConsumed.caloriesPerDayID)
+            modelBuilder.Entity<Account>()
+                .HasMany(accounts => accounts.caloriesConsumed)
+                .WithOne(caloriesConsumed => caloriesConsumed.account)
+                .HasForeignKey(caloriesConsumed => caloriesConsumed.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Foods>()

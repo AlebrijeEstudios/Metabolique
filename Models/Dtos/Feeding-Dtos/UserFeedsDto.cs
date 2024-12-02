@@ -6,8 +6,6 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
     { 
         [JsonRequired] public Guid userFeedID { get; set; } 
 
-        [JsonRequired] public Guid accountID { get; set; }
-
         [JsonRequired] public DateOnly userFeedDate { get; set; }
 
         [JsonRequired] public TimeOnly userFeedTime { get; set; }

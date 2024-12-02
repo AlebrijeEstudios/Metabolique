@@ -21,7 +21,5 @@ namespace AppVidaSana.Models.Feeding
         public float caloriesNeeded { get; set; }
 
         public Account? account { get; set; }
-
-        public ICollection<CaloriesConsumed> caloriesConsumed { get; set; } = new List<CaloriesConsumed>();
     }
 }
