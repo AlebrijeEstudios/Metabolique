@@ -56,14 +56,11 @@ namespace AppVidaSana.Services
         {
             var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.accessToken, _keyToken.GetKeyTokenEnv());
 
-            var usernameClaimType = principal.FindFirst(ClaimTypes.Name)?.Value;
-
-            var user = await _bd.Accounts.FirstOrDefaultAsync(e => e.accountID == values.accountID
-                                                              && e.username == usernameClaimType, cancellationToken);
+            var user = await _bd.Accounts.FirstOrDefaultAsync(e => e.accountID == values.accountID, cancellationToken);
 
             var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.refreshToken == values.refreshToken, cancellationToken);
 
-            if(user is null || historial is null) { throw new UnstoredValuesException(); }
+            if(historial is null) { throw new UnstoredValuesException(); }
 
             var accessToken = await CreateTokenAsync(user, cancellationToken);
             var refreshToken = await CreateRefreshTokenAsync(user.accountID, cancellationToken);
