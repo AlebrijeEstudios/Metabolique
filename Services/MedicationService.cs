@@ -421,9 +421,9 @@ namespace AppVidaSana.Services
 
                     if (listTimes.Count > 0)
                     {
-                        medicationsConsumed = time.Value.Count(e => e.medicationStatus == true);
+                        medicationsConsumed = listTimes.Count(e => e.medicationStatus == true) + medicationsConsumed;
 
-                        totalMedications = listTimes.Count;
+                        totalMedications = listTimes.Count + totalMedications;
                     }
 
                 }
