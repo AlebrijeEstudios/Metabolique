@@ -60,7 +60,7 @@ namespace AppVidaSana.Services
 
             var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.refreshToken == values.refreshToken, cancellationToken);
 
-            if(historial is null) { throw new UnstoredValuesException(); }
+            if(user is null || historial is null) { throw new UnstoredValuesException(); }
 
             var accessToken = await CreateTokenAsync(user, cancellationToken);
             var refreshToken = await CreateRefreshTokenAsync(user.accountID, cancellationToken);
