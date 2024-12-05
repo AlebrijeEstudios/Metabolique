@@ -7,6 +7,10 @@ using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Threading;
 
 namespace AppVidaSana.Services
 {
@@ -47,6 +51,10 @@ namespace AppVidaSana.Services
 
         public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)
         {
+            List<Foods> foods = new List<Foods>();
+            List<NutritionalValues> nutritionalValues = new List<NutritionalValues>();
+            List<UserFeedNutritionalValues> userFeedNutrValues = new List<UserFeedNutritionalValues>();
+
             await ExistDailyMeal(values.dailyMeal, cancellationToken);
 
             var dailyMeal = await _bd.DailyMeals.FirstOrDefaultAsync(e => e.dailyMeal == values.dailyMeal, cancellationToken);
@@ -59,41 +67,32 @@ namespace AppVidaSana.Services
 
             if (feedingExisting is not null) { throw new RepeatRegistrationException(); }
 
-            float totalKcal = values.foodsConsumed.Sum(food => food.nutritionalValues.Sum(e => e.kilocalories));
-
-            UserFeeds userFeed = new UserFeeds
-            {
-                accountID = values.accountID,
-                dailyMealID = dailyMeal.dailyMealID,
-                userFeedDate = values.userFeedDate,
-                userFeedTime = values.userFeedTime,
-                satietyLevel = values.satietyLevel,
-                emotionsLinked = values.emotionsLinked,
-                totalCalories = totalKcal,
-                saucerPictureUrl = values.saucerPictureUrl
-            };
+            var userFeed = CreateUserFeed(values, dailyMeal);
 
             foreach (var food in values.foodsConsumed)
             {
                 var foodObj = CreateFood(food);
 
-                var nutritionalValues = CreateNutritionalValues(foodObj.foodID, food.nutritionalValues);
+                nutritionalValues = CreateNutritionalValues(foodObj.foodID, food.nutritionalValues);
 
-                var userFeedNutrValues = CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues);
+                userFeedNutrValues = CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues);
 
+                nutritionalValues = WithoutRepetitions(nutritionalValues);
+
+                foods.Add(foodObj);
             }
 
-            _validationValues.ValidationValues(userFeed);
+            await AddFoods(foods, cancellationToken);
 
-            _bd.UserFeeds.Add(userFeed);
+            await AddNutritionalValues(nutritionalValues, cancellationToken);
 
-            if (!Save()) { throw new UnstoredValuesException(); }
+            AddUserFeed(userFeed);
+            
+            await AddCreateUserFeedNutrValues(userFeedNutrValues, cancellationToken);
 
-            //AddFoodsConsumed(userFeed.userFeedID, values.foodsConsumed);
+            var userFeedingMapped = _mapper.Map<UserFeedsDto>(values);
 
-            var userFeedingMapped = _mapper.Map<UserFeedsDto>(userFeed);
-
-            userFeedingMapped.foodsConsumed = values.foodsConsumed;
+            userFeedingMapped.userFeedID = userFeed.userFeedID;
 
             return userFeedingMapped;
         }
@@ -153,10 +152,31 @@ namespace AppVidaSana.Services
                     dailyMeal = dailyMealStr
                 };
 
+                _validationValues.ValidationValues(dailyMeal);
+
                 _bd.DailyMeals.Add(dailyMeal);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
             }
+        }
+
+        private UserFeeds CreateUserFeed(AddFeedingDto values, DailyMeals dailyMeal)
+        {
+            float totalKcal = values.foodsConsumed.Sum(food => food.nutritionalValues.Sum(e => e.kilocalories));
+
+            UserFeeds userFeed = new UserFeeds
+            {
+                accountID = values.accountID,
+                dailyMealID = dailyMeal.dailyMealID,
+                userFeedDate = values.userFeedDate,
+                userFeedTime = values.userFeedTime,
+                satietyLevel = values.satietyLevel,
+                emotionsLinked = values.emotionsLinked,
+                totalCalories = totalKcal,
+                saucerPictureUrl = values.saucerPictureUrl
+            };
+
+            return userFeed;
         }
 
         private static Foods CreateFood(FoodsConsumedDto foods)
@@ -169,16 +189,6 @@ namespace AppVidaSana.Services
             };
 
             return food;
-
-            /*var foodsConsumed = _mapper.Map<List<FoodConsumed>>(foods);
-
-            foodsConsumed.ForEach(food => food.userFeedID = userFeedID);
-
-            foodsConsumed.ForEach(food => _validationValues.ValidationValues(food));
-
-            _bd.FoodsConsumed.AddRange(foodsConsumed);
-
-            if (!Save()) { throw new UnstoredValuesException(); }*/
         }
 
         private static List<NutritionalValues> CreateNutritionalValues(Guid foodID, List<NutritionalValuesDto> values)
@@ -200,8 +210,86 @@ namespace AppVidaSana.Services
         }
 
         private static List<UserFeedNutritionalValues> CreateUserFeedNutrValues(Guid userFeedID, List<NutritionalValues> values)
+        { 
+            return values.GroupBy(c => c.nutritionalValueID)
+                         .Select(group => new UserFeedNutritionalValues
+                         {
+                            userFeedID = userFeedID,
+                            nutritionalValueID = group.Key,
+                            MealFrequency = group.Count()
+                         })
+                         .ToList();
+        }
+
+        private static List<NutritionalValues> WithoutRepetitions(List<NutritionalValues> values)
         {
-            throw new UnstoredValuesException();
+            return values.Distinct().ToList();
+        }
+
+        private void AddUserFeed(UserFeeds values)
+        {
+            _validationValues.ValidationValues(values);
+
+            _bd.UserFeeds.Add(values);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private async Task AddFoods(List<Foods> values, CancellationToken cancellationToken)
+        {
+            var existFoods = await _bd.Foods
+                             .Where(f => values.Contains(f)) 
+                             .Select(f => f)               
+                             .ToListAsync(cancellationToken);
+
+            var missingFoods = values.Except(existFoods).ToList();
+
+            if(missingFoods.Count > 0)
+            {
+                missingFoods.ForEach(food => _validationValues.ValidationValues(food));
+
+                _bd.Foods.AddRange(missingFoods);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+            }
+        }
+
+        private async Task AddNutritionalValues(List<NutritionalValues> values, CancellationToken cancellationToken)
+        {
+            var existNutrValues = await _bd.NutritionalValues
+                                  .Where(nv => values.Contains(nv))
+                                  .Select(nv => nv)
+                                  .ToListAsync(cancellationToken);
+
+            var missingNutrValues = values.Except(existNutrValues).ToList();
+
+            if(missingNutrValues.Count > 0)
+            {
+                missingNutrValues.ForEach(nutrValue => _validationValues.ValidationValues(nutrValue));
+
+                _bd.NutritionalValues.AddRange(missingNutrValues);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+            }
+        }
+
+        private async Task AddCreateUserFeedNutrValues(List<UserFeedNutritionalValues> values, CancellationToken cancellationToken)
+        {
+            var existUserFeedNutrValues = await _bd.UserFeedNutritionalValues
+                                          .Where(ufnv => values.Contains(ufnv))
+                                          .Select(ufnv => ufnv)
+                                          .ToListAsync(cancellationToken);
+
+            var missingUserFeedNutrValues = values.Except(existUserFeedNutrValues).ToList();
+
+            if(missingUserFeedNutrValues.Count > 0)
+            {
+                missingUserFeedNutrValues.ForEach(userFeedNutrValue => _validationValues.ValidationValues(userFeedNutrValue));
+
+                _bd.UserFeedNutritionalValues.AddRange(missingUserFeedNutrValues);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+            }
         }
 
 
