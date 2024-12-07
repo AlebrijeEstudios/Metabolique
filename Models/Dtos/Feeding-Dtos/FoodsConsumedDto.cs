@@ -4,7 +4,7 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 {
     public class FoodsConsumedDto
     {
-        [JsonRequired] public string foodCode { get; set; } = null!; 
+        [JsonRequired] public string foodCode { get; set; } = null!;  
 
         [JsonRequired] public string foodName { get; set; } = null!;
 

@@ -12,7 +12,7 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 
         [JsonRequired] public string dailyMeal { get; set; } = null!;
 
-        [JsonRequired] public List<FoodsConsumedDto> foodsConsumed { get; set; } = null!;
+        [JsonRequired] public List<FoodsConsumedDto> foodsConsumed { get; set; } = null!; 
 
         [JsonRequired] public string satietyLevel { get; set; } = null!;
         

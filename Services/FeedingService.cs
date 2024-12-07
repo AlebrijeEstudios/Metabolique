@@ -7,10 +7,8 @@ using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Drawing;
+using NuGet.Packaging.Signing;
 using System.Linq;
-using System.Threading;
 
 namespace AppVidaSana.Services
 {
@@ -99,6 +97,9 @@ namespace AppVidaSana.Services
 
         public async Task<UserFeedsDto> UpdateFeedingAsync(UserFeedsDto values, CancellationToken cancellationToken)
         {
+            List<Foods> foods = new List<Foods>();
+            List<NutritionalValues> nutritionalValues = new List<NutritionalValues>();
+
             var userFeed = await _bd.UserFeeds.FindAsync(values.userFeedID, cancellationToken);
 
             if (userFeed is null) { throw new UserFeedNotFoundException(); }
@@ -111,6 +112,21 @@ namespace AppVidaSana.Services
             {
                 userFeed.dailyMealID = dailyMeal.dailyMealID;
             }
+
+            foreach (var food in values.foodsConsumed)
+            {
+                var foodObj = CreateFood(food);
+
+                nutritionalValues = CreateNutritionalValues(foodObj.foodID, food.nutritionalValues);
+
+                nutritionalValues = WithoutRepetitions(nutritionalValues);
+
+                foods.Add(foodObj);
+            }
+
+            await AddFoods(foods, cancellationToken);
+
+            await AddNutritionalValues(nutritionalValues, cancellationToken);
 
             userFeed.satietyLevel = values.satietyLevel;
             userFeed.emotionsLinked = values.emotionsLinked;
@@ -291,6 +307,36 @@ namespace AppVidaSana.Services
                 if (!Save()) { throw new UnstoredValuesException(); }
             }
         }
+
+        /*private async Task ExistingFoods(List<FoodsConsumedDto> values, CancellationToken cancellationToken)
+        {
+            var foodCodes = values.Select(e => e.foodCode).ToList();
+
+            var existingFoods = await _bd.Foods
+                                    .Where(food => foodCodes.Contains(food.foodCode))
+                                    .Select(food => food)
+                                    .ToListAsync(cancellationToken);
+
+            var existingFoodCodes = new HashSet<string>(existingFoods.Select(e => e.foodCode));
+
+            var missingFoods = values
+                               .Where(food => !existingFoodCodes.Contains(food.foodCode))
+                               .ToList();
+
+            if (missingFoods.Count > 0)
+            {
+                var foods = missingFoods
+                           .Select(food => CreateFood(food))
+                           .ToList();
+
+                foods.ForEach(food => _validationValues.ValidationValues(food));
+
+                _bd.Foods.AddRange(foods);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+            }
+
+        }*/
 
 
         /*private async Task UpdateFoodsConsumedAsync(Guid userFeedID, List<FoodsConsumedDto> foods, CancellationToken cancellationToken)
