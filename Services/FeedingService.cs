@@ -7,8 +7,6 @@ using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Packaging.Signing;
-using System.Linq;
 
 namespace AppVidaSana.Services
 {
@@ -49,10 +47,6 @@ namespace AppVidaSana.Services
 
         public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)
         {
-            List<Foods> foods = new List<Foods>();
-            List<NutritionalValues> nutritionalValues = new List<NutritionalValues>();
-            List<UserFeedNutritionalValues> userFeedNutrValues = new List<UserFeedNutritionalValues>();
-
             await ExistDailyMeal(values.dailyMeal, cancellationToken);
 
             var dailyMeal = await _bd.DailyMeals.FirstOrDefaultAsync(e => e.dailyMeal == values.dailyMeal, cancellationToken);
@@ -67,26 +61,11 @@ namespace AppVidaSana.Services
 
             var userFeed = CreateUserFeed(values, dailyMeal);
 
-            foreach (var food in values.foodsConsumed)
-            {
-                var foodObj = CreateFood(food);
+            var foods = await CreateFoods(values.foodsConsumed, cancellationToken);
 
-                nutritionalValues = CreateNutritionalValues(foodObj.foodID, food.nutritionalValues);
+            var nutritionalValues = await CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
 
-                userFeedNutrValues = CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues);
-
-                nutritionalValues = WithoutRepetitions(nutritionalValues);
-
-                foods.Add(foodObj);
-            }
-
-            await AddFoods(foods, cancellationToken);
-
-            await AddNutritionalValues(nutritionalValues, cancellationToken);
-
-            AddUserFeed(userFeed);
-            
-            await AddCreateUserFeedNutrValues(userFeedNutrValues, cancellationToken);
+            CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues, values.foodsConsumed);
 
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(values);
 
@@ -97,9 +76,6 @@ namespace AppVidaSana.Services
 
         public async Task<UserFeedsDto> UpdateFeedingAsync(UserFeedsDto values, CancellationToken cancellationToken)
         {
-            List<Foods> foods = new List<Foods>();
-            List<NutritionalValues> nutritionalValues = new List<NutritionalValues>();
-
             var userFeed = await _bd.UserFeeds.FindAsync(values.userFeedID, cancellationToken);
 
             if (userFeed is null) { throw new UserFeedNotFoundException(); }
@@ -113,38 +89,24 @@ namespace AppVidaSana.Services
                 userFeed.dailyMealID = dailyMeal.dailyMealID;
             }
 
-            foreach (var food in values.foodsConsumed)
-            {
-                var foodObj = CreateFood(food);
+            var foods = await CreateFoods(values.foodsConsumed, cancellationToken);
 
-                nutritionalValues = CreateNutritionalValues(foodObj.foodID, food.nutritionalValues);
+            var nutritionalValues = await CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
 
-                nutritionalValues = WithoutRepetitions(nutritionalValues);
+            await UpdateUserFeedNutrValues(values, nutritionalValues, cancellationToken);
 
-                foods.Add(foodObj);
-            }
-
-            await AddFoods(foods, cancellationToken);
-
-            await AddNutritionalValues(nutritionalValues, cancellationToken);
+            float totalKcal = TotalKcal(values.foodsConsumed);
 
             userFeed.satietyLevel = values.satietyLevel;
             userFeed.emotionsLinked = values.emotionsLinked;
+            userFeed.totalCalories = totalKcal;
             userFeed.saucerPictureUrl = values.saucerPictureUrl;
 
             _validationValues.ValidationValues(userFeed);
 
-            _bd.UserFeeds.Update(userFeed);
-
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            //await UpdateFoodsConsumedAsync(userFeed.userFeedID, values.foodsConsumed, cancellationToken);
-
-            var userFeedingMapped = _mapper.Map<UserFeedsDto>(userFeed);
-
-            userFeedingMapped.foodsConsumed = values.foodsConsumed;
-
-            return userFeedingMapped;
+            return values;
         }
 
         public Task<bool> DeleteFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
@@ -154,7 +116,15 @@ namespace AppVidaSana.Services
 
         public bool Save()
         {
-            throw new NotImplementedException();
+            try
+            {
+                return _bd.SaveChanges() >= 0;
+            }
+            catch (Exception)
+            {
+                return false;
+
+            }
         }
 
         private async Task ExistDailyMeal(string dailyMealStr, CancellationToken cancellationToken)
@@ -176,9 +146,14 @@ namespace AppVidaSana.Services
             }
         }
 
+        private float TotalKcal(List<FoodsConsumedDto> foods)
+        {
+            return foods.Sum(food => food.nutritionalValues.Sum(e => e.kilocalories));
+        }
+
         private UserFeeds CreateUserFeed(AddFeedingDto values, DailyMeals dailyMeal)
         {
-            float totalKcal = values.foodsConsumed.Sum(food => food.nutritionalValues.Sum(e => e.kilocalories));
+            float totalKcal = TotalKcal(values.foodsConsumed);
 
             UserFeeds userFeed = new UserFeeds
             {
@@ -192,162 +167,180 @@ namespace AppVidaSana.Services
                 saucerPictureUrl = values.saucerPictureUrl
             };
 
+            _validationValues.ValidationValues(userFeed);
+
+            _bd.UserFeeds.Add(userFeed);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
             return userFeed;
         }
 
-        private static Foods CreateFood(FoodsConsumedDto foods)
+        private async Task<Dictionary<string, Guid>> CreateFoods(List<FoodsConsumedDto> foods, CancellationToken cancellationToken)
         {
-            Foods food = new Foods
-            {
-                foodCode = foods.foodCode,
-                nameFood = foods.foodName,
-                unit = foods.unit
-            };
-
-            return food;
-        }
-
-        private static List<NutritionalValues> CreateNutritionalValues(Guid foodID, List<NutritionalValuesDto> values)
-        {
-            List<NutritionalValues> nutritionalValues = new List<NutritionalValues>();
-
-            values.ForEach(value => nutritionalValues.Add(new NutritionalValues
-                                    {
-                                        foodID = foodID,
-                                        nutritionalValueCode = value.nutritionalValueCode,
-                                        portion = value.portion,
-                                        kilocalories = value.kilocalories,
-                                        protein = value.protein,
-                                        carbohydrates = value.carbohydrates,
-                                        totalLipids = value.totalLipids
-                                    }));
-
-            return nutritionalValues;
-        }
-
-        private static List<UserFeedNutritionalValues> CreateUserFeedNutrValues(Guid userFeedID, List<NutritionalValues> values)
-        { 
-            return values.GroupBy(c => c.nutritionalValueID)
-                         .Select(group => new UserFeedNutritionalValues
-                         {
-                            userFeedID = userFeedID,
-                            nutritionalValueID = group.Key,
-                            MealFrequency = group.Count()
-                         })
-                         .ToList();
-        }
-
-        private static List<NutritionalValues> WithoutRepetitions(List<NutritionalValues> values)
-        {
-            return values.Distinct().ToList();
-        }
-
-        private void AddUserFeed(UserFeeds values)
-        {
-            _validationValues.ValidationValues(values);
-
-            _bd.UserFeeds.Add(values);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
-        }
-
-        private async Task AddFoods(List<Foods> values, CancellationToken cancellationToken)
-        {
-            var existFoods = await _bd.Foods
-                             .Where(f => values.Contains(f)) 
-                             .Select(f => f)               
-                             .ToListAsync(cancellationToken);
-
-            var missingFoods = values.Except(existFoods).ToList();
-
-            if(missingFoods.Count > 0)
-            {
-                missingFoods.ForEach(food => _validationValues.ValidationValues(food));
-
-                _bd.Foods.AddRange(missingFoods);
-
-                if (!Save()) { throw new UnstoredValuesException(); }
-            }
-        }
-
-        private async Task AddNutritionalValues(List<NutritionalValues> values, CancellationToken cancellationToken)
-        {
-            var existNutrValues = await _bd.NutritionalValues
-                                  .Where(nv => values.Contains(nv))
-                                  .Select(nv => nv)
-                                  .ToListAsync(cancellationToken);
-
-            var missingNutrValues = values.Except(existNutrValues).ToList();
-
-            if(missingNutrValues.Count > 0)
-            {
-                missingNutrValues.ForEach(nutrValue => _validationValues.ValidationValues(nutrValue));
-
-                _bd.NutritionalValues.AddRange(missingNutrValues);
-
-                if (!Save()) { throw new UnstoredValuesException(); }
-            }
-        }
-
-        private async Task AddCreateUserFeedNutrValues(List<UserFeedNutritionalValues> values, CancellationToken cancellationToken)
-        {
-            var existUserFeedNutrValues = await _bd.UserFeedNutritionalValues
-                                          .Where(ufnv => values.Contains(ufnv))
-                                          .Select(ufnv => ufnv)
-                                          .ToListAsync(cancellationToken);
-
-            var missingUserFeedNutrValues = values.Except(existUserFeedNutrValues).ToList();
-
-            if(missingUserFeedNutrValues.Count > 0)
-            {
-                missingUserFeedNutrValues.ForEach(userFeedNutrValue => _validationValues.ValidationValues(userFeedNutrValue));
-
-                _bd.UserFeedNutritionalValues.AddRange(missingUserFeedNutrValues);
-
-                if (!Save()) { throw new UnstoredValuesException(); }
-            }
-        }
-
-        /*private async Task ExistingFoods(List<FoodsConsumedDto> values, CancellationToken cancellationToken)
-        {
-            var foodCodes = values.Select(e => e.foodCode).ToList();
+            var foodCodes = foods.Select(fc => fc.foodCode);
 
             var existingFoods = await _bd.Foods
-                                    .Where(food => foodCodes.Contains(food.foodCode))
-                                    .Select(food => food)
-                                    .ToListAsync(cancellationToken);
+                               .Where(f => foodCodes.Contains(f.foodCode))
+                               .ToDictionaryAsync(f => f.foodCode, f => f.foodID, cancellationToken);
 
-            var existingFoodCodes = new HashSet<string>(existingFoods.Select(e => e.foodCode));
-
-            var missingFoods = values
-                               .Where(food => !existingFoodCodes.Contains(food.foodCode))
-                               .ToList();
-
-            if (missingFoods.Count > 0)
-            {
-                var foods = missingFoods
-                           .Select(food => CreateFood(food))
+            var newFoods = foods
+                           .Where(fc => !existingFoods.ContainsKey(fc.foodCode))
+                           .Select(fc => new Foods
+                           {
+                               foodCode = fc.foodCode,
+                               nameFood = fc.foodName,
+                               unit = fc.unit
+                           })
                            .ToList();
 
-                foods.ForEach(food => _validationValues.ValidationValues(food));
+            if (newFoods.Count > 0)
+            {
+                newFoods.ForEach(food => _validationValues.ValidationValues(food));
 
-                _bd.Foods.AddRange(foods);
+                _bd.Foods.AddRange(newFoods);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
+                
+                foreach (var newFood in newFoods)
+                {
+                    existingFoods[newFood.foodCode] = newFood.foodID;
+                }
             }
 
-        }*/
+            return existingFoods;
+        }
 
-
-        /*private async Task UpdateFoodsConsumedAsync(Guid userFeedID, List<FoodsConsumedDto> foods, CancellationToken cancellationToken)
+        private async Task<Dictionary<string, Guid>> CreateNutritionalValues(Dictionary<string, Guid> existingFoods, 
+                                                                             List<FoodsConsumedDto> foods, 
+                                                                             CancellationToken cancellationToken)
         {
-            var foodsToEliminate = await _bd.FoodsConsumed.Where(e => e.userFeedID == userFeedID).ToListAsync(cancellationToken);
+            var allNutrValues = foods
+                                .SelectMany(nv => nv.nutritionalValues, (nv, nutrValue) => new NutritionalValues
+                                {
+                                    foodID = existingFoods[nv.foodCode],
+                                    nutritionalValueCode = nutrValue.nutritionalValueCode,
+                                    portion = nutrValue.portion,
+                                    kilocalories = nutrValue.kilocalories,
+                                    protein = nutrValue.protein,
+                                    carbohydrates = nutrValue.carbohydrates,
+                                    totalLipids = nutrValue.totalLipids
+                                })
+                                .DistinctBy(a => new { a.nutritionalValueCode }) 
+                                .ToList();
 
-            _bd.FoodsConsumed.RemoveRange(foodsToEliminate);
+            var nutrValuesCodes = allNutrValues.Select(nv => nv.nutritionalValueCode);
+
+            var existingNutrValues = await _bd.NutritionalValues
+                                     .Where(nv => nutrValuesCodes.Contains(nv.nutritionalValueCode))
+                                     .ToDictionaryAsync(nv => nv.nutritionalValueCode, nv => nv.nutritionalValueID, cancellationToken);
+
+
+            var newNutrValues = allNutrValues
+                                .Where(nv => !existingNutrValues.ContainsKey(nv.nutritionalValueCode))
+                                .ToList();
+
+            if (newNutrValues.Count > 0)
+            {
+                newNutrValues.ForEach(nv => _validationValues.ValidationValues(nv));
+
+                _bd.NutritionalValues.AddRange(newNutrValues);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
+
+                foreach (var newNutrValue in newNutrValues)
+                {
+                    existingNutrValues[newNutrValue.nutritionalValueCode] = newNutrValue.nutritionalValueID;
+                }
+            }
+
+            return existingNutrValues;
+        }
+
+        private void CreateUserFeedNutrValues(Guid userFeedID, Dictionary<string, Guid> existingNutrValues,
+                                              List<FoodsConsumedDto> foods)
+        {
+            var userFeedNutrValues = AllUserFeedNutrValues(userFeedID, foods, existingNutrValues);
+
+            userFeedNutrValues.ForEach(userFeedNutrValue => _validationValues.ValidationValues(userFeedNutrValue));
+
+            _bd.UserFeedNutritionalValues.AddRange(userFeedNutrValues);
 
             if (!Save()) { throw new UnstoredValuesException(); }
+        }
 
-            AddFoodsConsumed(userFeedID, foods);
-        }*/
+        private async Task UpdateUserFeedNutrValues(UserFeedsDto values, Dictionary<string, Guid> existingNutrValues, CancellationToken cancellationToken)
+        {
+            var userFeedNutrValues = AllUserFeedNutrValues(values.userFeedID, values.foodsConsumed, existingNutrValues);
+
+            var existingUserFeedNutrValues = await _bd.UserFeedNutritionalValues
+                                             .Where(e => e.userFeedID == values.userFeedID)
+                                             .ToListAsync(cancellationToken);
+
+            var newUserFeedNutrValuesDict = userFeedNutrValues.ToDictionary(x => x.nutritionalValueID);
+            var existingUserFeedNutrValuesDict = existingUserFeedNutrValues.ToDictionary(x => x.nutritionalValueID);
+
+            var updates = existingUserFeedNutrValues
+                          .Where(existing => newUserFeedNutrValuesDict.ContainsKey(existing.nutritionalValueID)
+                                && existing.MealFrequency != newUserFeedNutrValuesDict[existing.nutritionalValueID].MealFrequency)
+                          .ToList();
+
+            if(updates.Count > 0)
+            {
+                foreach (var update in updates)
+                {
+                    update.MealFrequency = newUserFeedNutrValuesDict[update.nutritionalValueID].MealFrequency;
+                }
+            }
+
+            ToAddition(userFeedNutrValues, existingUserFeedNutrValuesDict);
+
+            ToDelete(existingUserFeedNutrValues, newUserFeedNutrValuesDict);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private static List<UserFeedNutritionalValues> AllUserFeedNutrValues(Guid userFeedID, List<FoodsConsumedDto> foods, Dictionary<string, Guid> existingNutrValues)
+        {
+            var allNutrValueCodes = foods
+                                    .SelectMany(nv => nv.nutritionalValues)
+                                    .Select(nutrValue => nutrValue.nutritionalValueCode)
+                                    .ToList();
+
+            var userFeedNutrValues = allNutrValueCodes.GroupBy(nutrValueCode => nutrValueCode)
+                                     .Select(group => new UserFeedNutritionalValues
+                                     {
+                                         userFeedID = userFeedID,
+                                         nutritionalValueID = existingNutrValues[group.Key],
+                                         MealFrequency = group.Count()
+                                     })
+                                     .ToList();
+
+            return userFeedNutrValues;
+        }
+
+        private void ToAddition(List<UserFeedNutritionalValues> userFeedNutrValues, Dictionary<Guid, UserFeedNutritionalValues> existingUserFeedNutrValuesDict)
+        {
+            var additions = userFeedNutrValues
+                            .Where(newItem => !existingUserFeedNutrValuesDict.ContainsKey(newItem.nutritionalValueID))
+                            .ToList();
+
+            if (additions.Count > 0)
+            {
+                _bd.UserFeedNutritionalValues.AddRange(additions);
+            }
+        }
+
+        private void ToDelete(List<UserFeedNutritionalValues> existingUserFeedNutrValues, Dictionary<Guid, UserFeedNutritionalValues> newUserFeedNutrValuesDict)
+        {
+            var deletions = existingUserFeedNutrValues
+                            .Where(existing => !newUserFeedNutrValuesDict.ContainsKey(existing.nutritionalValueID))
+                            .ToList();
+
+            if (deletions.Count > 0)
+            {
+                _bd.UserFeedNutritionalValues.RemoveRange(deletions);
+            }
+        }
     }
 }
