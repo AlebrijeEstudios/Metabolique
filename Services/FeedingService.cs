@@ -25,15 +25,17 @@ namespace AppVidaSana.Services
 
         public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
         {
-            //var foodsConsumed = await _bd.FoodsConsumed.Where(e => e.userFeedID == userFeedID).ToListAsync(cancellationToken);
-            //var foodsConsumedMapped = _mapper.Map<List<FoodsConsumedDto>>(foodsConsumed);
+            var userFeed = await _bd.UserFeeds.FindAsync(new object[] { userFeedID }, cancellationToken);
 
-            var userFeeding = await _bd.UserFeeds.FirstOrDefaultAsync(e => e.userFeedID == userFeedID, cancellationToken);
-            var userFeedingMapped = _mapper.Map<UserFeedsDto>(userFeeding);
+            var userFeedMapped = _mapper.Map<UserFeedsDto>(userFeed);
 
-            //userFeedingMapped.foodsConsumed = foodsConsumedMapped;
+            var dailyMeal = await _bd.DailyMeals.FindAsync(new object[] { userFeed!.dailyMealID }, cancellationToken);
 
-            return userFeedingMapped;
+            userFeedMapped.dailyMeal = dailyMeal!.dailyMeal;
+
+            userFeedMapped.foodsConsumed = await GetFoodsConsumedAsync(userFeedID, cancellationToken);
+
+            return userFeedMapped;
         }
 
         public async Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
@@ -67,6 +69,17 @@ namespace AppVidaSana.Services
 
             CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues, values.foodsConsumed);
 
+            CaloriesConsumed kcalConsumed = new CaloriesConsumed
+            {
+                accountID = values.accountID,
+                dateCaloriesConsumed = values.userFeedDate,
+                totalCaloriesConsumed = TotalKcal(values.foodsConsumed)
+            };
+
+            _bd.CaloriesConsumed.Add(kcalConsumed);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(values);
 
             userFeedingMapped.userFeedID = userFeed.userFeedID;
@@ -97,6 +110,15 @@ namespace AppVidaSana.Services
 
             float totalKcal = TotalKcal(values.foodsConsumed);
 
+            var totalKcalToDate = await _bd.CaloriesConsumed
+                                        .FirstOrDefaultAsync(e => e.accountID == userFeed.accountID
+                                                             && e.dateCaloriesConsumed == userFeed.userFeedDate,
+                                                             cancellationToken);
+
+            var newTotalKcalToDate = (totalKcalToDate!.totalCaloriesConsumed - userFeed.totalCalories) + totalKcal;
+
+            totalKcalToDate.totalCaloriesConsumed = newTotalKcalToDate;
+
             userFeed.satietyLevel = values.satietyLevel;
             userFeed.emotionsLinked = values.emotionsLinked;
             userFeed.totalCalories = totalKcal;
@@ -109,9 +131,32 @@ namespace AppVidaSana.Services
             return values;
         }
 
-        public Task<bool> DeleteFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
+        public async Task<bool> DeleteFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var userFeedToDelete = await _bd.UserFeeds.FindAsync(new object[] { userFeedID }, cancellationToken);
+
+            var totalKcalToDate = await _bd.CaloriesConsumed
+                                        .FirstOrDefaultAsync(e => e.accountID == userFeedToDelete!.accountID
+                                                             && e.dateCaloriesConsumed == userFeedToDelete.userFeedDate,
+                                                             cancellationToken);
+
+            var newTotalKcalToDate = totalKcalToDate!.totalCaloriesConsumed - userFeedToDelete!.totalCalories;
+
+            if(newTotalKcalToDate == 0)
+            {
+                _bd.CaloriesConsumed.Remove(totalKcalToDate);
+            }
+
+            if(newTotalKcalToDate > 0)
+            {
+                totalKcalToDate.totalCaloriesConsumed = newTotalKcalToDate;
+            }
+
+            _bd.UserFeeds.Remove(userFeedToDelete);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            return true;
         }
 
         public bool Save()
@@ -125,6 +170,44 @@ namespace AppVidaSana.Services
                 return false;
 
             }
+        }
+
+        private async Task<List<FoodsConsumedDto>> GetFoodsConsumedAsync(Guid userFeedID, CancellationToken cancellationToken)
+        {
+            List<FoodsConsumedDto> foodsConsumed = new List<FoodsConsumedDto>();
+
+            var userFeedNutrValues= await _bd.UserFeedNutritionalValues
+                                    .Where(e => e.userFeedID == userFeedID)
+                                    .ToListAsync(cancellationToken);
+
+            var nutrValues = await _bd.NutritionalValues
+                             .Where(e => userFeedNutrValues.Select(ufnv => ufnv.nutritionalValueID).Contains(e.nutritionalValueID))
+                             .ToListAsync(cancellationToken);
+
+            var foods = await _bd.Foods
+                        .Where(e => nutrValues.Select(nv => nv.foodID).Contains(e.foodID))
+                        .Distinct()
+                        .ToListAsync(cancellationToken);
+
+            foreach (var food in foods)
+            {
+                var foodMapped = _mapper.Map<FoodsConsumedDto>(food);
+
+                var nutrValuesForFood = nutrValues
+                                        .Where(nv => nv.foodID == food.foodID)
+                                        .SelectMany(nv =>
+                                        {
+                                            var frequency = userFeedNutrValues.FirstOrDefault(ufnv => ufnv.nutritionalValueID == nv.nutritionalValueID)!.MealFrequency;
+                                            return Enumerable.Repeat(_mapper.Map<NutritionalValuesDto>(nv), frequency);
+                                        })
+                                        .ToList();                
+
+                foodMapped.nutritionalValues = nutrValuesForFood;
+
+                foodsConsumed.Add(foodMapped);
+            }
+
+            return foodsConsumed;
         }
 
         private async Task ExistDailyMeal(string dailyMealStr, CancellationToken cancellationToken)
@@ -189,7 +272,7 @@ namespace AppVidaSana.Services
                            .Select(fc => new Foods
                            {
                                foodCode = fc.foodCode,
-                               nameFood = fc.foodName,
+                               nameFood = fc.nameFood,
                                unit = fc.unit
                            })
                            .ToList();

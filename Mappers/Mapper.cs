@@ -43,8 +43,14 @@ namespace AppVidaSana.Mappers
             CreateMap<AddFeedingDto, UserFeedsDto>()
                 .ForMember(dest => dest.userFeedID, opt => opt.Ignore()).ReverseMap();
 
-            /*CreateMap<UserFeeds, UserFeedsDto>()
-                .ForMember(dest => dest.foodsConsumed, opt => opt.Ignore()).ReverseMap();*/
+            CreateMap<Foods, FoodsConsumedDto>()
+                .ForMember(dest => dest.nutritionalValues, opt => opt.Ignore()).ReverseMap();
+
+            CreateMap<NutritionalValues, NutritionalValuesDto>().ReverseMap();
+
+            CreateMap<UserFeeds, UserFeedsDto>()
+                .ForMember(dest => dest.dailyMeal, opt => opt.Ignore())
+                .ForMember(dest => dest.foodsConsumed, opt => opt.Ignore()).ReverseMap();
 
             CreateMap<MFUsFood, ResultsMFUsFoodDto>()
                 .ForMember(dest => dest.month, opt => opt.Ignore())

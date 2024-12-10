@@ -3,7 +3,6 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Feeding;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.ProducesReponseType;
-using AppVidaSana.ProducesResponseType.Exercise;
 using AppVidaSana.ProducesResponseType.Feeding;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
@@ -47,11 +46,10 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns information from the user's feed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetAddUpdateFeedingResponse))]
         [ApiKeyAuthorizationFilter]
-        [HttpGet]
+        [HttpGet("{userFeedID:guid}")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetFeedingAsync([FromQuery] Guid userFeedID)
+        public async Task<IActionResult> GetFeedingAsync(Guid userFeedID)
         {
-
             var feeding = await _FeedingService.GetFeedingAsync(userFeedID, HttpContext.RequestAborted);
 
             GetAddUpdateFeedingResponse response = new GetAddUpdateFeedingResponse
@@ -198,6 +196,40 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+            }
+        }
+
+        /// <summary>
+        /// This controller deletes the record of a meal of the day.
+        /// </summary>
+        /// <response code="200">Returns a message that the elimination has been successful.</response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeleteFeedingResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpDelete("{userFeedID:guid}")]
+        [Produces("application/json")]
+        public async Task<IActionResult> DeleteFeedingAsync(Guid userFeedID)
+        {
+            try
+            {
+                bool status = await _FeedingService.DeleteFeedingAsync(userFeedID, HttpContext.RequestAborted);
+
+                DeleteFeedingResponse response = new DeleteFeedingResponse
+                {
+                    status = status
+                };
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
         }
     }
