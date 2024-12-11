@@ -4,9 +4,9 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 {
     public class InfoGeneralFeedingDto
     {
-        [JsonRequired] public List<StatusDailyMealsDto> defaultDailyMeals { get; set; } = null!;  
+        public List<StatusDailyMealsDto>? defaultDailyMeals { get; set; }   
         
-        [JsonRequired] public List<StatusDailyMealsDto> othersDailyMeals { get; set; } = null!;  
+        public List<StatusDailyMealsDto>? othersDailyMeals { get; set; }  
 
         [JsonRequired] public List<CaloriesConsumedFeedingDto> caloriesConsumed { get; set; } = null!;
 

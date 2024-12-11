@@ -1,6 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Feeding;
+using AppVidaSana.GraphicValues;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Models.Feeding;
 using AppVidaSana.Services.IServices;
@@ -15,12 +16,14 @@ namespace AppVidaSana.Services
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
         private readonly ValidationValuesDB _validationValues;
-  
+        private readonly DatesInRange _datesInRange;
+
         public FeedingService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
             _validationValues = new ValidationValuesDB();
+            _datesInRange = new DatesInRange();
         }
 
         public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
@@ -40,9 +43,22 @@ namespace AppVidaSana.Services
 
         public async Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
-            var userFeedingList = await _bd.UserFeeds.Where(e => e.accountID == accountID
+            
+            List<StatusDailyMealsDto> othersDailyMeals = new List<StatusDailyMealsDto>();
+
+            var userFeeds = await _bd.UserFeeds.Where(e => e.accountID == accountID
                                                             && e.userFeedDate == date).ToListAsync(cancellationToken);
 
+            var dailyMeals = await _bd.DailyMeals
+                                      .Where(e => userFeeds.Select(uf => uf.dailyMealID).Contains(e.dailyMealID))
+                                      .ToListAsync(cancellationToken);
+
+
+            InfoGeneralFeedingDto info = new InfoGeneralFeedingDto
+            {
+                defaultDailyMeals = GetDefaultDailyMeals(userFeeds, dailyMeals),
+                othersDailyMeals = GetOthersDailyMeals(userFeeds, dailyMeals)
+            };
 
             throw new NotImplementedException();
         }
@@ -69,16 +85,7 @@ namespace AppVidaSana.Services
 
             CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues, values.foodsConsumed);
 
-            CaloriesConsumed kcalConsumed = new CaloriesConsumed
-            {
-                accountID = values.accountID,
-                dateCaloriesConsumed = values.userFeedDate,
-                totalCaloriesConsumed = TotalKcal(values.foodsConsumed)
-            };
-
-            _bd.CaloriesConsumed.Add(kcalConsumed);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
+            await ExistKcalConsumedForDay(values, cancellationToken);
 
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(values);
 
@@ -209,6 +216,77 @@ namespace AppVidaSana.Services
 
             return foodsConsumed;
         }
+        
+        private static List<StatusDailyMealsDto>? GetDefaultDailyMeals(List<UserFeeds> userFeeds, List<DailyMeals> dailyMeals)
+        {
+            List<StatusDailyMealsDto>? defaultDailyMeals = new List<StatusDailyMealsDto>();
+
+            string[] dmDefaults = { "Desayuno", "Snack1", "Comida", "Snack2", "Cena" };
+
+            defaultDailyMeals.AddRange(
+                            dailyMeals.Where(dm => dmDefaults.Contains(dm.dailyMeal))
+                                      .SelectMany(dm => userFeeds
+                                      .Where(e => e.dailyMealID == dm.dailyMealID)
+                                      .Select(uf => new StatusDailyMealsDto
+                                      {
+                                          userFeedID = uf.userFeedID,
+                                          nameDailyMeal = dm.dailyMeal,
+                                          dailyMealStatus = true,
+                                          totalCalories = uf.totalCalories
+                                      })));
+
+            defaultDailyMeals = defaultDailyMeals
+                                .OrderBy(dm => Array.IndexOf(dmDefaults, dm.nameDailyMeal))
+                                .ToList();
+
+            if(defaultDailyMeals.Count == 0)
+            {
+                defaultDailyMeals = null;
+                return defaultDailyMeals;
+            }
+
+            return defaultDailyMeals;
+        }
+
+        private static List<StatusDailyMealsDto>? GetOthersDailyMeals(List<UserFeeds> userFeeds, List<DailyMeals> dailyMeals)
+        {
+            List<StatusDailyMealsDto>? othersDailyMeals = new List<StatusDailyMealsDto>();
+
+            string[] dmDefaults = { "Desayuno", "Snack1", "Comida", "Snack2", "Cena" };
+
+            othersDailyMeals.AddRange(
+                           dailyMeals.Where(dm => !dmDefaults.Contains(dm.dailyMeal))
+                                     .SelectMany(dm => userFeeds
+                                     .Where(e => e.dailyMealID == dm.dailyMealID)
+                                     .Select(uf => new StatusDailyMealsDto
+                                     {
+                                         userFeedID = uf.userFeedID,
+                                         nameDailyMeal = dm.dailyMeal,
+                                         dailyMealStatus = true,
+                                         totalCalories = uf.totalCalories
+                                     })));
+
+            othersDailyMeals = othersDailyMeals
+                               .OrderBy(dm =>
+                               {
+                                   var match = System.Text.RegularExpressions.Regex.Match(dm.nameDailyMeal, @"\d+");
+                                   return int.Parse(match.Value);
+                               })
+                               .ToList();
+
+            if (othersDailyMeals.Count == 0)
+            {
+                othersDailyMeals = null;
+                return othersDailyMeals;
+            }
+
+            return othersDailyMeals;
+        }
+
+        private float TotalKcal(List<FoodsConsumedDto> foods)
+        {
+            return foods.Sum(food => food.nutritionalValues.Sum(e => e.kilocalories));
+        }
 
         private async Task ExistDailyMeal(string dailyMealStr, CancellationToken cancellationToken)
         {
@@ -229,9 +307,30 @@ namespace AppVidaSana.Services
             }
         }
 
-        private float TotalKcal(List<FoodsConsumedDto> foods)
+        private async Task ExistKcalConsumedForDay(AddFeedingDto values, CancellationToken cancellationToken)
         {
-            return foods.Sum(food => food.nutritionalValues.Sum(e => e.kilocalories));
+            var kcalConsumedExist = await _bd.CaloriesConsumed.FirstOrDefaultAsync(e => e.accountID == values.accountID
+                                                                                   && e.dateCaloriesConsumed == values.userFeedDate,
+                                                                                   cancellationToken);
+
+            if (kcalConsumedExist is not null) {
+
+                kcalConsumedExist.totalCaloriesConsumed = kcalConsumedExist.totalCaloriesConsumed + TotalKcal(values.foodsConsumed);
+            }
+
+            if(kcalConsumedExist is null)
+            {
+                CaloriesConsumed kcalConsumed = new CaloriesConsumed
+                {
+                    accountID = values.accountID,
+                    dateCaloriesConsumed = values.userFeedDate,
+                    totalCaloriesConsumed = TotalKcal(values.foodsConsumed)
+                };
+
+                _bd.CaloriesConsumed.Add(kcalConsumed);
+            }
+
+            if (!Save()) { throw new UnstoredValuesException(); }
         }
 
         private UserFeeds CreateUserFeed(AddFeedingDto values, DailyMeals dailyMeal)
