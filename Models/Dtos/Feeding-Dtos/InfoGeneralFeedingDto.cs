@@ -10,6 +10,6 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 
         [JsonRequired] public List<CaloriesConsumedFeedingDto> caloriesConsumed { get; set; } = null!;
 
-        [JsonRequired] public bool mfuStatus { get; set; }
+        [JsonRequired] public bool mfuStatus { get; set; } 
     }
 }

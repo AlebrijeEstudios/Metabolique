@@ -3,8 +3,10 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.Models.Feeding;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services
 {
@@ -35,6 +37,8 @@ namespace AppVidaSana.Services
 
             _bd.Profiles.Add(profile);
 
+            float kcalNeeded = CreateUserCalories(profile);
+
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
@@ -52,7 +56,7 @@ namespace AppVidaSana.Services
 
             _validationValues.ValidationValues(profile);
 
-            _bd.Profiles.Update(profile);
+            await UpdateUserCalories(values, cancellationToken);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
@@ -70,6 +74,71 @@ namespace AppVidaSana.Services
                 return false;
 
             }
+        }
+
+        private float CreateUserCalories(Profiles profile)
+        {
+            float kcalNeeded = 0;
+
+            int age = GetAge(profile.birthDate);
+
+            if (profile.sex.Equals("Masculino"))
+            {
+                kcalNeeded = 88.362f + (13.397f * profile.weight) +(4.799f * profile.stature) - (5.677f * age);
+            }
+
+            if (profile.sex.Equals("Femenino"))
+            {
+                kcalNeeded = 447.593f + (9.247f * profile.weight) +(3.098f * profile.stature) - (4.330f * age);
+            }
+
+            UserCalories userKcal = new UserCalories
+            {
+                accountID = profile.accountID,
+                caloriesNeeded = kcalNeeded
+            };
+
+            _validationValues.ValidationValues(profile);
+
+            _bd.UserCalories.Add(userKcal);
+
+            return kcalNeeded;
+        }
+
+        private static int GetAge(DateOnly date)
+        {
+            DateTime dateActual = DateTime.Today;
+            int age = dateActual.Year - date.Year;
+
+            if (date.Month > dateActual.Month || (date.Month == dateActual.Month && date.Day > dateActual.Day))
+            {
+                age--;
+            }
+
+            return age;
+        }
+    
+        private async Task UpdateUserCalories(ProfileDto profile, CancellationToken cancellationToken)
+        {
+            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == profile.accountID, cancellationToken);
+
+            float kcalNeeded = 0;
+
+            int age = GetAge(profile.birthDate);
+
+            if (profile.sex.Equals("Masculino"))
+            {
+                kcalNeeded = 88.362f + (13.397f * profile.weight) + (4.799f * profile.stature) - (5.677f * age);
+            }
+
+            if (profile.sex.Equals("Femenino"))
+            {
+                kcalNeeded = 447.593f + (9.247f * profile.weight) + (3.098f * profile.stature) - (4.330f * age);
+            }
+
+            userKcal!.caloriesNeeded = kcalNeeded;
+
+            _validationValues.ValidationValues(userKcal);
         }
     }
 }

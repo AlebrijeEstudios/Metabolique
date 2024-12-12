@@ -8,6 +8,7 @@ using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace AppVidaSana.Services
 {
@@ -179,6 +180,88 @@ namespace AppVidaSana.Services
             }
         }
 
+        private async Task<CaloriesRequiredPerDay> CreateCaloriesRequiredPerDays(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        {
+            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            int DayOfWeek = (int) date.DayOfWeek;
+
+            DayOfWeek = DayOfWeek == 0 ? 7 : DayOfWeek;
+
+            DateOnly dateInitial = date.AddDays(-(DayOfWeek - 1));
+            DateOnly dateFinal = dateInitial.AddDays(6);
+
+            CaloriesRequiredPerDay kcalRequiredPerDay = new CaloriesRequiredPerDay
+            {
+                accountID = accountID,
+                dateInitial = dateInitial,
+                dateFinal = dateFinal.AddDays(6),
+                caloriesNeeded = userKcal!.caloriesNeeded
+            };
+
+            _validationValues.ValidationValues(kcalRequiredPerDay);
+
+            _bd.CaloriesRequiredPerDays.Add(kcalRequiredPerDay);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            return kcalRequiredPerDay;
+        }
+
+        private async Task UpdateCaloriesRequiredPerDays(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        {
+            var kcalRequiredPerDay = await _bd.CaloriesRequiredPerDays
+                                              .FirstOrDefaultAsync(e => e.accountID == accountID
+                                                                   && e.dateInitial <= date
+                                                                   && date <= e.dateFinal, cancellationToken);
+
+            if(kcalRequiredPerDay is null)
+            {
+                kcalRequiredPerDay = await CreateCaloriesRequiredPerDays(accountID, date, cancellationToken);
+            }
+
+            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            int daysForExercise = await _bd.ActiveMinutes.Where(e => e.accountID == accountID
+                                                                && kcalRequiredPerDay.dateInitial <= e.dateExercise
+                                                                && e.dateExercise <= kcalRequiredPerDay.dateFinal)
+                                                         .CountAsync(cancellationToken);
+
+            if(daysForExercise != 0 && daysForExercise <= 3)
+            {
+                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.375f;
+            }
+
+            if(daysForExercise != 0 && daysForExercise <= 5)
+            {
+                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.55f;
+            }
+
+            if(daysForExercise == 6 || daysForExercise == 7)
+            {
+                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.725f;
+            }
+            
+            int daysExtenuating = await _bd.Exercises.Where(e => e.accountID == accountID 
+                                                            && kcalRequiredPerDay.dateInitial <= e.dateExercise
+                                                            && e.dateExercise <= kcalRequiredPerDay.dateFinal
+                                                            && e.intensityExercise == "Extenuante")
+                                                     .Select(e => e.dateExercise)
+                                                     .Distinct()
+                                                     .CountAsync(cancellationToken);
+
+            if(daysExtenuating == 6 || daysExtenuating == 7)
+            {
+                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.9f;
+            }
+
+            kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.2f;
+
+            _validationValues.ValidationValues(kcalRequiredPerDay);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
         private async Task<List<FoodsConsumedDto>> GetFoodsConsumedAsync(Guid userFeedID, CancellationToken cancellationToken)
         {
             List<FoodsConsumedDto> foodsConsumed = new List<FoodsConsumedDto>();
@@ -281,6 +364,15 @@ namespace AppVidaSana.Services
             }
 
             return othersDailyMeals;
+        }
+
+        private List<CaloriesConsumedFeedingDto> GetCaloriesConsumedFeeding(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        {
+            DateOnly dateFinal = date.AddDays(-6);
+
+            var dates = _datesInRange.GetDatesInRange(dateFinal, date);
+
+            throw new Exception();
         }
 
         private float TotalKcal(List<FoodsConsumedDto> foods)
