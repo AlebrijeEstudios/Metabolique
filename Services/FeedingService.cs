@@ -44,9 +44,6 @@ namespace AppVidaSana.Services
 
         public async Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
-            
-            List<StatusDailyMealsDto> othersDailyMeals = new List<StatusDailyMealsDto>();
-
             var userFeeds = await _bd.UserFeeds.Where(e => e.accountID == accountID
                                                             && e.userFeedDate == date).ToListAsync(cancellationToken);
 
@@ -54,6 +51,7 @@ namespace AppVidaSana.Services
                                       .Where(e => userFeeds.Select(uf => uf.dailyMealID).Contains(e.dailyMealID))
                                       .ToListAsync(cancellationToken);
 
+            await UpdateCaloriesRequiredPerDays(accountID, date, cancellationToken);
 
             InfoGeneralFeedingDto info = new InfoGeneralFeedingDto
             {
@@ -61,7 +59,7 @@ namespace AppVidaSana.Services
                 othersDailyMeals = GetOthersDailyMeals(userFeeds, dailyMeals)
             };
 
-            throw new NotImplementedException();
+            return info;
         }
 
         public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)
@@ -97,7 +95,7 @@ namespace AppVidaSana.Services
 
         public async Task<UserFeedsDto> UpdateFeedingAsync(UserFeedsDto values, CancellationToken cancellationToken)
         {
-            var userFeed = await _bd.UserFeeds.FindAsync(values.userFeedID, cancellationToken);
+            var userFeed = await _bd.UserFeeds.FindAsync(new object[] { values.userFeedID }, cancellationToken);
 
             if (userFeed is null) { throw new UserFeedNotFoundException(); }
 
@@ -141,6 +139,8 @@ namespace AppVidaSana.Services
 
         public async Task<bool> DeleteFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
         {
+            float tolerancia = 0.0001f;
+
             var userFeedToDelete = await _bd.UserFeeds.FindAsync(new object[] { userFeedID }, cancellationToken);
 
             var totalKcalToDate = await _bd.CaloriesConsumed
@@ -150,7 +150,7 @@ namespace AppVidaSana.Services
 
             var newTotalKcalToDate = totalKcalToDate!.totalCaloriesConsumed - userFeedToDelete!.totalCalories;
 
-            if(newTotalKcalToDate == 0)
+            if(Math.Abs(newTotalKcalToDate) < tolerancia)
             {
                 _bd.CaloriesConsumed.Remove(totalKcalToDate);
             }
@@ -352,8 +352,8 @@ namespace AppVidaSana.Services
             othersDailyMeals = othersDailyMeals
                                .OrderBy(dm =>
                                {
-                                   var match = System.Text.RegularExpressions.Regex.Match(dm.nameDailyMeal, @"\d+");
-                                   return int.Parse(match.Value);
+                                   var numbers = new string(dm.nameDailyMeal.Where(char.IsDigit).ToArray());
+                                   return int.Parse(numbers);
                                })
                                .ToList();
 
@@ -366,18 +366,10 @@ namespace AppVidaSana.Services
             return othersDailyMeals;
         }
 
-        private List<CaloriesConsumedFeedingDto> GetCaloriesConsumedFeeding(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        private static float TotalKcal(List<FoodsConsumedDto> foods)
         {
-            DateOnly dateFinal = date.AddDays(-6);
+            return foods.Sum((FoodsConsumedDto food) => food.nutritionalValues.Sum((NutritionalValuesDto e) => e.kilocalories));
 
-            var dates = _datesInRange.GetDatesInRange(dateFinal, date);
-
-            throw new Exception();
-        }
-
-        private float TotalKcal(List<FoodsConsumedDto> foods)
-        {
-            return foods.Sum(food => food.nutritionalValues.Sum(e => e.kilocalories));
         }
 
         private async Task ExistDailyMeal(string dailyMealStr, CancellationToken cancellationToken)

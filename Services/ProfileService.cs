@@ -37,7 +37,7 @@ namespace AppVidaSana.Services
 
             _bd.Profiles.Add(profile);
 
-            float kcalNeeded = CreateUserCalories(profile);
+            CreateUserCalories(profile);
 
             if (!Save()) { throw new UnstoredValuesException(); }
         }
@@ -76,7 +76,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        private float CreateUserCalories(Profiles profile)
+        private void CreateUserCalories(Profiles profile)
         {
             float kcalNeeded = 0;
 
@@ -101,8 +101,6 @@ namespace AppVidaSana.Services
             _validationValues.ValidationValues(profile);
 
             _bd.UserCalories.Add(userKcal);
-
-            return kcalNeeded;
         }
 
         private static int GetAge(DateOnly date)
