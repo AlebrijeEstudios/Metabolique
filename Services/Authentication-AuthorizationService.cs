@@ -17,16 +17,10 @@ namespace AppVidaSana.Services
     public class AuthenticationAuthorizationService : IAuthenticationAuthorization
     {
         private readonly AppDbContext _bd;
-        private readonly ValidationValuesDB _validationValues;
-        private readonly GeneratorTokens _generatorTokens;
-        private readonly KeyTokenEnv _keyToken;
 
         public AuthenticationAuthorizationService(AppDbContext bd)
         {
             _bd = bd;
-            _validationValues = new ValidationValuesDB();
-            _generatorTokens = new GeneratorTokens();
-            _keyToken = new KeyTokenEnv();
         }
 
         public async Task<TokensDto> LoginAccountAsync(LoginDto login, CancellationToken cancellationToken)
@@ -54,7 +48,7 @@ namespace AppVidaSana.Services
 
         public async Task<TokensDto> RefreshTokenAsync(TokensDto values, CancellationToken cancellationToken)
         {
-            var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.accessToken, _keyToken.GetKeyTokenEnv());
+            var principal = GeneratorTokens.GetPrincipalFromExpiredToken(values.accessToken, KeyTokenEnv.GetKeyTokenEnv());
 
             var user = await _bd.Accounts.FirstOrDefaultAsync(e => e.accountID == values.accountID, cancellationToken);
 
@@ -88,7 +82,7 @@ namespace AppVidaSana.Services
 
             DateTime durationToken = DateTime.UtcNow.AddMinutes(30);
 
-            var accessToken = _generatorTokens.Tokens(_keyToken.GetKeyTokenEnv(), claims, durationToken);
+            var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
 
             return accessToken;
         }
@@ -108,7 +102,7 @@ namespace AppVidaSana.Services
                     dateExpiration = DateTime.Now.AddDays(7)
                 };
 
-                _validationValues.ValidationValues(historialRefreshToken);
+                ValidationValuesDB.ValidationValues(historialRefreshToken);
 
                 _bd.HistorialRefreshTokens.Add(historialRefreshToken);
 
@@ -137,7 +131,7 @@ namespace AppVidaSana.Services
 
         private void UpdateRefreshToken(HistorialRefreshToken values)
         {
-            _validationValues.ValidationValues(values);
+            ValidationValuesDB.ValidationValues(values);
 
             _bd.HistorialRefreshTokens.Update(values);
 

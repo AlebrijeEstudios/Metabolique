@@ -13,12 +13,10 @@ namespace AppVidaSana.Services
     public class ProfileService : IProfile
     {
         private readonly AppDbContext _bd;
-        private readonly ValidationValuesDB _validationValues;
 
         public ProfileService(AppDbContext bd)
         {
             _bd = bd;
-            _validationValues = new ValidationValuesDB();
         }
 
         public void CreateProfile(Guid accountID, AccountDto values)
@@ -33,7 +31,7 @@ namespace AppVidaSana.Services
                 protocolToFollow = values.protocolToFollow
             };
 
-            _validationValues.ValidationValues(profile);
+            ValidationValuesDB.ValidationValues(profile);
 
             _bd.Profiles.Add(profile);
 
@@ -54,7 +52,7 @@ namespace AppVidaSana.Services
             profile.weight = values.weight;
             profile.protocolToFollow = values.protocolToFollow;
 
-            _validationValues.ValidationValues(profile);
+            ValidationValuesDB.ValidationValues(profile);
 
             await UpdateUserCalories(values, cancellationToken);
 
@@ -98,7 +96,7 @@ namespace AppVidaSana.Services
                 caloriesNeeded = kcalNeeded
             };
 
-            _validationValues.ValidationValues(profile);
+            ValidationValuesDB.ValidationValues(profile);
 
             _bd.UserCalories.Add(userKcal);
         }
@@ -136,7 +134,7 @@ namespace AppVidaSana.Services
 
             userKcal!.caloriesNeeded = kcalNeeded;
 
-            _validationValues.ValidationValues(userKcal);
+            ValidationValuesDB.ValidationValues(userKcal);
         }
     }
 }

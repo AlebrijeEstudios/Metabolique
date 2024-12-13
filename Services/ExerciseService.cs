@@ -18,15 +18,11 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly ValidationValuesDB _validationValues;
-        private readonly DatesInRange _datesInRange;
         
         public ExerciseService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _validationValues = new ValidationValuesDB();
-            _datesInRange = new DatesInRange();
         }
 
         public async Task<List<ExerciseDto>> GetExercisesAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
@@ -99,7 +95,7 @@ namespace AppVidaSana.Services
                 timeSpent = values.timeSpent
             };
 
-            _validationValues.ValidationValues(exercise);
+            ValidationValuesDB.ValidationValues(exercise);
 
             _bd.Exercises.Add(exercise);
 
@@ -131,7 +127,7 @@ namespace AppVidaSana.Services
 
                 previousTotal.totalTimeSpent = newTotal;
 
-                _validationValues.ValidationValues(previousTotal);
+                ValidationValuesDB.ValidationValues(previousTotal);
 
                 _bd.ActiveMinutes.Update(previousTotal);
 
@@ -142,7 +138,7 @@ namespace AppVidaSana.Services
             exercise.intensityExercise = values.intensityExercise;
             exercise.timeSpent = values.timeSpent;
 
-            _validationValues.ValidationValues(exercise);
+            ValidationValuesDB.ValidationValues(exercise);
 
             _bd.Exercises.Update(exercise);
 
@@ -177,7 +173,7 @@ namespace AppVidaSana.Services
 
                 previousTotal.totalTimeSpent = newTotal;
 
-                _validationValues.ValidationValues(previousTotal);
+                ValidationValuesDB.ValidationValues(previousTotal);
 
                 _bd.ActiveMinutes.Update(previousTotal);
 
@@ -229,7 +225,7 @@ namespace AppVidaSana.Services
         {
             DateOnly dateFinal = date.AddDays(-6);
 
-            var dates = _datesInRange.GetDatesInRange(dateFinal, date);
+            var dates = DatesInRange.GetDatesInRange(dateFinal, date);
 
             List<ActiveMinutesExerciseDto> activeMinutes = new List<ActiveMinutesExerciseDto>();
 
@@ -273,7 +269,7 @@ namespace AppVidaSana.Services
 
                 activeMinutesExisting.totalTimeSpent = value + timeSpent;
 
-                _validationValues.ValidationValues(activeMinutesExisting);
+                ValidationValuesDB.ValidationValues(activeMinutesExisting);
 
                 _bd.ActiveMinutes.Update(activeMinutesExisting);
 
@@ -288,7 +284,7 @@ namespace AppVidaSana.Services
                     totalTimeSpent = timeSpent
                 };
 
-                _validationValues.ValidationValues(activeMinutes);
+                ValidationValuesDB.ValidationValues(activeMinutes);
 
                 _bd.ActiveMinutes.Add(activeMinutes);
 

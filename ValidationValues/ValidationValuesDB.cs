@@ -5,7 +5,7 @@ namespace AppVidaSana.ValidationValues
 {
     public class ValidationValuesDB
     {
-        public void ValidationValues(object obj)
+        public static void ValidationValues(object obj)
         {
             var validationResults = new List<ValidationResult>();
             var validationContext = new ValidationContext(obj, null, null);

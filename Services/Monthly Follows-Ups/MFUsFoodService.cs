@@ -15,20 +15,16 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly Months _months;
-        private readonly ValidationValuesDB _validationValues;
 
         public MFUsFoodService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _months = new Months();
-            _validationValues = new ValidationValuesDB();
         }
 
         public async Task<ResultsMFUsFoodDto?> RetrieveAnswersAsync(Guid accountID, int month, int year, CancellationToken cancellationToken)
         {
-            var monthStr = _months.VerifyExistMonth(month);
+            var monthStr = Months.VerifyExistMonth(month);
 
             ResultsMFUsFoodDto? results;
 
@@ -66,7 +62,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         public async Task<ResultsMFUsFoodDto?> SaveAnswersAsync(MFUsFoodDto values, CancellationToken cancellationToken)
         {
-            var monthStr = _months.VerifyExistMonth(values.month);
+            var monthStr = Months.VerifyExistMonth(values.month);
 
             await ExistMonthAsync(monthStr, values.year, cancellationToken);
 
@@ -95,7 +91,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 answerQuestion9 = values.answerQuestion9
             };
 
-            _validationValues.ValidationValues(mfus);
+            ValidationValuesDB.ValidationValues(mfus);
 
             _bd.MFUsFood.Add(mfus);
 
@@ -137,7 +133,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             mfuToUpdate.answerQuestion8 = values.answerQuestion8;
             mfuToUpdate.answerQuestion9 = values.answerQuestion9;
 
-            _validationValues.ValidationValues(mfuToUpdate);
+            ValidationValuesDB.ValidationValues(mfuToUpdate);
 
             _bd.MFUsFood.Update(mfuToUpdate);
 
@@ -187,7 +183,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 classification = classification
             };
 
-            _validationValues.ValidationValues(results);
+            ValidationValuesDB.ValidationValues(results);
 
             _bd.ResultsFood.Add(results);
 
@@ -207,7 +203,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             resultsToUpdate.totalPts = totalPts;
             resultsToUpdate.classification = classification;
 
-            _validationValues.ValidationValues(resultsToUpdate);
+            ValidationValuesDB.ValidationValues(resultsToUpdate);
 
             _bd.ResultsFood.Update(resultsToUpdate);
 

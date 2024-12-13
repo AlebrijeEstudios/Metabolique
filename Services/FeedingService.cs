@@ -16,15 +16,10 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly ValidationValuesDB _validationValues;
-        private readonly DatesInRange _datesInRange;
-
         public FeedingService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _validationValues = new ValidationValuesDB();
-            _datesInRange = new DatesInRange();
         }
 
         public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
@@ -161,7 +156,7 @@ namespace AppVidaSana.Services
             userFeed.totalCalories = totalKcal;
             userFeed.saucerPictureUrl = values.saucerPictureUrl;
 
-            _validationValues.ValidationValues(userFeed);
+            ValidationValuesDB.ValidationValues(userFeed);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
@@ -230,7 +225,7 @@ namespace AppVidaSana.Services
                 caloriesNeeded = userKcal!.caloriesNeeded
             };
 
-            _validationValues.ValidationValues(kcalRequiredPerDay);
+            ValidationValuesDB.ValidationValues(kcalRequiredPerDay);
 
             _bd.CaloriesRequiredPerDays.Add(kcalRequiredPerDay);
 
@@ -288,7 +283,7 @@ namespace AppVidaSana.Services
 
             if (daysForExercise == 0) { kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.2f; }
 
-            _validationValues.ValidationValues(kcalRequiredPerDay);
+            ValidationValuesDB.ValidationValues(kcalRequiredPerDay);
 
             if (!Save()) { throw new UnstoredValuesException(); }
         }
@@ -413,11 +408,9 @@ namespace AppVidaSana.Services
 
         private async Task<List<CaloriesConsumedFeedingDto>> GetCaloriesConsumedFeedingsAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
-            List<CaloriesConsumedFeedingDto> kcalConsumedFeedings = new List<CaloriesConsumedFeedingDto>();
-
             DateOnly dateFinal = date.AddDays(-6);
 
-            var dates = _datesInRange.GetDatesInRange(dateFinal, date);
+            var dates = DatesInRange.GetDatesInRange(dateFinal, date);
 
             var limits = await _bd.CaloriesRequiredPerDays
                                   .Where(c => c.accountID == accountID 
@@ -429,7 +422,7 @@ namespace AppVidaSana.Services
                                   .Where(c => c.accountID == accountID
                                          && dates.Contains(c.dateCaloriesConsumed)).ToListAsync(cancellationToken);
 
-            kcalConsumedFeedings = dates.Select(date => new CaloriesConsumedFeedingDto
+            var kcalConsumedFeedings = dates.Select(date => new CaloriesConsumedFeedingDto
                                             {
                                                 date = date,
                                                 limit = limits.FirstOrDefault(e => e.dateInitial <= date && date <= e.dateFinal)?.caloriesNeeded ?? 0,
@@ -441,8 +434,7 @@ namespace AppVidaSana.Services
 
         private static float TotalKcal(List<FoodsConsumedDto> foods)
         {
-            return foods.Sum((FoodsConsumedDto food) => food.nutritionalValues.Sum((NutritionalValuesDto e) => e.kilocalories));
-
+            return foods.Select(food => food.nutritionalValues.Sum(e => e.kilocalories)).Sum();
         }
 
         private async Task ExistDailyMeal(string dailyMealStr, CancellationToken cancellationToken)
@@ -456,7 +448,7 @@ namespace AppVidaSana.Services
                     dailyMeal = dailyMealStr
                 };
 
-                _validationValues.ValidationValues(dailyMeal);
+                ValidationValuesDB.ValidationValues(dailyMeal);
 
                 _bd.DailyMeals.Add(dailyMeal);
 
@@ -484,6 +476,8 @@ namespace AppVidaSana.Services
                     totalCaloriesConsumed = TotalKcal(values.foodsConsumed)
                 };
 
+                ValidationValuesDB.ValidationValues(kcalConsumed);
+
                 _bd.CaloriesConsumed.Add(kcalConsumed);
             }
 
@@ -506,7 +500,7 @@ namespace AppVidaSana.Services
                 saucerPictureUrl = values.saucerPictureUrl
             };
 
-            _validationValues.ValidationValues(userFeed);
+            ValidationValuesDB.ValidationValues(userFeed);
 
             _bd.UserFeeds.Add(userFeed);
 
@@ -535,7 +529,7 @@ namespace AppVidaSana.Services
 
             if (newFoods.Count > 0)
             {
-                newFoods.ForEach(food => _validationValues.ValidationValues(food));
+                newFoods.ForEach(food => ValidationValuesDB.ValidationValues(food));
 
                 _bd.Foods.AddRange(newFoods);
 
@@ -581,7 +575,7 @@ namespace AppVidaSana.Services
 
             if (newNutrValues.Count > 0)
             {
-                newNutrValues.ForEach(nv => _validationValues.ValidationValues(nv));
+                newNutrValues.ForEach(nv => ValidationValuesDB.ValidationValues(nv));
 
                 _bd.NutritionalValues.AddRange(newNutrValues);
 
@@ -601,7 +595,7 @@ namespace AppVidaSana.Services
         {
             var userFeedNutrValues = AllUserFeedNutrValues(userFeedID, foods, existingNutrValues);
 
-            userFeedNutrValues.ForEach(userFeedNutrValue => _validationValues.ValidationValues(userFeedNutrValue));
+            userFeedNutrValues.ForEach(userFeedNutrValue => ValidationValuesDB.ValidationValues(userFeedNutrValue));
 
             _bd.UserFeedNutritionalValues.AddRange(userFeedNutrValues);
 

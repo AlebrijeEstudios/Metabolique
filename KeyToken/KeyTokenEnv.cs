@@ -4,7 +4,7 @@ namespace AppVidaSana.KeyToken
 {
     public class KeyTokenEnv
     {
-        public string GetKeyTokenEnv()
+        public static string GetKeyTokenEnv()
         {
             return Environment.GetEnvironmentVariable("TOKEN") ??
                    Environment.GetEnvironmentVariable("TOKEN_Replacement") ??

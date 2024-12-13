@@ -16,20 +16,16 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly Months _months;
-        private readonly ValidationValuesDB _validationValues;
 
         public MFUsHabitsService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _months = new Months();
-            _validationValues = new ValidationValuesDB();
         }
 
         public async Task<RetrieveResponsesHabitsDto?> RetrieveAnswersAsync(Guid accountID, int month, int year, CancellationToken cancellationToken)
         {
-            var monthStr = _months.VerifyExistMonth(month);
+            var monthStr = Months.VerifyExistMonth(month);
 
             RetrieveResponsesHabitsDto? responses;
 
@@ -68,7 +64,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         public async Task<RetrieveResponsesHabitsDto?> SaveAnswersAsync(SaveResponsesHabitsDto values, CancellationToken cancellationToken)
         {
-            var monthStr = _months.VerifyExistMonth(values.month);
+            var monthStr = Months.VerifyExistMonth(values.month);
 
             await ExistMonthAsync(monthStr, values.year, cancellationToken);
 
@@ -104,7 +100,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 answerQuestion9 = values.answerQuestion9
             };
 
-            _validationValues.ValidationValues(answers);
+            ValidationValuesDB.ValidationValues(answers);
 
             _bd.MFUsHabits.Add(answers);
 
@@ -169,7 +165,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             mfuToUpdate.answerQuestion8 = values.answerQuestion8;
             mfuToUpdate.answerQuestion9 = values.answerQuestion9;
 
-            _validationValues.ValidationValues(mfuToUpdate);
+            ValidationValuesDB.ValidationValues(mfuToUpdate);
 
             _bd.MFUsHabits.Update(mfuToUpdate);
 
@@ -203,7 +199,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             resultsToUpdate.globalClassification = total;
             resultsToUpdate.classification = classificationPSQI;
 
-            _validationValues.ValidationValues(resultsToUpdate);
+            ValidationValuesDB.ValidationValues(resultsToUpdate);
 
             _bd.ResultsHabits.Update(resultsToUpdate);
 
@@ -242,7 +238,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 classification = values.classification
             };
 
-            _validationValues.ValidationValues(results);
+            ValidationValuesDB.ValidationValues(results);
 
             _bd.ResultsHabits.Add(results);
 

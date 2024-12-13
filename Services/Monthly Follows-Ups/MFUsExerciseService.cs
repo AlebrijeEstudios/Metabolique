@@ -17,20 +17,16 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly Months _months;
-        private readonly ValidationValuesDB _validationValues;
 
         public MFUsExerciseService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _months = new Months();
-            _validationValues = new ValidationValuesDB();
         }
 
         public async Task<RetrieveResponsesExerciseDto?> RetrieveAnswersAsync(Guid accountID, int month, int year, CancellationToken cancellationToken)
         {
-            var monthStr = _months.VerifyExistMonth(month);
+            var monthStr = Months.VerifyExistMonth(month);
 
             RetrieveResponsesExerciseDto? responses;
 
@@ -69,7 +65,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         public async Task<RetrieveResponsesExerciseDto?> SaveAnswersAsync(SaveResponsesExerciseDto values, CancellationToken cancellationToken)
         {
-            var monthStr = _months.VerifyExistMonth(values.month);
+            var monthStr = Months.VerifyExistMonth(values.month);
 
             await ExistMonthAsync(monthStr, values.year, cancellationToken);
 
@@ -123,7 +119,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 question7 = values.question7
             };
 
-            _validationValues.ValidationValues(mfus);
+            ValidationValuesDB.ValidationValues(mfus);
 
             _bd.MFUsExercise.Add(mfus);
 
@@ -162,7 +158,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             mfuToUpdate.question6 = values.question6;
             mfuToUpdate.question7 = values.question7;
 
-            _validationValues.ValidationValues(mfuToUpdate);
+            ValidationValuesDB.ValidationValues(mfuToUpdate);
 
             _bd.MFUsExercise.Update(mfuToUpdate);
 
@@ -207,7 +203,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             resultsToUpdate.sedentaryBehavior = sedentary;
             resultsToUpdate.levelAF = LevelAF;
 
-            _validationValues.ValidationValues(resultsToUpdate);
+            ValidationValuesDB.ValidationValues(resultsToUpdate);
 
             _bd.ResultsExercise.Update(resultsToUpdate);
 
@@ -244,7 +240,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 levelAF = values.levelAF
             };
 
-            _validationValues.ValidationValues(results);
+            ValidationValuesDB.ValidationValues(results);
 
             _bd.ResultsExercise.Add(results);
 

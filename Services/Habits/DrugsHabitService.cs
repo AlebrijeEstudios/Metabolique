@@ -14,13 +14,11 @@ namespace AppVidaSana.Services.Habits
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly ValidationValuesDB _validationValues;
 
         public DrugsHabitService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _validationValues = new ValidationValuesDB();
         }
 
         public DrugsHabitInfoDto AddDrugsConsumed(DrugsHabitDto values)
@@ -38,7 +36,7 @@ namespace AppVidaSana.Services.Habits
                 predominantEmotionalState = values.predominantEmotionalState
             };
 
-            _validationValues.ValidationValues(drugHabit);
+            ValidationValuesDB.ValidationValues(drugHabit);
 
             _bd.HabitsDrugs.Add(drugHabit);
 
