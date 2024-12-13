@@ -271,17 +271,17 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         private static float actVigorous(int res1, int res2)
         {
-            return (float)8.0 * res2 * res1;
+            return (float) 8.0 * res2 * res1;
         }
 
         private static float actModerate(int res3, int res4)
         {
-            return (float)4.0 * res4 * res3;
+            return (float) 4.0 * res4 * res3;
         }
 
         private static float actWalking(int res5, int res6)
         {
-            return (float)3.3 * res6 * res5;
+            return (float) 3.3 * res6 * res5;
         }
 
         private static float totalMET(float met1, float met2, float met3)

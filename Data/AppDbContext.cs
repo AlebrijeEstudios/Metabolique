@@ -141,6 +141,10 @@ namespace AppVidaSana.Data
                 .HasForeignKey<FoodResults>(results => results.monthlyFollowUpID)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<UserFeeds>()
+              .Property(e => e.userFeedTime)
+              .HasColumnType(TIME);
+
             //Exercise and MFUsExercise
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.exercises)
@@ -279,7 +283,6 @@ namespace AppVidaSana.Data
                 .WithOne(mfuMed => mfuMed.status)
                 .HasForeignKey(mfuMed => mfuMed.statusID)
                 .OnDelete(DeleteBehavior.Restrict);
-
         }
     }
 }

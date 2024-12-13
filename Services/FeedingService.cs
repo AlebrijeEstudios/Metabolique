@@ -8,7 +8,7 @@ using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
+using System.Globalization;
 
 namespace AppVidaSana.Services
 {
@@ -44,22 +44,52 @@ namespace AppVidaSana.Services
 
         public async Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
+            InfoGeneralFeedingDto infoGeneral;
+
+            bool status = false;
+            
+            await UpdateCaloriesRequiredPerDays(accountID, date, cancellationToken);
+
+            var kcalConsumed = await GetCaloriesConsumedFeedingsAsync(accountID, date, cancellationToken);
+
             var userFeeds = await _bd.UserFeeds.Where(e => e.accountID == accountID
-                                                            && e.userFeedDate == date).ToListAsync(cancellationToken);
+                                                      && e.userFeedDate == date).ToListAsync(cancellationToken);
+
 
             var dailyMeals = await _bd.DailyMeals
                                       .Where(e => userFeeds.Select(uf => uf.dailyMealID).Contains(e.dailyMealID))
                                       .ToListAsync(cancellationToken);
 
-            await UpdateCaloriesRequiredPerDays(accountID, date, cancellationToken);
+            
 
-            InfoGeneralFeedingDto info = new InfoGeneralFeedingDto
+            CultureInfo cultureInfo = new CultureInfo("es-ES");
+
+            var monthExist = await _bd.Months.FirstOrDefaultAsync(e => e.month == date.ToString("MMMM", cultureInfo)
+                                                                  && e.year == Convert.ToInt32(date.ToString("yyyy")),
+                                                                  cancellationToken);
+
+            if (monthExist is null)
             {
-                defaultDailyMeals = GetDefaultDailyMeals(userFeeds, dailyMeals),
-                othersDailyMeals = GetOthersDailyMeals(userFeeds, dailyMeals)
-            };
+                infoGeneral = GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, status);
 
-            return info;
+                return infoGeneral;
+            }
+            
+            var mfuExist = await _bd.MFUsFood.AnyAsync(e => e.accountID == accountID
+                                                       && e.monthID == monthExist.monthID, cancellationToken);
+
+            if (mfuExist)
+            {
+                status = true;
+
+                infoGeneral = GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, status);
+
+                return infoGeneral;
+            }
+
+            infoGeneral = GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, status);
+
+            return infoGeneral;
         }
 
         public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)
@@ -125,6 +155,7 @@ namespace AppVidaSana.Services
 
             totalKcalToDate.totalCaloriesConsumed = newTotalKcalToDate;
 
+            userFeed.userFeedTime = values.userFeedTime;
             userFeed.satietyLevel = values.satietyLevel;
             userFeed.emotionsLinked = values.emotionsLinked;
             userFeed.totalCalories = totalKcal;
@@ -195,7 +226,7 @@ namespace AppVidaSana.Services
             {
                 accountID = accountID,
                 dateInitial = dateInitial,
-                dateFinal = dateFinal.AddDays(6),
+                dateFinal = dateFinal,
                 caloriesNeeded = userKcal!.caloriesNeeded
             };
 
@@ -232,7 +263,7 @@ namespace AppVidaSana.Services
                 kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.375f;
             }
 
-            if(daysForExercise != 0 && daysForExercise <= 5)
+            if(3 < daysForExercise && daysForExercise <= 5)
             {
                 kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.55f;
             }
@@ -255,11 +286,25 @@ namespace AppVidaSana.Services
                 kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.9f;
             }
 
-            kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.2f;
+            if (daysForExercise == 0) { kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.2f; }
 
             _validationValues.ValidationValues(kcalRequiredPerDay);
 
             if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private static InfoGeneralFeedingDto GeneratedInfoGeneralFeeding(List<UserFeeds> userFeeds, List<DailyMeals> dailyMeals,
+                                                                         List<CaloriesConsumedFeedingDto> kcalConsumed, bool status)
+        {
+            InfoGeneralFeedingDto info = new InfoGeneralFeedingDto
+            {
+                defaultDailyMeals = GetDefaultDailyMeals(userFeeds, dailyMeals),
+                othersDailyMeals = GetOthersDailyMeals(userFeeds, dailyMeals),
+                caloriesConsumed = kcalConsumed,
+                mfuStatus = status
+            };
+
+            return info;
         }
 
         private async Task<List<FoodsConsumedDto>> GetFoodsConsumedAsync(Guid userFeedID, CancellationToken cancellationToken)
@@ -364,6 +409,34 @@ namespace AppVidaSana.Services
             }
 
             return othersDailyMeals;
+        }
+
+        private async Task<List<CaloriesConsumedFeedingDto>> GetCaloriesConsumedFeedingsAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        {
+            List<CaloriesConsumedFeedingDto> kcalConsumedFeedings = new List<CaloriesConsumedFeedingDto>();
+
+            DateOnly dateFinal = date.AddDays(-6);
+
+            var dates = _datesInRange.GetDatesInRange(dateFinal, date);
+
+            var limits = await _bd.CaloriesRequiredPerDays
+                                  .Where(c => c.accountID == accountID 
+                                         && dates.Any(date => c.dateInitial <= date && date <= c.dateFinal))
+                                  .Distinct()
+                                  .ToListAsync(cancellationToken);
+
+            var values = await _bd.CaloriesConsumed
+                                  .Where(c => c.accountID == accountID
+                                         && dates.Contains(c.dateCaloriesConsumed)).ToListAsync(cancellationToken);
+
+            kcalConsumedFeedings = dates.Select(date => new CaloriesConsumedFeedingDto
+                                            {
+                                                date = date,
+                                                limit = limits.FirstOrDefault(e => e.dateInitial <= date && date <= e.dateFinal)?.caloriesNeeded ?? 0,
+                                                value = values.FirstOrDefault(e => e.dateCaloriesConsumed == date)?.totalCaloriesConsumed ?? 0
+                                            }).ToList();
+
+            return kcalConsumedFeedings;
         }
 
         private static float TotalKcal(List<FoodsConsumedDto> foods)

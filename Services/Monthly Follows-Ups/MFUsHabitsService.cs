@@ -284,9 +284,9 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
         {
             if (response4 > 7) return 0;
 
-            if (6 <= response4 && response4 <= 7) return 1;
+            if (6 == response4 || response4 == 7) return 1;
 
-            if (5 <= response4 && response4 < 6) return 2;
+            if (5 == response4) return 2;
 
             return 3;
         }

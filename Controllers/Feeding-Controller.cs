@@ -27,6 +27,46 @@ namespace AppVidaSana.Controllers
         }
 
         /// <summary>
+        /// This driver returns general information about a user's feed.
+        /// </summary>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The dateExercise property must have the following structure:   
+        ///     {
+        ///        "dateExercise": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="200">It returns three arrays, one with the user's default meals of the day, another with other meals of the day and the last one with the calories consumed during the last 7 days.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetInfoGeneralFeedingResponse))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetInfoGeneralFeedingAsync([FromQuery] Guid accountID, [FromQuery] DateOnly date)
+        {
+
+            var infoFeeding = await _FeedingService.GetInfoGeneralFeedingAsync(accountID, date, HttpContext.RequestAborted);
+
+            GetInfoGeneralFeedingResponse response = new GetInfoGeneralFeedingResponse
+            {
+                defaultDailyMeals = infoFeeding.defaultDailyMeals,
+                othersDailyMeals = infoFeeding.othersDailyMeals,
+                caloriesConsumed = infoFeeding.caloriesConsumed,
+                mfuStatus = infoFeeding.mfuStatus
+            };
+
+            return StatusCode(StatusCodes.Status200OK, new
+            {
+                message = response.message,
+                defaultDailyMeals = response.defaultDailyMeals,
+                othersDailyMeals = response.othersDailyMeals,
+                caloriesConsumed = response.caloriesConsumed, 
+                mfuStatus = response.mfuStatus
+            });
+        }
+
+        /// <summary>
         /// This controller returns information about the user's feed for a given day.
         /// </summary>
         /// <remarks>
