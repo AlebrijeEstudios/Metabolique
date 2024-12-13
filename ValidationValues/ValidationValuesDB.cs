@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AppVidaSana.ValidationValues
 {
-    public class ValidationValuesDB
+    public static class ValidationValuesDB
     {
         public static void ValidationValues(object obj)
         {

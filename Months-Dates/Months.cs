@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.Months_Dates
 {
-    public class Months
+    public static class Months
     {
         public static string VerifyExistMonth(int month)
         {

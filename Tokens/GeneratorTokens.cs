@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AppVidaSana.Tokens
 {
-    public class GeneratorTokens
+    public static class GeneratorTokens
     {
         public static string Tokens(string keyToken, Claim[] claims, DateTime durationToken)
         {

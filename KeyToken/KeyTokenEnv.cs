@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.KeyToken
 {
-    public class KeyTokenEnv
+    public static class KeyTokenEnv
     {
         public static string GetKeyTokenEnv()
         {

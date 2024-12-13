@@ -1,6 +1,6 @@
 ﻿namespace AppVidaSana.GraphicValues
 {
-    public class DatesInRange
+    public static class DatesInRange
     {
         public static List<DateOnly> GetDatesInRange(DateOnly startDate, DateOnly endDate)
         {
