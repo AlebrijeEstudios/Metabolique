@@ -2,9 +2,9 @@
 
 namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 {
-    public class AddFeedingDto
+    public class UpdateFeedingDto
     {
-        [JsonRequired] public Guid accountID { get; set; }  
+        [JsonRequired] public Guid userFeedID { get; set; }
 
         [JsonRequired] public DateOnly userFeedDate { get; set; }
 
@@ -21,4 +21,3 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
         public IFormFile? saucerPicture { get; set; }
     }
 }
-

@@ -2,6 +2,7 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Feeding;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
+using AppVidaSana.Models.Feeding;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType.Feeding;
 using AppVidaSana.Services.IServices;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace AppVidaSana.Controllers
 {
@@ -16,6 +18,8 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/feeding")]
+    [RequestSizeLimit(10_000_000)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 10_000_000)]
     [RequestTimeout("CustomPolicy")]
     public class FeedingController : ControllerBase
     {
@@ -126,11 +130,13 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
-        public async Task<IActionResult> AddFeedingAsync([FromBody] AddFeedingDto values)
+        public async Task<IActionResult> AddFeedingAsync([FromForm] AddFeedingDto values)
         {
             try
             {
-                var feeding = await _FeedingService.AddFeedingAsync(values, HttpContext.RequestAborted);
+                var foodsConsumed = JsonConvert.DeserializeObject<List<FoodsConsumedDto>>(values.foodsConsumed);
+
+                var feeding = await _FeedingService.AddFeedingAsync(values, foodsConsumed!, HttpContext.RequestAborted);
 
                 GetAddUpdateFeedingResponse response = new GetAddUpdateFeedingResponse
                 {
@@ -197,11 +203,13 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
-        public async Task<IActionResult> UpdateFeedingAsync([FromBody] UserFeedsDto values)
+        public async Task<IActionResult> UpdateFeedingAsync([FromForm] UpdateFeedingDto values)
         {
             try
             {
-                var feeding = await _FeedingService.UpdateFeedingAsync(values, HttpContext.RequestAborted);
+                var foodsConsumed = JsonConvert.DeserializeObject<List<FoodsConsumedDto>>(values.foodsConsumed);
+
+                var feeding = await _FeedingService.UpdateFeedingAsync(values, foodsConsumed!, HttpContext.RequestAborted);
 
                 GetAddUpdateFeedingResponse response = new GetAddUpdateFeedingResponse
                 {

@@ -21,6 +21,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
+using Azure.Storage.Blobs;
 
 Env.Load();
 
@@ -28,11 +29,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
+var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
+
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
 var keyBytes = Encoding.ASCII.GetBytes(token);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddDbContext<ApiDbContext>(options => options.UseInMemoryDatabase(nameof(ApiDbContext)));
+
+builder.Services.AddSingleton(x => new BlobServiceClient(storageAccount));
 
 var myrulesCORS = "RulesCORS";
 builder.Services.AddCors(opt =>

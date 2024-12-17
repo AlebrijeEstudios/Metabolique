@@ -23,6 +23,7 @@ namespace AppVidaSana.Data
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Profiles> Profiles { get; set; }
         public DbSet<UserFeeds> UserFeeds { get; set; }
+        public DbSet<SaucerPictures> SaucerPictures { get; set; }
         public DbSet<DailyMeals> DailyMeals { get; set; }
         public DbSet<UserCalories> UserCalories { get; set; }
         public DbSet<Foods> Foods { get; set; }
@@ -80,6 +81,12 @@ namespace AppVidaSana.Data
                 .WithOne(userFeeds => userFeeds.account)
                 .HasForeignKey(userFeeds => userFeeds.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SaucerPictures>()
+                .HasMany(picture => picture.userFeeds)
+                .WithOne(userFeeds => userFeeds.saucerPicture)
+                .HasForeignKey(userFeeds => userFeeds.saucerPictureID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<DailyMeals>()
                 .HasMany(dailyMeal => dailyMeal.userFeeds)

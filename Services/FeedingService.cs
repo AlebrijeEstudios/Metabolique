@@ -7,8 +7,10 @@ using AppVidaSana.Models.Feeding;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
+using Azure.Storage.Blobs;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using System.Security.Cryptography;
 
 namespace AppVidaSana.Services
 {
@@ -16,10 +18,17 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        public FeedingService(AppDbContext bd, IMapper mapper)
+        private const string ContainerName = "storageimages";
+        private readonly BlobServiceClient _blobServiceClient;
+        private readonly BlobContainerClient _containerClient;
+
+        public FeedingService(AppDbContext bd, IMapper mapper, BlobServiceClient blobServiceClient)
         {
             _bd = bd;
             _mapper = mapper;
+            _blobServiceClient = blobServiceClient;
+            _containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+            _containerClient.CreateIfNotExists();
         }
 
         public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
@@ -33,6 +42,8 @@ namespace AppVidaSana.Services
             userFeedMapped.dailyMeal = dailyMeal!.dailyMeal;
 
             userFeedMapped.foodsConsumed = await GetFoodsConsumedAsync(userFeedID, cancellationToken);
+
+            userFeedMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(userFeed.saucerPictureID, cancellationToken);
 
             return userFeedMapped;
         }
@@ -87,12 +98,12 @@ namespace AppVidaSana.Services
             return infoGeneral;
         }
 
-        public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)
+        public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, List<FoodsConsumedDto> foodsConsumed, CancellationToken cancellationToken)
         {
             await ExistDailyMeal(values.dailyMeal, cancellationToken);
 
             var dailyMeal = await _bd.DailyMeals.FirstOrDefaultAsync(e => e.dailyMeal == values.dailyMeal, cancellationToken);
-
+            
             if (dailyMeal is null) { throw new UnstoredValuesException(); }
 
             var feedingExisting = await _bd.UserFeeds.FirstOrDefaultAsync(e => e.accountID == values.accountID
@@ -101,24 +112,28 @@ namespace AppVidaSana.Services
 
             if (feedingExisting is not null) { throw new RepeatRegistrationException(); }
 
-            var userFeed = CreateUserFeed(values, dailyMeal);
+            var userFeed = await CreateUserFeed(values, dailyMeal, foodsConsumed, cancellationToken);
 
-            var foods = await CreateFoods(values.foodsConsumed, cancellationToken);
+            var foods = await CreateFoods(foodsConsumed, cancellationToken);
 
-            var nutritionalValues = await CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
+            var nutritionalValues = await CreateNutritionalValues(foods, foodsConsumed, cancellationToken);
 
-            CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues, values.foodsConsumed);
+            CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues, foodsConsumed);
 
-            await ExistKcalConsumedForDay(values, cancellationToken);
-
+            await ExistKcalConsumedForDay(values, foodsConsumed, cancellationToken);
+            
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(values);
-
+            
             userFeedingMapped.userFeedID = userFeed.userFeedID;
+
+            userFeedingMapped.foodsConsumed = foodsConsumed;
+
+            userFeedingMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(userFeed.saucerPictureID, cancellationToken);
 
             return userFeedingMapped;
         }
 
-        public async Task<UserFeedsDto> UpdateFeedingAsync(UserFeedsDto values, CancellationToken cancellationToken)
+        public async Task<UserFeedsDto> UpdateFeedingAsync(UpdateFeedingDto values, List<FoodsConsumedDto> foodsConsumed, CancellationToken cancellationToken)
         {
             var userFeed = await _bd.UserFeeds.FindAsync(new object[] { values.userFeedID }, cancellationToken);
 
@@ -133,13 +148,20 @@ namespace AppVidaSana.Services
                 userFeed.dailyMealID = dailyMeal.dailyMealID;
             }
 
-            var foods = await CreateFoods(values.foodsConsumed, cancellationToken);
+            var foods = await CreateFoods(foodsConsumed, cancellationToken);
 
-            var nutritionalValues = await CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
+            var nutritionalValues = await CreateNutritionalValues(foods, foodsConsumed, cancellationToken);
 
-            await UpdateUserFeedNutrValues(values, nutritionalValues, cancellationToken);
+            await UpdateUserFeedNutrValues(values, foodsConsumed, nutritionalValues, cancellationToken);
 
-            float totalKcal = TotalKcal(values.foodsConsumed);
+            Guid? saucerPictureID = null;
+
+            if (values.saucerPicture is not null)
+            {
+                saucerPictureID = await SavePictureAsync(values.saucerPicture, cancellationToken);
+            }
+
+            float totalKcal = TotalKcal(foodsConsumed);
 
             var totalKcalToDate = await _bd.CaloriesConsumed
                                         .FirstOrDefaultAsync(e => e.accountID == userFeed.accountID
@@ -154,13 +176,17 @@ namespace AppVidaSana.Services
             userFeed.satietyLevel = values.satietyLevel;
             userFeed.emotionsLinked = values.emotionsLinked;
             userFeed.totalCalories = totalKcal;
-            userFeed.saucerPictureUrl = values.saucerPictureUrl;
+            userFeed.saucerPictureID = saucerPictureID;
 
             ValidationValuesDB.ValidationValues(userFeed);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            return values;
+            var userFeedingMapped = _mapper.Map<UserFeedsDto>(values);
+
+            userFeedingMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(saucerPictureID, cancellationToken);
+
+            return userFeedingMapped;
         }
 
         public async Task<bool> DeleteFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
@@ -432,6 +458,17 @@ namespace AppVidaSana.Services
             return kcalConsumedFeedings;
         }
 
+        private async Task<string?> GetSaucerPictureUrlAsync(Guid? saucerPictureID, CancellationToken cancellationToken)
+        {
+            if (saucerPictureID is null)
+            {
+                return null;
+            }
+
+            var suacerPictureUrl = await _bd.SaucerPictures.FindAsync(new object[] { saucerPictureID }, cancellationToken);
+            return suacerPictureUrl!.saucerPictureUrl;
+        }
+
         private static float TotalKcal(List<FoodsConsumedDto> foods)
         {
             return foods.Select(food => food.nutritionalValues.Sum(e => e.kilocalories)).Sum();
@@ -456,7 +493,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        private async Task ExistKcalConsumedForDay(AddFeedingDto values, CancellationToken cancellationToken)
+        private async Task ExistKcalConsumedForDay(AddFeedingDto values, List<FoodsConsumedDto> foodsConsumed, CancellationToken cancellationToken)
         {
             var kcalConsumedExist = await _bd.CaloriesConsumed.FirstOrDefaultAsync(e => e.accountID == values.accountID
                                                                                    && e.dateCaloriesConsumed == values.userFeedDate,
@@ -464,7 +501,7 @@ namespace AppVidaSana.Services
 
             if (kcalConsumedExist is not null) {
 
-                kcalConsumedExist.totalCaloriesConsumed = kcalConsumedExist.totalCaloriesConsumed + TotalKcal(values.foodsConsumed);
+                kcalConsumedExist.totalCaloriesConsumed = kcalConsumedExist.totalCaloriesConsumed + TotalKcal(foodsConsumed);
             }
 
             if(kcalConsumedExist is null)
@@ -473,7 +510,7 @@ namespace AppVidaSana.Services
                 {
                     accountID = values.accountID,
                     dateCaloriesConsumed = values.userFeedDate,
-                    totalCaloriesConsumed = TotalKcal(values.foodsConsumed)
+                    totalCaloriesConsumed = TotalKcal(foodsConsumed)
                 };
 
                 ValidationValuesDB.ValidationValues(kcalConsumed);
@@ -484,9 +521,16 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private UserFeeds CreateUserFeed(AddFeedingDto values, DailyMeals dailyMeal)
+        private async Task<UserFeeds> CreateUserFeed(AddFeedingDto values, DailyMeals dailyMeal, List<FoodsConsumedDto> foodsConsumed, CancellationToken cancellationToken)
         {
-            float totalKcal = TotalKcal(values.foodsConsumed);
+            float totalKcal = TotalKcal(foodsConsumed);
+
+            Guid? saucerPictureID = null;
+
+            if(values.saucerPicture is not null)
+            {
+                saucerPictureID = await SavePictureAsync(values.saucerPicture, cancellationToken);
+            }
 
             UserFeeds userFeed = new UserFeeds
             {
@@ -497,7 +541,7 @@ namespace AppVidaSana.Services
                 satietyLevel = values.satietyLevel,
                 emotionsLinked = values.emotionsLinked,
                 totalCalories = totalKcal,
-                saucerPictureUrl = values.saucerPictureUrl
+                saucerPictureID = saucerPictureID
             };
 
             ValidationValuesDB.ValidationValues(userFeed);
@@ -507,6 +551,52 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
 
             return userFeed;
+        }
+
+        private async Task<Guid> SavePictureAsync(IFormFile picture, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var hashPicture = GetImageHashSHA256(picture);
+
+                var fileUrl = await _bd.SaucerPictures.FirstOrDefaultAsync(e => e.hashPicture == hashPicture, cancellationToken);
+
+                if(fileUrl is null)
+                {
+                    var blobClient = _containerClient.GetBlobClient(picture.FileName);
+                    await blobClient.UploadAsync(picture.OpenReadStream(), true);
+                    var url = blobClient.Uri.ToString();
+
+                    SaucerPictures saucerPicture = new SaucerPictures
+                    {
+                        hashPicture = hashPicture,
+                        saucerPictureUrl = url
+                    };
+
+                    ValidationValuesDB.ValidationValues(saucerPicture);
+
+                    _bd.SaucerPictures.Add(saucerPicture);
+
+                    if (!Save()) { throw new UnstoredValuesException(); }
+
+                    return saucerPicture.saucerPictureID;
+                }
+
+                return fileUrl.saucerPictureID;
+            }
+            catch(Exception)
+            {
+                throw new UnstoredValuesException();
+            }
+        }
+
+        private static string GetImageHashSHA256(IFormFile picture)
+        {
+            var sha256 = SHA256.Create();
+            var stream = picture.OpenReadStream();
+
+            byte[] hashBytes = sha256.ComputeHash(stream);
+            return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
         }
 
         private async Task<Dictionary<string, Guid>> CreateFoods(List<FoodsConsumedDto> foods, CancellationToken cancellationToken)
@@ -602,9 +692,10 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private async Task UpdateUserFeedNutrValues(UserFeedsDto values, Dictionary<string, Guid> existingNutrValues, CancellationToken cancellationToken)
+        private async Task UpdateUserFeedNutrValues(UpdateFeedingDto values, List<FoodsConsumedDto> foodsConsumed,
+                                                    Dictionary<string, Guid> existingNutrValues, CancellationToken cancellationToken)
         {
-            var userFeedNutrValues = AllUserFeedNutrValues(values.userFeedID, values.foodsConsumed, existingNutrValues);
+            var userFeedNutrValues = AllUserFeedNutrValues(values.userFeedID, foodsConsumed, existingNutrValues);
 
             var existingUserFeedNutrValues = await _bd.UserFeedNutritionalValues
                                              .Where(e => e.userFeedID == values.userFeedID)

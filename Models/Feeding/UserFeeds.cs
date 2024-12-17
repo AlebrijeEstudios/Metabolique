@@ -29,11 +29,14 @@ namespace AppVidaSana.Models.Feeding
         [Required(ErrorMessage = "El campo total de calorias es obligatorio")]
         public float totalCalories { get; set; }
 
-        public string? saucerPictureUrl { get; set; }
+        [ForeignKey("SaucerPictures")]
+        public Guid? saucerPictureID { get; set; }
 
         public Account? account { get; set; }
 
         public DailyMeals? dailyMeals { get; set; }
+
+        public SaucerPictures? saucerPicture { get; set; }
 
         public ICollection<UserFeedNutritionalValues> userFeedNutritionalValues { get; set; } = new List<UserFeedNutritionalValues>();
 
