@@ -15,13 +15,11 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly ValidationValuesDB _validationValues;
 
         public AccountService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _validationValues = new ValidationValuesDB();
         }
 
         public async Task<Guid> CreateAccountAsync(AccountDto values, CancellationToken cancellationToken)
@@ -30,7 +28,7 @@ namespace AppVidaSana.Services
 
             try
             {
-                string verifyStatusEmail = await verifyEmail(values.email, cancellationToken);
+                string verifyStatusEmail = await verifyEmailAsync(values.email, cancellationToken);
 
                 if (verifyStatusEmail != "") { errors.Add(verifyStatusEmail); }
             }
@@ -64,7 +62,7 @@ namespace AppVidaSana.Services
                 roleID = role.roleID
             };
 
-            _validationValues.ValidationValues(account);
+            ValidationValuesDB.ValidationValues(account);
 
             _bd.Accounts.Add(account);
 
@@ -101,7 +99,7 @@ namespace AppVidaSana.Services
             {
                 try
                 {
-                    string verifyStatusEmail = await verifyEmail(values.email, cancellationToken);
+                    string verifyStatusEmail = await verifyEmailAsync(values.email, cancellationToken);
 
                     if (verifyStatusEmail != "") { errors.Add(verifyStatusEmail); }
                 }
@@ -116,7 +114,7 @@ namespace AppVidaSana.Services
             user.username = values.username;
             user.email = values.email;
 
-            _validationValues.ValidationValues(user);
+            ValidationValuesDB.ValidationValues(user);
 
             _bd.Accounts.Update(user);
 
@@ -161,7 +159,7 @@ namespace AppVidaSana.Services
             }
         }
 
-        private async Task<string> verifyEmail(string email, CancellationToken cancellationToken)
+        private async Task<string> verifyEmailAsync(string email, CancellationToken cancellationToken)
         {
             var existingEmail = await _bd.Accounts.AnyAsync(c => c.email == email, cancellationToken);
 

@@ -2,9 +2,9 @@
 
 namespace AppVidaSana.Months_Dates
 {
-    public class Months
+    public static class Months
     {
-        public string VerifyExistMonth(int month)
+        public static string VerifyExistMonth(int month)
         {
             var months = new Dictionary<int, string>
             {

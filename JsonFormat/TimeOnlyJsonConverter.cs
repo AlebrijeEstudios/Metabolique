@@ -9,9 +9,9 @@ namespace AppVidaSana.JsonFormat
 
         public override TimeOnly ReadJson(JsonReader reader, Type objectType, TimeOnly existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            return TimeOnly.ParseExact((string) reader.Value!, TimeFormat, CultureInfo.InvariantCulture);
+            return TimeOnly.ParseExact((string)reader.Value!, TimeFormat, CultureInfo.InvariantCulture);
         }
-        
+
         public override void WriteJson(JsonWriter writer, TimeOnly value, JsonSerializer serializer)
         {
             writer.WriteValue(value.ToString(TimeFormat, CultureInfo.InvariantCulture));

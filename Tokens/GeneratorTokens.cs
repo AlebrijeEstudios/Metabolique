@@ -5,9 +5,9 @@ using System.Text;
 
 namespace AppVidaSana.Tokens
 {
-    public class GeneratorTokens
+    public static class GeneratorTokens
     {
-        public string Tokens(string keyToken, Claim[] claims, DateTime durationToken)
+        public static string Tokens(string keyToken, Claim[] claims, DateTime durationToken)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var keyBytes = Encoding.ASCII.GetBytes(keyToken);
@@ -26,7 +26,7 @@ namespace AppVidaSana.Tokens
             return accessToken;
         }
 
-        public ClaimsPrincipal GetPrincipalFromExpiredToken(string token, string keyToken)
+        public static ClaimsPrincipal GetPrincipalFromExpiredToken(string token, string keyToken)
         {
             var key = Encoding.ASCII.GetBytes(keyToken);
             var tokenValidationParameters = new TokenValidationParameters

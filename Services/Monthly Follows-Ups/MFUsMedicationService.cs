@@ -13,19 +13,15 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
     public class MFUsMedicationService : IMFUsMedications
     {
         private readonly AppDbContext _bd;
-        private readonly Months _months;
-        private readonly ValidationValuesDB _validationValues;
 
         public MFUsMedicationService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
-            _months = new Months();
-            _validationValues = new ValidationValuesDB();
         }
 
         public async Task<RetrieveResponsesMedicationsDto?> RetrieveAnswersAsync(Guid accountID, int month, int year, CancellationToken cancellationToken)
         {
-            var monthStr = _months.VerifyExistMonth(month);
+            var monthStr = Months.VerifyExistMonth(month);
 
             RetrieveResponsesMedicationsDto? responses;
 
@@ -37,7 +33,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 return responses;
             }
 
-            var mfuMedications = await _bd.MFUsMedication.FirstOrDefaultAsync(c => c.accountID == accountID 
+            var mfuMedications = await _bd.MFUsMedication.FirstOrDefaultAsync(c => c.accountID == accountID
                                                                               && c.monthID == existMonth.monthID, cancellationToken);
 
             if (mfuMedications is null)
@@ -67,7 +63,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         public async Task<RetrieveResponsesMedicationsDto?> SaveAnswersAsync(SaveResponsesMedicationsDto values, CancellationToken cancellationToken)
         {
-            var monthStr = _months.VerifyExistMonth(values.month);
+            var monthStr = Months.VerifyExistMonth(values.month);
 
             await ExistMonthAsync(monthStr, values.year, cancellationToken);
 
@@ -76,7 +72,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             if (month is null) { throw new UnstoredValuesException(); }
 
-            var answersExisting = await _bd.MFUsMedication.AnyAsync(e => e.accountID == values.accountID 
+            var answersExisting = await _bd.MFUsMedication.AnyAsync(e => e.accountID == values.accountID
                                                                     && e.monthID == month.monthID, cancellationToken);
 
             if (answersExisting) { throw new RepeatRegistrationException(); }
@@ -99,7 +95,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
                 statusID = statusAdherenceID
             };
 
-            _validationValues.ValidationValues(answers);
+            ValidationValuesDB.ValidationValues(answers);
 
             _bd.MFUsMedication.Add(answers);
 
@@ -130,7 +126,7 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             mfuToUpdate.answerQuestion4 = values.answerQuestion4;
             mfuToUpdate.statusID = statusAdherenceID;
 
-            _validationValues.ValidationValues(mfuToUpdate);
+            ValidationValuesDB.ValidationValues(mfuToUpdate);
 
             _bd.MFUsMedication.Update(mfuToUpdate);
 

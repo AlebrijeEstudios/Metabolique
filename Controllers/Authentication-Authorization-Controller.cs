@@ -41,7 +41,7 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPost("login")]
         [Produces("application/json")]
-        public async Task<IActionResult> LoginAccount([FromBody] LoginDto login)
+        public async Task<IActionResult> LoginAccountAsync([FromBody] LoginDto login)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPost("refresh-token")]
         [Produces("application/json")]
-        public async Task<IActionResult> RefreshToken([FromBody] TokensDto values)
+        public async Task<IActionResult> RefreshTokenAsync([FromBody] TokensDto values)
         {
             try
             {

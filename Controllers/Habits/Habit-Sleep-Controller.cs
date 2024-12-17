@@ -2,7 +2,6 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep;
-using AppVidaSana.Models.Habitos;
 using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType.Habits.SleepHabit;
 using AppVidaSana.Services.IServices.IHabits;
@@ -136,7 +135,7 @@ namespace AppVidaSana.Controllers.Habits
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
-            catch (HabitNotFoundException  ex)
+            catch (HabitNotFoundException ex)
             {
                 ExceptionMessage response = new ExceptionMessage
                 {

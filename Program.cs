@@ -22,6 +22,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
+using Azure.Storage.Blobs;
 
 Env.Load();
 
@@ -29,11 +30,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
 
+var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
+
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
 var keyBytes = Encoding.ASCII.GetBytes(token);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddDbContext<ApiDbContext>(options => options.UseInMemoryDatabase(nameof(ApiDbContext)));
+
+builder.Services.AddSingleton(x => new BlobServiceClient(storageAccount));
 
 var myrulesCORS = "RulesCORS";
 builder.Services.AddCors(opt =>
@@ -78,7 +83,7 @@ builder.Services.AddControllers(options =>
 {
     options.SerializerSettings.Converters.Add(new DateOnlyJsonConverter());
     options.SerializerSettings.Converters.Add(new TimeOnlyJsonConverter());
-}); 
+});
 
 builder.Services.AddControllersWithViews();
 
@@ -90,6 +95,7 @@ builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IAuthenticationAuthorization, AuthenticationAuthorizationService>();
 builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
+builder.Services.AddScoped<IFeeding, FeedingService>();
 builder.Services.AddScoped<IMFUsFood, MFUsFoodService>();
 builder.Services.AddScoped<IExercise, ExerciseService>();
 builder.Services.AddScoped<IMFUsExercise, MFUsExerciseService>();
@@ -168,6 +174,12 @@ builder.Services.AddSwaggerGen(c =>
         Format = "date",
         Example = new OpenApiString(DateTime.Today.ToString("yyyy-MM-dd"))
     });
+    c.MapType<TimeOnly>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "time",
+        Example = new OpenApiString(DateTime.Today.ToString("HH:mm"))
+    });
 
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
@@ -207,7 +219,7 @@ async Task Seed()
 
     if (string.IsNullOrEmpty(apiKeyEnv))
     {
-        throw new InvalidOperationException("La variable de entorno 'API_KEY' no está configurada.");
+        throw new InvalidOperationException("La variable de entorno 'API_KEY' no estï¿½ configurada.");
     }
 
     if (!await context.ApiKeys.AnyAsync())
