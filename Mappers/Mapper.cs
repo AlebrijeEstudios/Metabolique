@@ -47,6 +47,7 @@ namespace AppVidaSana.Mappers
                 .ReverseMap();
 
             CreateMap<UpdateFeedingDto, UserFeedsDto>()
+                .ForMember(dest => dest.foodsConsumed, opt => opt.Ignore())
                 .ForMember(dest => dest.saucerPictureUrl, opt => opt.Ignore())
                 .ReverseMap();
 

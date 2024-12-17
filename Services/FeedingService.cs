@@ -8,6 +8,7 @@ using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -183,6 +184,8 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
 
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(values);
+
+            userFeedingMapped.foodsConsumed = foodsConsumed;
 
             userFeedingMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(saucerPictureID, cancellationToken);
 
@@ -564,7 +567,15 @@ namespace AppVidaSana.Services
                 if(fileUrl is null)
                 {
                     var blobClient = _containerClient.GetBlobClient(picture.FileName);
-                    await blobClient.UploadAsync(picture.OpenReadStream(), true);
+
+                    var mimeType = GetMimeType(picture.FileName); 
+
+                    var httpHeaders = new BlobHttpHeaders
+                    {
+                        ContentType = mimeType
+                    };
+
+                    await blobClient.UploadAsync(picture.OpenReadStream(), httpHeaders);
                     var url = blobClient.Uri.ToString();
 
                     SaucerPictures saucerPicture = new SaucerPictures
@@ -597,6 +608,22 @@ namespace AppVidaSana.Services
 
             byte[] hashBytes = sha256.ComputeHash(stream);
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+        }
+
+        private static string GetMimeType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            return extension switch
+            {
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".bmp" => "image/bmp",
+                ".tiff" => "image/tiff",
+                ".webp" => "image/webp",
+                _ => "application/octet-stream" 
+            };
         }
 
         private async Task<Dictionary<string, Guid>> CreateFoods(List<FoodsConsumedDto> foods, CancellationToken cancellationToken)
