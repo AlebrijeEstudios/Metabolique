@@ -2,6 +2,8 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Feeding;
 using AppVidaSana.GraphicValues;
+using AppVidaSana.Models;
+using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Models.Feeding;
 using AppVidaSana.Services.IServices;
@@ -235,6 +237,52 @@ namespace AppVidaSana.Services
             }
         }
 
+        private async Task<UserCalories> CreateUserCaloriesAsync(Guid accountID, CancellationToken cancellationToken)
+        {
+            var profile = await _bd.Profiles.FindAsync(new object[] { accountID }, cancellationToken);
+
+            float kcalNeeded = 0;
+
+            int age = GetAge(profile.birthDate);
+
+            if (profile.sex.Equals("Masculino"))
+            {
+                kcalNeeded = 88.362f + (13.397f * profile.weight) + (4.799f * profile.stature) - (5.677f * age);
+            }
+
+            if (profile.sex.Equals("Femenino"))
+            {
+                kcalNeeded = 447.593f + (9.247f * profile.weight) + (3.098f * profile.stature) - (4.330f * age);
+            }
+
+            UserCalories userKcal = new UserCalories
+            {
+                accountID = profile.accountID,
+                caloriesNeeded = kcalNeeded
+            };
+
+            ValidationValuesDB.ValidationValues(profile);
+
+            _bd.UserCalories.Add(userKcal);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            return userKcal;
+        }
+
+        private static int GetAge(DateOnly date)
+        {
+            DateTime dateActual = DateTime.Today;
+            int age = dateActual.Year - date.Year;
+
+            if (date.Month > dateActual.Month || (date.Month == dateActual.Month && date.Day > dateActual.Day))
+            {
+                age--;
+            }
+
+            return age;
+        }
+
         private async Task<CaloriesRequiredPerDay> CreateCaloriesRequiredPerDays(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
             var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
@@ -263,8 +311,43 @@ namespace AppVidaSana.Services
             return kcalRequiredPerDay;
         }
 
+        private async Task<UserCalories> UpdateUserCaloriesAsync(Guid accountID, CancellationToken cancellationToken)
+        {
+            var profile = await _bd.Profiles.FindAsync(new object[] { accountID }, cancellationToken);
+
+            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            if(userKcal is null)
+            {
+                userKcal = await CreateUserCaloriesAsync(accountID, cancellationToken);
+                return userKcal;
+            }
+
+            float kcalNeeded = 0;
+
+            int age = GetAge(profile.birthDate);
+
+            if (profile.sex.Equals("Masculino"))
+            {
+                kcalNeeded = 88.362f + (13.397f * profile.weight) + (4.799f * profile.stature) - (5.677f * age);
+            }
+
+            if (profile.sex.Equals("Femenino"))
+            {
+                kcalNeeded = 447.593f + (9.247f * profile.weight) + (3.098f * profile.stature) - (4.330f * age);
+            }
+
+            userKcal.caloriesNeeded = kcalNeeded;
+
+            ValidationValuesDB.ValidationValues(userKcal);
+
+            return userKcal;
+        }
+
         private async Task UpdateCaloriesRequiredPerDays(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
+            var userKcal = await UpdateUserCaloriesAsync(accountID, cancellationToken);
+
             var kcalRequiredPerDay = await _bd.CaloriesRequiredPerDays
                                               .FirstOrDefaultAsync(e => e.accountID == accountID
                                                                    && e.dateInitial <= date
@@ -274,8 +357,6 @@ namespace AppVidaSana.Services
             {
                 kcalRequiredPerDay = await CreateCaloriesRequiredPerDays(accountID, date, cancellationToken);
             }
-
-            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
 
             int daysForExercise = await _bd.ActiveMinutes.Where(e => e.accountID == accountID
                                                                 && kcalRequiredPerDay.dateInitial <= e.dateExercise
