@@ -35,8 +35,6 @@ namespace AppVidaSana.Services
 
             _bd.Profiles.Add(profile);
 
-            CreateUserCalories(profile);
-
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
@@ -52,9 +50,7 @@ namespace AppVidaSana.Services
             profile.weight = values.weight;
             profile.protocolToFollow = values.protocolToFollow;
 
-            ValidationValuesDB.ValidationValues(profile);
-
-            await UpdateUserCalories(values, cancellationToken);
+            ValidationValuesDB.ValidationValues(profile);;
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
@@ -72,69 +68,6 @@ namespace AppVidaSana.Services
                 return false;
 
             }
-        }
-
-        private void CreateUserCalories(Profiles profile)
-        {
-            float kcalNeeded = 0;
-
-            int age = GetAge(profile.birthDate);
-
-            if (profile.sex.Equals("Masculino"))
-            {
-                kcalNeeded = 88.362f + (13.397f * profile.weight) +(4.799f * profile.stature) - (5.677f * age);
-            }
-
-            if (profile.sex.Equals("Femenino"))
-            {
-                kcalNeeded = 447.593f + (9.247f * profile.weight) +(3.098f * profile.stature) - (4.330f * age);
-            }
-
-            UserCalories userKcal = new UserCalories
-            {
-                accountID = profile.accountID,
-                caloriesNeeded = kcalNeeded
-            };
-
-            ValidationValuesDB.ValidationValues(profile);
-
-            _bd.UserCalories.Add(userKcal);
-        }
-
-        private static int GetAge(DateOnly date)
-        {
-            DateTime dateActual = DateTime.Today;
-            int age = dateActual.Year - date.Year;
-
-            if (date.Month > dateActual.Month || (date.Month == dateActual.Month && date.Day > dateActual.Day))
-            {
-                age--;
-            }
-
-            return age;
-        }
-    
-        private async Task UpdateUserCalories(ProfileDto profile, CancellationToken cancellationToken)
-        {
-            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == profile.accountID, cancellationToken);
-
-            float kcalNeeded = 0;
-
-            int age = GetAge(profile.birthDate);
-
-            if (profile.sex.Equals("Masculino"))
-            {
-                kcalNeeded = 88.362f + (13.397f * profile.weight) + (4.799f * profile.stature) - (5.677f * age);
-            }
-
-            if (profile.sex.Equals("Femenino"))
-            {
-                kcalNeeded = 447.593f + (9.247f * profile.weight) + (3.098f * profile.stature) - (4.330f * age);
-            }
-
-            userKcal!.caloriesNeeded = kcalNeeded;
-
-            ValidationValuesDB.ValidationValues(userKcal);
         }
     }
 }
