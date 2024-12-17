@@ -14,7 +14,6 @@ namespace AppVidaSana.Services.Habits
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly ValidationValuesDB _validationValues;
         
         public SleepHabitService(AppDbContext bd, IMapper mapper)
         {
