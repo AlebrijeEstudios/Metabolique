@@ -2,8 +2,6 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Feeding;
 using AppVidaSana.GraphicValues;
-using AppVidaSana.Models;
-using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Models.Feeding;
 using AppVidaSana.Services.IServices;
@@ -23,15 +21,12 @@ namespace AppVidaSana.Services
         private readonly IMapper _mapper;
         private const string ContainerName = "storageimages";
         private readonly BlobServiceClient _blobServiceClient;
-        private readonly BlobContainerClient _containerClient;
 
         public FeedingService(AppDbContext bd, IMapper mapper, BlobServiceClient blobServiceClient)
         {
             _bd = bd;
             _mapper = mapper;
             _blobServiceClient = blobServiceClient;
-            _containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
-            _containerClient.CreateIfNotExists();
         }
 
         public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
@@ -243,7 +238,7 @@ namespace AppVidaSana.Services
 
             float kcalNeeded = 0;
 
-            int age = GetAge(profile.birthDate);
+            int age = GetAge(profile!.birthDate);
 
             if (profile.sex.Equals("Masculino"))
             {
@@ -325,7 +320,7 @@ namespace AppVidaSana.Services
 
             float kcalNeeded = 0;
 
-            int age = GetAge(profile.birthDate);
+            int age = GetAge(profile!.birthDate);
 
             if (profile.sex.Equals("Masculino"))
             {
@@ -637,6 +632,14 @@ namespace AppVidaSana.Services
             return userFeed;
         }
 
+        private BlobContainerClient GetContainerClient()
+        {
+            BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+            containerClient.CreateIfNotExists();
+
+            return containerClient;
+        }
+
         private async Task<Guid> SavePictureAsync(IFormFile picture, CancellationToken cancellationToken)
         {
             try
@@ -647,7 +650,7 @@ namespace AppVidaSana.Services
 
                 if(fileUrl is null)
                 {
-                    var blobClient = _containerClient.GetBlobClient(picture.FileName);
+                    var blobClient = GetContainerClient().GetBlobClient(picture.FileName);
 
                     var mimeType = GetMimeType(picture.FileName); 
 
@@ -656,7 +659,12 @@ namespace AppVidaSana.Services
                         ContentType = mimeType
                     };
 
-                    await blobClient.UploadAsync(picture.OpenReadStream(), httpHeaders);
+                    var uploadOptions = new BlobUploadOptions
+                    {
+                        HttpHeaders = httpHeaders
+                    };
+
+                    await blobClient.UploadAsync(picture.OpenReadStream(), uploadOptions, cancellationToken);
                     var url = blobClient.Uri.ToString();
 
                     SaucerPictures saucerPicture = new SaucerPictures
