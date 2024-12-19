@@ -6,7 +6,7 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
     {
         [JsonRequired] public string nutritionalValueCode { get; set; } = null!;
 
-        [JsonRequired] public float portion { get; set; }
+        [JsonRequired] public string portion { get; set; } = null!;
 
         [JsonRequired] public float kilocalories { get; set; }
 
