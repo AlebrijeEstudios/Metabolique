@@ -50,7 +50,7 @@ namespace AppVidaSana.Services
             profile.weight = values.weight;
             profile.protocolToFollow = values.protocolToFollow;
 
-            ValidationValuesDB.ValidationValues(profile);;
+            ValidationValuesDB.ValidationValues(profile);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
