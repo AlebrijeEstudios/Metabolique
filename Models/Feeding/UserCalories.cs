@@ -12,7 +12,7 @@ namespace AppVidaSana.Models.Feeding
         public Guid accountID { get; set; }
 
         [Required(ErrorMessage = "El campo calorias necesarias es obligatorio")]
-        public float caloriesNeeded { get; set; }
+        public double caloriesNeeded { get; set; }
 
         public Account? account { get; set; }
     }

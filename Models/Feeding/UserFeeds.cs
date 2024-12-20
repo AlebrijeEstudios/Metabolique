@@ -27,7 +27,7 @@ namespace AppVidaSana.Models.Feeding
         public string emotionsLinked { get; set; } = null!;
 
         [Required(ErrorMessage = "El campo total de calorias es obligatorio")]
-        public float totalCalories { get; set; }
+        public double totalCalories { get; set; }
 
         [ForeignKey("SaucerPictures")]
         public Guid? saucerPictureID { get; set; }

@@ -159,7 +159,7 @@ namespace AppVidaSana.Services
                 saucerPictureID = await SavePictureAsync(values.saucerPicture, cancellationToken);
             }
 
-            float totalKcal = TotalKcal(values.foodsConsumed);
+            double totalKcal = TotalKcal(values.foodsConsumed);
 
             var totalKcalToDate = await _bd.CaloriesConsumed
                                         .FirstOrDefaultAsync(e => e.accountID == userFeed.accountID
@@ -236,18 +236,18 @@ namespace AppVidaSana.Services
         {
             var profile = await _bd.Profiles.FindAsync(new object[] { accountID }, cancellationToken);
 
-            float kcalNeeded = 0;
+            double kcalNeeded = 0;
 
             int age = GetAge(profile!.birthDate);
 
             if (profile.sex.Equals("Masculino"))
             {
-                kcalNeeded = 88.362f + (13.397f * profile.weight) + (4.799f * profile.stature) - (5.677f * age);
+                kcalNeeded = 88.362 + (13.397 * profile.weight) + (4.799 * profile.stature) - (5.677 * age);
             }
 
             if (profile.sex.Equals("Femenino"))
             {
-                kcalNeeded = 447.593f + (9.247f * profile.weight) + (3.098f * profile.stature) - (4.330f * age);
+                kcalNeeded = 447.593 + (9.247 * profile.weight) + (3.098 * profile.stature) - (4.330 * age);
             }
 
             UserCalories userKcal = new UserCalories
@@ -318,18 +318,18 @@ namespace AppVidaSana.Services
                 return userKcal;
             }
 
-            float kcalNeeded = 0;
+            double kcalNeeded = 0;
 
             int age = GetAge(profile!.birthDate);
 
             if (profile.sex.Equals("Masculino"))
             {
-                kcalNeeded = 88.362f + (13.397f * profile.weight) + (4.799f * profile.stature) - (5.677f * age);
+                kcalNeeded = 88.362 + (13.397 * profile.weight) + (4.799 * profile.stature) - (5.677 * age);
             }
 
             if (profile.sex.Equals("Femenino"))
             {
-                kcalNeeded = 447.593f + (9.247f * profile.weight) + (3.098f * profile.stature) - (4.330f * age);
+                kcalNeeded = 447.593 + (9.247 * profile.weight) + (3.098 * profile.stature) - (4.330 * age);
             }
 
             userKcal.caloriesNeeded = kcalNeeded;
@@ -360,17 +360,17 @@ namespace AppVidaSana.Services
 
             if(daysForExercise != 0 && daysForExercise <= 3)
             {
-                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.375f;
+                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.375;
             }
 
             if(3 < daysForExercise && daysForExercise <= 5)
             {
-                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.55f;
+                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.55;
             }
 
             if(daysForExercise == 6 || daysForExercise == 7)
             {
-                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.725f;
+                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.725;
             }
             
             int daysExtenuating = await _bd.Exercises.Where(e => e.accountID == accountID 
@@ -383,10 +383,10 @@ namespace AppVidaSana.Services
 
             if(daysExtenuating == 6 || daysExtenuating == 7)
             {
-                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.9f;
+                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.9;
             }
 
-            if (daysForExercise == 0) { kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.2f; }
+            if (daysForExercise == 0) { kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.2; }
 
             ValidationValuesDB.ValidationValues(kcalRequiredPerDay);
 
@@ -548,7 +548,7 @@ namespace AppVidaSana.Services
             return suacerPictureUrl!.saucerPictureUrl;
         }
 
-        private static float TotalKcal(List<FoodsConsumedDto> foods)
+        private static double TotalKcal(List<FoodsConsumedDto> foods)
         {
             return foods.Select(food => food.nutritionalValues.Sum(e => e.kilocalories)).Sum();
         }
@@ -602,7 +602,7 @@ namespace AppVidaSana.Services
 
         private async Task<UserFeeds> CreateUserFeed(AddFeedingDto values, DailyMeals dailyMeal, List<FoodsConsumedDto> foodsConsumed, CancellationToken cancellationToken)
         {
-            float totalKcal = TotalKcal(foodsConsumed);
+            double totalKcal = TotalKcal(foodsConsumed);
 
             Guid? saucerPictureID = null;
 
