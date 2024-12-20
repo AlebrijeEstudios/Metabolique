@@ -10,6 +10,6 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 
         [JsonRequired] public bool dailyMealStatus { get; set; }
 
-        [JsonRequired] public float totalCalories { get; set; }
+        [JsonRequired] public double totalCalories { get; set; }
     }
 }

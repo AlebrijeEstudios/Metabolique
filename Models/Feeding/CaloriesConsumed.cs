@@ -15,7 +15,7 @@ namespace AppVidaSana.Models.Feeding
         public DateOnly dateCaloriesConsumed { get; set; }
 
         [Required(ErrorMessage = "El campo tiempo total es obligatorio")]
-        public float totalCaloriesConsumed { get; set; }
+        public double totalCaloriesConsumed { get; set; }
 
         public Account? account { get; set; }
     }

@@ -18,16 +18,16 @@ namespace AppVidaSana.Models.Feeding
         public string portion { get; set; } = null!;
 
         [Required(ErrorMessage = "El campo kilocalorias es obligatorio")]
-        public float kilocalories { get; set; }
+        public double kilocalories { get; set; }
 
         [Required(ErrorMessage = "El campo proteina es obligatorio")]
-        public float protein { get; set; }
+        public double protein { get; set; }
 
         [Required(ErrorMessage = "El campo carbohidratos es obligatorio")]
-        public float carbohydrates { get; set; }
+        public double carbohydrates { get; set; }
 
         [Required(ErrorMessage = "El campo lipidos totales es obligatorio")]
-        public float totalLipids { get; set; }
+        public double totalLipids { get; set; }
 
         public Foods? foods { get; set; }
 

@@ -6,8 +6,8 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
     {
         [JsonRequired] public DateOnly date { get; set; } 
 
-        [JsonRequired] public float limit { get; set; }
+        [JsonRequired] public double limit { get; set; }
 
-        [JsonRequired] public float value { get; set; }
+        [JsonRequired] public double value { get; set; }
     }
 }
