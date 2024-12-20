@@ -96,7 +96,7 @@ namespace AppVidaSana.Services
             return infoGeneral;
         }
 
-        public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, List<FoodsConsumedDto> foodsConsumed, CancellationToken cancellationToken)
+        public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)
         {
             await ExistDailyMeal(values.dailyMeal, cancellationToken);
 
@@ -110,28 +110,28 @@ namespace AppVidaSana.Services
 
             if (feedingExisting is not null) { throw new RepeatRegistrationException(); }
 
-            var userFeed = await CreateUserFeed(values, dailyMeal, foodsConsumed, cancellationToken);
+            var userFeed = await CreateUserFeed(values, dailyMeal, values.foodsConsumed, cancellationToken);
 
-            var foods = await CreateFoods(foodsConsumed, cancellationToken);
+            var foods = await CreateFoods(values.foodsConsumed, cancellationToken);
 
-            var nutritionalValues = await CreateNutritionalValues(foods, foodsConsumed, cancellationToken);
+            var nutritionalValues = await CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
 
-            CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues, foodsConsumed);
+            CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues, values.foodsConsumed);
 
-            await ExistKcalConsumedForDay(values, foodsConsumed, cancellationToken);
+            await ExistKcalConsumedForDay(values, values.foodsConsumed, cancellationToken);
             
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(values);
             
             userFeedingMapped.userFeedID = userFeed.userFeedID;
 
-            userFeedingMapped.foodsConsumed = foodsConsumed;
+            userFeedingMapped.foodsConsumed = values.foodsConsumed;
 
             userFeedingMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(userFeed.saucerPictureID, cancellationToken);
 
             return userFeedingMapped;
         }
 
-        public async Task<UserFeedsDto> UpdateFeedingAsync(UpdateFeedingDto values, List<FoodsConsumedDto> foodsConsumed, CancellationToken cancellationToken)
+        public async Task<UserFeedsDto> UpdateFeedingAsync(UpdateFeedingDto values, CancellationToken cancellationToken)
         {
             var userFeed = await _bd.UserFeeds.FindAsync(new object[] { values.userFeedID }, cancellationToken);
 
@@ -146,11 +146,11 @@ namespace AppVidaSana.Services
                 userFeed.dailyMealID = dailyMeal.dailyMealID;
             }
 
-            var foods = await CreateFoods(foodsConsumed, cancellationToken);
+            var foods = await CreateFoods(values.foodsConsumed, cancellationToken);
 
-            var nutritionalValues = await CreateNutritionalValues(foods, foodsConsumed, cancellationToken);
+            var nutritionalValues = await CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
 
-            await UpdateUserFeedNutrValues(values, foodsConsumed, nutritionalValues, cancellationToken);
+            await UpdateUserFeedNutrValues(values, values.foodsConsumed, nutritionalValues, cancellationToken);
 
             Guid? saucerPictureID = null;
 
@@ -159,7 +159,7 @@ namespace AppVidaSana.Services
                 saucerPictureID = await SavePictureAsync(values.saucerPicture, cancellationToken);
             }
 
-            float totalKcal = TotalKcal(foodsConsumed);
+            float totalKcal = TotalKcal(values.foodsConsumed);
 
             var totalKcalToDate = await _bd.CaloriesConsumed
                                         .FirstOrDefaultAsync(e => e.accountID == userFeed.accountID
@@ -182,7 +182,7 @@ namespace AppVidaSana.Services
 
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(values);
 
-            userFeedingMapped.foodsConsumed = foodsConsumed;
+            userFeedingMapped.foodsConsumed = values.foodsConsumed;
 
             userFeedingMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(saucerPictureID, cancellationToken);
 
@@ -640,19 +640,25 @@ namespace AppVidaSana.Services
             return containerClient;
         }
 
-        private async Task<Guid> SavePictureAsync(IFormFile picture, CancellationToken cancellationToken)
+        private async Task<Guid> SavePictureAsync(string picture, CancellationToken cancellationToken)
         {
             try
             {
-                var hashPicture = GetImageHashSHA256(picture);
+                string cleanBase64 = picture.Split(',')[1];
+
+                var imageBytes = Convert.FromBase64String(cleanBase64);
+
+                var hashPicture = GetImageHashSHA256(imageBytes);
 
                 var fileUrl = await _bd.SaucerPictures.FirstOrDefaultAsync(e => e.hashPicture == hashPicture, cancellationToken);
 
                 if(fileUrl is null)
                 {
-                    var blobClient = GetContainerClient().GetBlobClient(picture.FileName);
+                    var namePicture = GetNameToImage(picture);
 
-                    var mimeType = GetMimeType(picture.FileName); 
+                    var blobClient = GetContainerClient().GetBlobClient(namePicture);
+
+                    var mimeType = GetMimeType(namePicture);
 
                     var httpHeaders = new BlobHttpHeaders
                     {
@@ -664,7 +670,7 @@ namespace AppVidaSana.Services
                         HttpHeaders = httpHeaders
                     };
 
-                    await blobClient.UploadAsync(picture.OpenReadStream(), uploadOptions, cancellationToken);
+                    await blobClient.UploadAsync(new MemoryStream(imageBytes), uploadOptions, cancellationToken);
                     var url = blobClient.Uri.ToString();
 
                     SaucerPictures saucerPicture = new SaucerPictures
@@ -690,13 +696,24 @@ namespace AppVidaSana.Services
             }
         }
 
-        private static string GetImageHashSHA256(IFormFile picture)
+        private static string GetImageHashSHA256(byte[] imageBytes)
         {
             var sha256 = SHA256.Create();
-            var stream = picture.OpenReadStream();
+            var imageToHash = sha256.ComputeHash(imageBytes);
 
-            byte[] hashBytes = sha256.ComputeHash(stream);
-            return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+            return BitConverter.ToString(imageToHash).Replace("-", "").ToLower();
+        }
+
+        private static string GetNameToImage(string base64Image)
+        {
+            string name = "";
+
+            if (base64Image.StartsWith("data:image/jpg")) { name = $"{Guid.NewGuid()}.jpg"; }
+            if (base64Image.StartsWith("data:image/jpeg")) { name = $"{Guid.NewGuid()}.jpeg"; }
+            if (base64Image.StartsWith("data:image/png")) { name = $"{Guid.NewGuid()}.png"; }
+            if (base64Image.StartsWith("data:image/webp")) { name = $"{Guid.NewGuid()}.webp"; }
+
+            return name;
         }
 
         private static string GetMimeType(string fileName)
@@ -707,11 +724,8 @@ namespace AppVidaSana.Services
                 ".jpg" => "image/jpeg",
                 ".jpeg" => "image/jpeg",
                 ".png" => "image/png",
-                ".gif" => "image/gif",
-                ".bmp" => "image/bmp",
-                ".tiff" => "image/tiff",
                 ".webp" => "image/webp",
-                _ => "application/octet-stream" 
+                _ => "application/octet-stream"
             };
         }
 

@@ -46,6 +46,16 @@ namespace AppVidaSana.Services
             return response;
         }
 
+        /*public async Task LogoutAccountAsync(Guid accountID, CancellationToken cancellationToken)
+        {
+            var refreshToken = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            _bd.HistorialRefreshTokens.Remove(refreshToken);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }*/
+
+
         public async Task<TokensDto> RefreshTokenAsync(TokensDto values, CancellationToken cancellationToken)
         {
             var principal = GeneratorTokens.GetPrincipalFromExpiredToken(values.accessToken, KeyTokenEnv.GetKeyTokenEnv());
