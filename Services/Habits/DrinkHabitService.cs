@@ -14,13 +14,11 @@ namespace AppVidaSana.Services.Habits
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly ValidationValuesDB _validationValues;
 
         public DrinkHabitService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _validationValues = new ValidationValuesDB();
         }
 
         public GetDrinksConsumedDto AddDrinksConsumed(DrinksConsumedDto drinksConsumed)
@@ -50,7 +48,7 @@ namespace AppVidaSana.Services.Habits
                 amountConsumed = drinksConsumed.amountConsumed
             };
 
-            _validationValues.ValidationValues(drinkHabit);
+            ValidationValuesDB.ValidationValues(drinkHabit);
 
             _bd.HabitsDrink.Add(drinkHabit);
 
@@ -75,7 +73,7 @@ namespace AppVidaSana.Services.Habits
             habit.typeDrink = values.typeDrink;
             habit.amountConsumed = values.amountConsumed;
 
-            _validationValues.ValidationValues(habit);
+            ValidationValuesDB.ValidationValues(habit);
 
             _bd.HabitsDrink.Update(habit);
 

@@ -3,23 +3,23 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.Models.Feeding;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services
 {
     public class ProfileService : IProfile
     {
         private readonly AppDbContext _bd;
-        private readonly ValidationValuesDB _validationValues;
 
         public ProfileService(AppDbContext bd)
         {
             _bd = bd;
-            _validationValues = new ValidationValuesDB();
         }
 
-        public void CreateProfileAsync(Guid accountID, AccountDto values)
+        public void CreateProfile(Guid accountID, AccountDto values)
         {
             Profiles profile = new Profiles
             {
@@ -31,7 +31,7 @@ namespace AppVidaSana.Services
                 protocolToFollow = values.protocolToFollow
             };
 
-            _validationValues.ValidationValues(profile);
+            ValidationValuesDB.ValidationValues(profile);
 
             _bd.Profiles.Add(profile);
 
@@ -50,9 +50,7 @@ namespace AppVidaSana.Services
             profile.weight = values.weight;
             profile.protocolToFollow = values.protocolToFollow;
 
-            _validationValues.ValidationValues(profile);
-
-            _bd.Profiles.Update(profile);
+            ValidationValuesDB.ValidationValues(profile);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 

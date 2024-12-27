@@ -8,8 +8,10 @@ namespace AppVidaSana.Models.Monthly_Follow_Ups
         [Key]
         public Guid monthID { get; set; } = Guid.NewGuid();
 
+        [Required(ErrorMessage = "El campo mes es obligatorio")]
         public string month { get; set; } = null!;
 
+        [Required(ErrorMessage = "El campo year es obligatorio")]
         public int year { get; set; }
 
         public ICollection<MFUsFood> foods { get; set; } = new List<MFUsFood>();

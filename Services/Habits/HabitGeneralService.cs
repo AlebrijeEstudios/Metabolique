@@ -13,13 +13,11 @@ namespace AppVidaSana.Services.Habits
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly DatesInRange _datesInRange;
 
         public HabitGeneralService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _datesInRange = new DatesInRange();
         }
 
         public ReturnInfoHabitsDto GetInfoGeneralHabits(Guid idAccount, DateOnly date)
@@ -36,7 +34,7 @@ namespace AppVidaSana.Services.Habits
 
             DateOnly dateFinal = date.AddDays(-6);
 
-            var dates = _datesInRange.GetDatesInRange(dateFinal, date);
+            var dates = DatesInRange.GetDatesInRange(dateFinal, date);
 
             foreach (var item in dates)
             {
@@ -101,7 +99,6 @@ namespace AppVidaSana.Services.Habits
 
                 return info;
             }
-
 
             info = new ReturnInfoHabitsDto
             {

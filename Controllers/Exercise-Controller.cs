@@ -1,6 +1,5 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Ejercicio;
 using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.ProducesReponseType;

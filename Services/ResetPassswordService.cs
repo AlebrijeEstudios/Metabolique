@@ -17,16 +17,10 @@ namespace AppVidaSana.Services
     public class ResetPassswordService : IResetPassword
     {
         private readonly AppDbContext _bd;
-        private readonly ValidationValuesDB _validationValues;
-        private readonly GeneratorTokens _generatorTokens;
-        private readonly KeyTokenEnv _keyToken;
 
         public ResetPassswordService(AppDbContext bd)
         {
             _bd = bd;
-            _validationValues = new ValidationValuesDB();
-            _generatorTokens = new GeneratorTokens();
-            _keyToken = new KeyTokenEnv();
         }
         
         public async Task<string> PasswordResetTokenAsync(EmailDto value, CancellationToken cancellationToken)
@@ -43,7 +37,7 @@ namespace AppVidaSana.Services
 
             DateTime durationToken = DateTime.UtcNow.AddMinutes(15);
 
-            var accessToken = _generatorTokens.Tokens(_keyToken.GetKeyTokenEnv(), claims, durationToken);
+            var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
 
             return accessToken;
         }
@@ -73,7 +67,7 @@ namespace AppVidaSana.Services
 
         public async Task<bool> ResetPasswordAsync(ResetPasswordDto values, CancellationToken cancellationToken)
         {
-            var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.token, _keyToken.GetKeyTokenEnv());
+            var principal = GeneratorTokens.GetPrincipalFromExpiredToken(values.token, KeyTokenEnv.GetKeyTokenEnv());
 
             var usernameClaimType = principal.FindFirst(ClaimTypes.Name)?.Value;
 
@@ -106,7 +100,7 @@ namespace AppVidaSana.Services
 
             account.password = BCrypt.Net.BCrypt.HashPassword(values.confirmPassword);
 
-            _validationValues.ValidationValues(account);
+            ValidationValuesDB.ValidationValues(account);
 
             _bd.Accounts.Update(account);
 

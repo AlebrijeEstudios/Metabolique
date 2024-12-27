@@ -23,6 +23,7 @@ namespace AppVidaSana.Models.Medications
         [Required(ErrorMessage = "El campo dosis es obligatorio.")]
         public string dose { get; set; } = null!;
 
+        [Required(ErrorMessage = "El campo tiempos del periodo es obligatorio")]
         public string timesPeriod { get; set; } = null!;
 
         public Medication? medication { get; set; }

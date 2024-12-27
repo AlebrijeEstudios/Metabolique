@@ -17,20 +17,16 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly Months _months;
-        private readonly ValidationValuesDB _validationValues;
 
         public MFUsExerciseService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _months = new Months();
-            _validationValues = new ValidationValuesDB();
         }
 
         public async Task<RetrieveResponsesExerciseDto?> RetrieveAnswersAsync(Guid accountID, int month, int year, CancellationToken cancellationToken)
         {
-            var monthStr = _months.VerifyExistMonth(month);
+            var monthStr = Months.VerifyExistMonth(month);
 
             RetrieveResponsesExerciseDto? responses;
 
@@ -42,7 +38,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 return responses;
             }
 
-            var mfuExercise = await _bd.MFUsExercise.FirstOrDefaultAsync(c => c.accountID == accountID 
+            var mfuExercise = await _bd.MFUsExercise.FirstOrDefaultAsync(c => c.accountID == accountID
                                                                          && c.monthID == existMonth.monthID, cancellationToken);
 
             if (mfuExercise is null)
@@ -51,7 +47,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 return responses;
             }
 
-            var mfuExerciseResults = await _bd.ResultsExercise.FirstOrDefaultAsync(c => c.monthlyFollowUpID == mfuExercise.monthlyFollowUpID, 
+            var mfuExerciseResults = await _bd.ResultsExercise.FirstOrDefaultAsync(c => c.monthlyFollowUpID == mfuExercise.monthlyFollowUpID,
                                                                                    cancellationToken);
 
             if (mfuExerciseResults is null)
@@ -69,16 +65,16 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
 
         public async Task<RetrieveResponsesExerciseDto?> SaveAnswersAsync(SaveResponsesExerciseDto values, CancellationToken cancellationToken)
         {
-            var monthStr = _months.VerifyExistMonth(values.month);
+            var monthStr = Months.VerifyExistMonth(values.month);
 
             await ExistMonthAsync(monthStr, values.year, cancellationToken);
 
-            var month = await _bd.Months.FirstOrDefaultAsync(e => e.month == monthStr 
+            var month = await _bd.Months.FirstOrDefaultAsync(e => e.month == monthStr
                                                              && e.year == values.year, cancellationToken);
 
-            if (month is null) { throw new UnstoredValuesException(); } 
+            if (month is null) { throw new UnstoredValuesException(); }
 
-            var answersExisting = await _bd.MFUsExercise.AnyAsync(e => e.accountID == values.accountID 
+            var answersExisting = await _bd.MFUsExercise.AnyAsync(e => e.accountID == values.accountID
                                                                   && e.monthID == month.monthID, cancellationToken);
 
             if (answersExisting) { throw new RepeatRegistrationException(); }
@@ -104,7 +100,11 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             bool levelHigh = levelActHigh(values.question1, METactvigorous, METactmoderate, METactwalking);
             bool levelModerate = levelActModerate(answers, METactvigorous, METactmoderate, METactwalking);
 
-            var LevelAF = levelHigh ? "ALTO" : levelModerate ? "MODERADO" : "BAJO";
+            string LevelAF = "";
+
+            if (levelHigh) { LevelAF = "ALTO"; }
+            
+            LevelAF = levelModerate ? "MODERADO" : "BAJO";
 
             MFUsExercise mfus = new MFUsExercise
             {
@@ -119,7 +119,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 question7 = values.question7
             };
 
-            _validationValues.ValidationValues(mfus);
+            ValidationValuesDB.ValidationValues(mfus);
 
             _bd.MFUsExercise.Add(mfus);
 
@@ -158,7 +158,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             mfuToUpdate.question6 = values.question6;
             mfuToUpdate.question7 = values.question7;
 
-            _validationValues.ValidationValues(mfuToUpdate);
+            ValidationValuesDB.ValidationValues(mfuToUpdate);
 
             _bd.MFUsExercise.Update(mfuToUpdate);
 
@@ -185,9 +185,13 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             bool levelHigh = levelActHigh(values.question1, METactvigorous, METactmoderate, METactwalking);
             bool levelModerate = levelActModerate(answers, METactvigorous, METactmoderate, METactwalking);
 
-            var LevelAF = levelHigh ? "ALTO" : levelModerate ? "MODERADO" : "BAJO";
+            string LevelAF = "";
 
-            var resultsToUpdate = await _bd.ResultsExercise.FirstOrDefaultAsync(e => e.monthlyFollowUpID == values.monthlyFollowUpID, 
+            if (levelHigh) { LevelAF = "ALTO"; }
+
+            LevelAF = levelModerate ? "MODERADO" : "BAJO";
+
+            var resultsToUpdate = await _bd.ResultsExercise.FirstOrDefaultAsync(e => e.monthlyFollowUpID == values.monthlyFollowUpID,
                                                                                 cancellationToken);
 
             if (resultsToUpdate is null) { throw new UnstoredValuesException(); }
@@ -199,7 +203,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             resultsToUpdate.sedentaryBehavior = sedentary;
             resultsToUpdate.levelAF = LevelAF;
 
-            _validationValues.ValidationValues(resultsToUpdate);
+            ValidationValuesDB.ValidationValues(resultsToUpdate);
 
             _bd.ResultsExercise.Update(resultsToUpdate);
 
@@ -236,7 +240,7 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
                 levelAF = values.levelAF
             };
 
-            _validationValues.ValidationValues(results);
+            ValidationValuesDB.ValidationValues(results);
 
             _bd.ResultsExercise.Add(results);
 

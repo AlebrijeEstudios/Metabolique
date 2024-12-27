@@ -14,13 +14,11 @@ namespace AppVidaSana.Services.Habits
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly ValidationValuesDB _validationValues;
         
         public SleepHabitService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _validationValues = new ValidationValuesDB();
         }
 
         public SleepHabitInfoDto AddSleepHours(SleepHabitDto values)
@@ -38,7 +36,7 @@ namespace AppVidaSana.Services.Habits
                 perceptionOfRelaxation = values.perceptionOfRelaxation
             };
 
-            _validationValues.ValidationValues(sleepHabit);
+            ValidationValuesDB.ValidationValues(sleepHabit);
 
             _bd.HabitsSleep.Add(sleepHabit);
 
@@ -66,7 +64,7 @@ namespace AppVidaSana.Services.Habits
 
             return infoHabitsSleep;
         }
-        
+
         public bool Save()
         {
             try

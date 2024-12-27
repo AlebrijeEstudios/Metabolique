@@ -4,7 +4,7 @@ namespace AppVidaSana.Services.IServices
 {
     public interface IProfile
     {
-        void CreateProfileAsync(Guid accountID, AccountDto values);
+        void CreateProfile(Guid accountID, AccountDto values);
 
         Task<string> UpdateProfileAsync(ProfileDto values, CancellationToken cancellationToken);
 

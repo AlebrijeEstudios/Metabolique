@@ -1,5 +1,6 @@
 ﻿using AppVidaSana.Models;
 using AppVidaSana.Models.Exercises;
+using AppVidaSana.Models.Feeding;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
@@ -21,6 +22,15 @@ namespace AppVidaSana.Data
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Profiles> Profiles { get; set; }
+        public DbSet<UserFeeds> UserFeeds { get; set; }
+        public DbSet<SaucerPictures> SaucerPictures { get; set; }
+        public DbSet<DailyMeals> DailyMeals { get; set; }
+        public DbSet<UserCalories> UserCalories { get; set; }
+        public DbSet<Foods> Foods { get; set; }
+        public DbSet<NutritionalValues> NutritionalValues { get; set; }
+        public DbSet<UserFeedNutritionalValues> UserFeedNutritionalValues { get; set; }
+        public DbSet<CaloriesRequiredPerDay> CaloriesRequiredPerDays { get; set; }
+        public DbSet<CaloriesConsumed> CaloriesConsumed { get; set; }
         public DbSet<MFUsFood> MFUsFood { get; set; }
         public DbSet<FoodResults> ResultsFood { get; set; }
         public DbSet<Exercise> Exercises { get; set; }
@@ -65,7 +75,61 @@ namespace AppVidaSana.Data
                 .HasForeignKey(account => account.roleID)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            //Food and MFUsFood
+            //Feeding and MFUsFood
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.userFeeds)
+                .WithOne(userFeeds => userFeeds.account)
+                .HasForeignKey(userFeeds => userFeeds.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SaucerPictures>()
+                .HasMany(picture => picture.userFeeds)
+                .WithOne(userFeeds => userFeeds.saucerPicture)
+                .HasForeignKey(userFeeds => userFeeds.saucerPictureID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DailyMeals>()
+                .HasMany(dailyMeal => dailyMeal.userFeeds)
+                .WithOne(userFeeds => userFeeds.dailyMeals)
+                .HasForeignKey(userFeeds => userFeeds.dailyMealID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Account>()
+                .HasOne(account => account.userCalories)
+                .WithOne(userCalories => userCalories.account)
+                .HasForeignKey<UserCalories>(userCalories => userCalories.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Account>()
+                .HasMany(account => account.caloriesRequiredPerDays)
+                .WithOne(caloriesRequiredPerDays => caloriesRequiredPerDays.account)
+                .HasForeignKey(caloriesRequiredPerDays => caloriesRequiredPerDays.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Account>()
+                .HasMany(accounts => accounts.caloriesConsumed)
+                .WithOne(caloriesConsumed => caloriesConsumed.account)
+                .HasForeignKey(caloriesConsumed => caloriesConsumed.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Foods>()
+                .HasMany(food => food.nutritionalValues)
+                .WithOne(nutritionalValues => nutritionalValues.foods)
+                .HasForeignKey(nutritionalValues => nutritionalValues.foodID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFeedNutritionalValues>()
+                .HasOne(fnv => fnv.userFeeds)
+                .WithMany(f => f.userFeedNutritionalValues)
+                .HasForeignKey(fnv => fnv.userFeedID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserFeedNutritionalValues>()
+                .HasOne(fnv => fnv.nutritionalValues)
+                .WithMany(nv => nv.userFeedNutritionalValues)
+                .HasForeignKey(fnv => fnv.nutritionalValueID)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Account>()
                 .HasMany(account => account.MFUsFood)
                 .WithOne(MFUsFood => MFUsFood.account)
@@ -83,6 +147,10 @@ namespace AppVidaSana.Data
                 .WithOne(results => results.MFUsFood)
                 .HasForeignKey<FoodResults>(results => results.monthlyFollowUpID)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserFeeds>()
+              .Property(e => e.userFeedTime)
+              .HasColumnType(TIME);
 
             //Exercise and MFUsExercise
             modelBuilder.Entity<Account>()
@@ -222,7 +290,6 @@ namespace AppVidaSana.Data
                 .WithOne(mfuMed => mfuMed.status)
                 .HasForeignKey(mfuMed => mfuMed.statusID)
                 .OnDelete(DeleteBehavior.Restrict);
-
         }
     }
 }

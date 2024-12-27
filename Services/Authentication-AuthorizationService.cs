@@ -1,5 +1,6 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
+using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.KeyToken;
 using AppVidaSana.Models;
@@ -17,22 +18,15 @@ namespace AppVidaSana.Services
     public class AuthenticationAuthorizationService : IAuthenticationAuthorization
     {
         private readonly AppDbContext _bd;
-        private readonly ValidationValuesDB _validationValues;
-        private readonly GeneratorTokens _generatorTokens;
-        private readonly KeyTokenEnv _keyToken;
 
         public AuthenticationAuthorizationService(AppDbContext bd)
         {
             _bd = bd;
-            _validationValues = new ValidationValuesDB();
-            _generatorTokens = new GeneratorTokens();
-            _keyToken = new KeyTokenEnv();
         }
 
         public async Task<TokensDto> LoginAccountAsync(LoginDto login, CancellationToken cancellationToken)
         {
-            var account = await _bd.Accounts.FirstOrDefaultAsync(u => 
-                                                                 u.email == login.email, cancellationToken);
+            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == login.email, cancellationToken);
 
             if (account is null || !BCrypt.Net.BCrypt.Verify(login.password, account.password))
             {
@@ -52,13 +46,25 @@ namespace AppVidaSana.Services
             return response;
         }
 
+        public async Task<string> LogoutAccountAsync(Guid accountID, CancellationToken cancellationToken)
+        {
+            var refreshToken = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            if (refreshToken is null) { return "Cierre de sesión reciente.";  } 
+
+            _bd.HistorialRefreshTokens.Remove(refreshToken!);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            return "Cierre de sesión exitoso.";
+        }
+
         public async Task<TokensDto> RefreshTokenAsync(TokensDto values, CancellationToken cancellationToken)
         {
-            var principal = _generatorTokens.GetPrincipalFromExpiredToken(values.accessToken, _keyToken.GetKeyTokenEnv());
-
             var user = await _bd.Accounts.FirstOrDefaultAsync(e => e.accountID == values.accountID, cancellationToken);
 
-            var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.refreshToken == values.refreshToken, cancellationToken);
+            var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.refreshToken == values.refreshToken, 
+                                                                                 cancellationToken);
 
             if(user is null || historial is null) { throw new UnstoredValuesException(); }
 
@@ -88,7 +94,7 @@ namespace AppVidaSana.Services
 
             DateTime durationToken = DateTime.UtcNow.AddMinutes(30);
 
-            var accessToken = _generatorTokens.Tokens(_keyToken.GetKeyTokenEnv(), claims, durationToken);
+            var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
 
             return accessToken;
         }
@@ -108,40 +114,27 @@ namespace AppVidaSana.Services
                     dateExpiration = DateTime.Now.AddDays(7)
                 };
 
-                _validationValues.ValidationValues(historialRefreshToken);
+                ValidationValuesDB.ValidationValues(historialRefreshToken);
 
                 _bd.HistorialRefreshTokens.Add(historialRefreshToken);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
 
                 return refreshToken;
-            }
-
+            } 
+            
             if (historial.dateExpiration <= DateTime.Now)
             {
-                historial.refreshToken = refreshToken;
-
-                historial.dateExpiration = DateTime.Now.AddDays(7);
-
-                UpdateRefreshTokenAsync(historial);
-
-                return refreshToken;
+                throw new RefreshTokenExpirationException();
             }
 
-            historial!.refreshToken = refreshToken;
-
-            UpdateRefreshTokenAsync(historial);
-
-            return refreshToken;
-        }
-
-        private void UpdateRefreshTokenAsync(HistorialRefreshToken values)
-        {
-            _validationValues.ValidationValues(values);
-
-            _bd.HistorialRefreshTokens.Update(values);
+            historial.refreshToken = refreshToken; 
+            
+            ValidationValuesDB.ValidationValues(historial);
 
             if (!Save()) { throw new UnstoredValuesException(); }
+
+            return refreshToken;
         }
 
         private static string GenerateRefreshToken()

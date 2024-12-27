@@ -12,22 +12,17 @@ using Sprache;
 using System.Data;
 using System.Globalization;
 
-
 namespace AppVidaSana.Services
 {
     public class MedicationService : IMedication, ISideEffects
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        private readonly ValidationValuesDB _validationValues;
-        private readonly DatesInRange _datesInRange;
 
         public MedicationService(AppDbContext bd, IMapper mapper)
         {
             _bd = bd;
             _mapper = mapper;
-            _validationValues = new ValidationValuesDB();
-            _datesInRange = new DatesInRange();
         }
 
         public InfoMedicationDto? AddMedication(AddMedicationUseDto medication)
@@ -63,7 +58,7 @@ namespace AppVidaSana.Services
                 timesPeriod = medication.times
             };
 
-            _validationValues.ValidationValues(period);
+            ValidationValuesDB.ValidationValues(period);
 
             _bd.PeriodsMedications.Add(period);
 
@@ -134,7 +129,7 @@ namespace AppVidaSana.Services
 
             period.dose = values.dose;
 
-            _validationValues.ValidationValues(period);
+            ValidationValuesDB.ValidationValues(period);
 
             _bd.PeriodsMedications.Update(period);
 
@@ -161,7 +156,7 @@ namespace AppVidaSana.Services
 
             record.medicationStatus = value.medicationStatus;
 
-            _validationValues.ValidationValues(record);
+            ValidationValuesDB.ValidationValues(record);
 
             _bd.Times.Update(record);
 
@@ -203,7 +198,7 @@ namespace AppVidaSana.Services
                 description = values.description
             };
 
-            _validationValues.ValidationValues(sideEffects);
+            ValidationValuesDB.ValidationValues(sideEffects);
 
             _bd.SideEffects.Add(sideEffects);
 
@@ -228,7 +223,7 @@ namespace AppVidaSana.Services
             sideEffectToUpdate.finalTime = values.finalTime;
             sideEffectToUpdate.description = values.description;
 
-            _validationValues.ValidationValues(sideEffectToUpdate);
+            ValidationValuesDB.ValidationValues(sideEffectToUpdate);
 
             _bd.SideEffects.Update(sideEffectToUpdate);
 
@@ -372,7 +367,7 @@ namespace AppVidaSana.Services
 
             if (times.Count <= 0)
             {
-                var days = _datesInRange.GetDatesInRange(period.initialFrec, dateActual);
+                var days = DatesInRange.GetDatesInRange(period.initialFrec, dateActual);
 
                 foreach (var day in days)
                 {
@@ -406,7 +401,7 @@ namespace AppVidaSana.Services
                                                 g => g.ToList()
                                             );
 
-            List<DateOnly> dates = _datesInRange.GetDatesInRange(dateFinal, dateActual);
+            List<DateOnly> dates = DatesInRange.GetDatesInRange(dateFinal, dateActual);
 
             foreach (var date in dates)
             {
@@ -422,11 +417,10 @@ namespace AppVidaSana.Services
 
                     if (listTimes.Count > 0)
                     {
-                        medicationsConsumed = listTimes.Count(e => e.medicationStatus == true) + medicationsConsumed;
+                        medicationsConsumed = listTimes.Count(e => e.medicationStatus) + medicationsConsumed;
 
-                        totalMedications = listTimes.Count() + totalMedications;
+                        totalMedications = listTimes.Count + totalMedications;
                     }
-
                 }
 
                 WeeklyAttachmentDto weeklyAttachment = new WeeklyAttachmentDto
@@ -477,7 +471,7 @@ namespace AppVidaSana.Services
                 nameMedication = nameMedication
             };
 
-            _validationValues.ValidationValues(newMedication);
+            ValidationValuesDB.ValidationValues(newMedication);
 
             _bd.Medications.Add(newMedication);
 
@@ -500,7 +494,7 @@ namespace AppVidaSana.Services
                     medicationStatus = false
                 };
 
-                _validationValues.ValidationValues(time);
+                ValidationValuesDB.ValidationValues(time);
 
                 newTimes.Add(time);
             }
@@ -532,7 +526,7 @@ namespace AppVidaSana.Services
                             medicationStatus = false
                         };
 
-                        _validationValues.ValidationValues(newTime);
+                        ValidationValuesDB.ValidationValues(newTime);
 
                         newTimes.Add(newTime);
                     }
@@ -558,7 +552,7 @@ namespace AppVidaSana.Services
                 {
                     period.medicationID = existNameMedication.medicationID;
 
-                    _validationValues.ValidationValues(period);
+                    ValidationValuesDB.ValidationValues(period);
 
                     _bd.PeriodsMedications.Update(period);
 
@@ -575,7 +569,7 @@ namespace AppVidaSana.Services
 
                     period.medicationID = findMedication.medicationID;
 
-                    _validationValues.ValidationValues(period);
+                    ValidationValuesDB.ValidationValues(period);
 
                     _bd.PeriodsMedications.Update(period);
 
@@ -591,11 +585,10 @@ namespace AppVidaSana.Services
 
             if (newFinalDate < dateRecord || dateRecord < newInitialDate)
             {
-
                 periods.initialFrec = newInitialDate;
                 periods.finalFrec = newFinalDate;
 
-                _validationValues.ValidationValues(periods);
+                ValidationValuesDB.ValidationValues(periods);
 
                 _bd.PeriodsMedications.Update(periods);
 
@@ -608,7 +601,7 @@ namespace AppVidaSana.Services
             {
                 List<TimeOnly> times = new List<TimeOnly>();
 
-                var dates = _datesInRange.GetDatesInRange(newInitialDate, periods.initialFrec.AddDays(-1));
+                var dates = DatesInRange.GetDatesInRange(newInitialDate, periods.initialFrec.AddDays(-1));
 
                 var timesExample = _bd.Times.Where(e => e.periodID == periods.periodID
                                                    && e.dateMedication == periods.initialFrec).ToList();
@@ -619,7 +612,7 @@ namespace AppVidaSana.Services
 
                 periods.initialFrec = newInitialDate;
 
-                _validationValues.ValidationValues(periods);
+                ValidationValuesDB.ValidationValues(periods);
 
                 _bd.PeriodsMedications.Update(periods);
 
@@ -631,7 +624,7 @@ namespace AppVidaSana.Services
             {
                 periods.finalFrec = newFinalDate;
 
-                _validationValues.ValidationValues(periods);
+                ValidationValuesDB.ValidationValues(periods);
 
                 _bd.PeriodsMedications.Update(periods);
 
@@ -641,7 +634,7 @@ namespace AppVidaSana.Services
             periods.initialFrec = newInitialDate;
             periods.finalFrec = newFinalDate;
 
-            _validationValues.ValidationValues(periods);
+            ValidationValuesDB.ValidationValues(periods);
 
             _bd.PeriodsMedications.Update(periods);
 
@@ -739,7 +732,7 @@ namespace AppVidaSana.Services
 
             period.timesPeriod = idsToKeepString;
 
-            _validationValues.ValidationValues(period);
+            ValidationValuesDB.ValidationValues(period);
 
             _bd.PeriodsMedications.Update(period);
 
@@ -770,7 +763,7 @@ namespace AppVidaSana.Services
                         medicationStatus = false
                     };
 
-                    _validationValues.ValidationValues(time);
+                    ValidationValuesDB.ValidationValues(time);
 
                     newTimes.Add(time);
                 }
@@ -787,7 +780,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            _validationValues.ValidationValues(period);
+            ValidationValuesDB.ValidationValues(period);
 
             _bd.PeriodsMedications.Update(period);
 
