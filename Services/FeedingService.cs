@@ -449,7 +449,7 @@ namespace AppVidaSana.Services
         {
             List<StatusDailyMealsDto>? defaultDailyMeals = new List<StatusDailyMealsDto>();
 
-            string[] dmDefaults = { "Desayuno", "Snack1", "Comida", "Snack2", "Cena" };
+            string[] dmDefaults = { "Desayuno", "Snack 1", "Comida", "Snack 2", "Cena" };
 
             defaultDailyMeals.AddRange(
                             dailyMeals.Where(dm => dmDefaults.Contains(dm.dailyMeal))
@@ -480,7 +480,7 @@ namespace AppVidaSana.Services
         {
             List<StatusDailyMealsDto>? othersDailyMeals = new List<StatusDailyMealsDto>();
 
-            string[] dmDefaults = { "Desayuno", "Snack1", "Comida", "Snack2", "Cena" };
+            string[] dmDefaults = { "Desayuno", "Snack 1", "Comida", "Snack 2", "Cena" };
 
             othersDailyMeals.AddRange(
                            dailyMeals.Where(dm => !dmDefaults.Contains(dm.dailyMeal))
