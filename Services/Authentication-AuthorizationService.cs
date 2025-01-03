@@ -69,7 +69,7 @@ namespace AppVidaSana.Services
             if(user is null || historial is null) { throw new UnstoredValuesException(); }
 
             var accessToken = await CreateTokenAsync(user, cancellationToken);
-            var refreshToken = await CreateRefreshTokenAsync(user.accountID, cancellationToken);
+            var refreshToken = UpdateRefreshTokenAsync(historial, cancellationToken);
 
             TokensDto response = new TokensDto()
             {
@@ -122,14 +122,29 @@ namespace AppVidaSana.Services
 
                 return refreshToken;
             } 
+
+            historial.refreshToken = refreshToken;
+
+            historial.dateExpiration = DateTime.Now.AddDays(7);
+
+            ValidationValuesDB.ValidationValues(historial);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
             
+            return refreshToken;
+        }
+
+        private string UpdateRefreshTokenAsync(HistorialRefreshToken historial, CancellationToken cancellationToken)
+        {
+            var refreshToken = GenerateRefreshToken();
+
             if (historial.dateExpiration <= DateTime.Now)
             {
                 throw new RefreshTokenExpirationException();
             }
 
-            historial.refreshToken = refreshToken; 
-            
+            historial.refreshToken = refreshToken;
+
             ValidationValuesDB.ValidationValues(historial);
 
             if (!Save()) { throw new UnstoredValuesException(); }
