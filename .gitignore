@@ -7,6 +7,3 @@ TestResult/
 Test/
 AppVidaSana.http
 appsettings.Development.json
-/Services/UserDaySummaryService.cs
-/Models/Dtos/UserDaysSummary-Dtos
-/Services/IServices/IUserDaySummary.cs
