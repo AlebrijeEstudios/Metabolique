@@ -69,7 +69,7 @@ namespace AppVidaSana.Services
             if(user is null || historial is null) { throw new UnstoredValuesException(); }
 
             var accessToken = await CreateTokenAsync(user, cancellationToken);
-            var refreshToken = UpdateRefreshTokenAsync(historial, cancellationToken);
+            var refreshToken = UpdateRefreshTokenAsync(historial);
 
             TokensDto response = new TokensDto()
             {
@@ -134,7 +134,7 @@ namespace AppVidaSana.Services
             return refreshToken;
         }
 
-        private string UpdateRefreshTokenAsync(HistorialRefreshToken historial, CancellationToken cancellationToken)
+        private string UpdateRefreshTokenAsync(HistorialRefreshToken historial)
         {
             var refreshToken = GenerateRefreshToken();
 

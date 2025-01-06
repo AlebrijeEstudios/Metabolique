@@ -11,12 +11,10 @@ namespace AppVidaSana.Services
     public class UserDaySummaryService : IUserDaySummary
     {
         private readonly AppDbContext _bd;
-        private readonly IMapper _mapper;
 
-        public UserDaySummaryService(AppDbContext bd, IMapper mapper)
+        public UserDaySummaryService(AppDbContext bd)
         {
             _bd = bd;
-            _mapper = mapper;
         }
 
         public async Task<UserDaySummaryDto> GetUserDaySummaryAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
