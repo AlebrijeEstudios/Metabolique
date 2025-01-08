@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep;
-using AppVidaSana.Models.Habitos;
 using Microsoft.AspNetCore.JsonPatch;
 
 namespace AppVidaSana.Services.IServices.IHabits

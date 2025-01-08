@@ -1,7 +1,6 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.GraphicValues;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
-using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits;
 using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
@@ -24,7 +23,7 @@ namespace AppVidaSana.Services.Habits
         {
             ReturnInfoHabitsDto info;
 
-            var habitsDrink = _bd.HabitsDrink.Where(e => e.accountID == idAccount && e.drinkDateHabit == date).ToList();
+            var habitDrink = _bd.HabitsDrink.FirstOrDefault(e => e.accountID == idAccount && e.drinkDateHabit == date);
 
             var habitSleep = _bd.HabitsSleep.FirstOrDefault(e => e.accountID == idAccount && e.sleepDateHabit == date);
 
@@ -73,7 +72,7 @@ namespace AppVidaSana.Services.Habits
             {
                 info = new ReturnInfoHabitsDto
                 {
-                    drinkConsumed = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink),
+                    drinkConsumed = _mapper.Map<GetDrinkConsumedDto>(habitDrink),
                     hoursSleepConsumed = _mapper.Map<GetHoursSleepConsumedDto>(habitSleep),
                     drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
                     hoursSleep = hoursSleep,
@@ -84,13 +83,13 @@ namespace AppVidaSana.Services.Habits
             }
 
             var mfuExist = _bd.MFUsHabits.Any(e => e.accountID == idAccount
-                                                && e.monthID == monthExist.monthID);
+                                              && e.monthID == monthExist.monthID);
 
             if (!mfuExist)
             {
                 info = new ReturnInfoHabitsDto
                 {
-                    drinkConsumed = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink),
+                    drinkConsumed = _mapper.Map<GetDrinkConsumedDto>(habitDrink),
                     hoursSleepConsumed = _mapper.Map<GetHoursSleepConsumedDto>(habitSleep),
                     drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
                     hoursSleep = hoursSleep,
@@ -103,7 +102,7 @@ namespace AppVidaSana.Services.Habits
 
             info = new ReturnInfoHabitsDto
             {
-                drinkConsumed = _mapper.Map<List<GetDrinksConsumedDto>>(habitsDrink),
+                drinkConsumed = _mapper.Map<GetDrinkConsumedDto>(habitDrink),
                 hoursSleepConsumed = _mapper.Map<GetHoursSleepConsumedDto>(habitSleep),
                 drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
                 hoursSleep = hoursSleep,

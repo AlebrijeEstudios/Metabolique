@@ -1,16 +1,14 @@
 ﻿using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace AppVidaSana.Services.IServices.IHabits.IHabits
 {
     public interface IDrinkHabit
     {
-        GetDrinksConsumedDto AddDrinksConsumed(DrinksConsumedDto drinksConsumed);
+        DrinkHabitInfoDto AddDrinksConsumed(DrinkHabitDto values);
 
-        GetDrinksConsumedDto UpdateDrinksConsumed(UpdateDrinksConsumedDto values);
-
-        string DeleteDrinksConsumed(Guid idHabit);
+        DrinkHabitInfoDto UpdateDrinksConsumed(Guid sleepHabitID, JsonPatchDocument values); 
 
         bool Save();
-
     }
 }
