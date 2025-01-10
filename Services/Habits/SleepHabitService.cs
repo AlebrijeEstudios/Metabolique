@@ -42,10 +42,7 @@ namespace AppVidaSana.Services.Habits
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var habitSleep = _bd.HabitsSleep.FirstOrDefault(e => e.accountID == values.accountID
-                                                            && e.sleepDateHabit == values.dateRegister);
-
-            var infoHabitsSleep = _mapper.Map<SleepHabitInfoDto>(habitSleep);
+            var infoHabitsSleep = _mapper.Map<SleepHabitInfoDto>(sleepHabit);
 
             return infoHabitsSleep;
         }

@@ -11,9 +11,6 @@ namespace AppVidaSana.Models.Feeding
         [ForeignKey("Foods")]
         public Guid foodID { get; set; }
 
-        [Required(ErrorMessage = "El campo codigo del valor nutrimental es obligatorio")]
-        public string nutritionalValueCode { get; set; } = null!;
-
         [Required(ErrorMessage = "El campo porcion es obligatorio")]
         public string portion { get; set; } = null!;
 

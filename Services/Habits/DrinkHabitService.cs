@@ -1,12 +1,12 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Habitos;
 using AppVidaSana.Services.IServices.IHabits.IHabits;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace AppVidaSana.Services.Habits
 {
@@ -21,31 +21,18 @@ namespace AppVidaSana.Services.Habits
             _mapper = mapper;
         }
 
-        public GetDrinksConsumedDto AddDrinksConsumed(DrinksConsumedDto drinksConsumed)
+        public DrinkHabitInfoDto AddDrinksConsumed(DrinkHabitDto values)
         {
+            var habitDrinkExist = _bd.HabitsDrink.Any(e => e.accountID == values.accountID
+                                                     && e.drinkDateHabit == values.dateRegister);
 
-            var habitExisting = _bd.HabitsDrink.Count(e => e.drinkDateHabit == drinksConsumed.drinkDateHabit &&
-                                e.typeDrink == drinksConsumed.typeDrink &&
-                                e.amountConsumed == drinksConsumed.amountConsumed);
-
-            if (habitExisting > 0)
-            {
-                throw new RepeatRegistrationException();
-            }
-
-            var user = _bd.Accounts.Find(drinksConsumed.accountID);
-
-            if (user == null)
-            {
-                throw new UserNotFoundException();
-            }
+            if (habitDrinkExist) { throw new RepeatRegistrationException(); }
 
             DrinkHabit drinkHabit = new DrinkHabit
             {
-                accountID = drinksConsumed.accountID,
-                drinkDateHabit = drinksConsumed.drinkDateHabit,
-                typeDrink = drinksConsumed.typeDrink,
-                amountConsumed = drinksConsumed.amountConsumed
+                accountID = values.accountID,
+                drinkDateHabit = values.dateRegister,
+                amountConsumed = values.amountConsumed
             };
 
             ValidationValuesDB.ValidationValues(drinkHabit);
@@ -54,51 +41,24 @@ namespace AppVidaSana.Services.Habits
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            GetDrinksConsumedDto drinks = GetDrinksConsumed(drinksConsumed.accountID, drinksConsumed.drinkDateHabit,
-                                                            drinksConsumed.typeDrink, drinksConsumed.amountConsumed);
+            var infoHabitsDrink = _mapper.Map<DrinkHabitInfoDto>(drinkHabit);
 
-            return drinks;
-
+            return infoHabitsDrink;
         }
 
-        public GetDrinksConsumedDto UpdateDrinksConsumed(UpdateDrinksConsumedDto values)
+        public DrinkHabitInfoDto UpdateDrinksConsumed(Guid drinkHabitID, JsonPatchDocument values)
         {
-            var habit = _bd.HabitsDrink.Find(values.drinkHabitID);
+            var habitDrink = _bd.HabitsDrink.Find(drinkHabitID);
 
-            if (habit == null)
-            {
-                throw new HabitNotFoundException("No existe información de bebidas consumidas. Inténtelo de nuevo.");
-            }
+            if (habitDrink == null) { throw new HabitNotFoundException("No hay información de la cantidad consumida. Inténtelo de nuevo."); }
 
-            habit.typeDrink = values.typeDrink;
-            habit.amountConsumed = values.amountConsumed;
-
-            ValidationValuesDB.ValidationValues(habit);
-
-            _bd.HabitsDrink.Update(habit);
+            values.ApplyTo(habitDrink);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            GetDrinksConsumedDto drinks = GetDrinksConsumed(values.accountID, values.drinkDateHabit,
-                                                            values.typeDrink, values.amountConsumed);
+            var infoHabitsDrink = _mapper.Map<DrinkHabitInfoDto>(habitDrink);
 
-            return drinks;
-        }
-
-        public string DeleteDrinksConsumed(Guid idHabit)
-        {
-            var habit = _bd.HabitsDrink.Find(idHabit);
-
-            if (habit == null)
-            {
-                throw new HabitNotFoundException("No existe información de bebidas consumidas. Inténtelo de nuevo.");
-            }
-
-            _bd.HabitsDrink.Remove(habit);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
-
-            return "Se ha eliminado correctamente.";
+            return infoHabitsDrink;
         }
 
         public bool Save()
@@ -112,17 +72,6 @@ namespace AppVidaSana.Services.Habits
                 return false;
 
             }
-        }
-
-        private GetDrinksConsumedDto GetDrinksConsumed(Guid id, DateOnly date, string type, string amount)
-        {
-            var habits = _bd.HabitsDrink.FirstOrDefault(e => e.accountID == id && e.drinkDateHabit == date
-                                                        && e.typeDrink == type &&
-                                                        e.amountConsumed == amount);
-
-            var habitsDrink = _mapper.Map<GetDrinksConsumedDto>(habits);
-
-            return habitsDrink;
         }
     }
 }

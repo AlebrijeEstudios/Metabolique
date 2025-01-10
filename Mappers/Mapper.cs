@@ -139,12 +139,13 @@ namespace AppVidaSana.Mappers
             .ForMember(dest => dest.levelAF, opt => opt.Ignore()).ReverseMap();
 
             //HABITS
-            CreateMap<DrinkHabit, GetDrinksConsumedDto>().ReverseMap();
-            CreateMap<SleepHabit, GetHoursSleepConsumedDto>().ReverseMap();
-            CreateMap<DrugsHabit, GetDrugsConsumedDto>().ReverseMap();
+            CreateMap<DrinkHabit, DrinkHabitInfoDto>().ReverseMap();
             CreateMap<SleepHabit, SleepHabitInfoDto>().ReverseMap();
             CreateMap<DrugsHabit, DrugsHabitInfoDto>().ReverseMap();
-
+            CreateMap<DrinkHabit, GetDrinkConsumedDto>().ReverseMap();
+            CreateMap<SleepHabit, GetHoursSleepConsumedDto>().ReverseMap();
+            CreateMap<DrugsHabit, GetDrugsConsumedDto>().ReverseMap();
+            
             CreateMap<MFUsHabits, RetrieveResponsesHabitsDto>()
             .ForMember(dest => dest.month, opt => opt.Ignore())
             .ForMember(dest => dest.year, opt => opt.Ignore())

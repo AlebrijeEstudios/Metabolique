@@ -42,10 +42,7 @@ namespace AppVidaSana.Services.Habits
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var habitDrugs = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == values.accountID
-                                                            && e.drugsDateHabit == values.dateRegister);
-
-            var infoHabitsDrugs = _mapper.Map<DrugsHabitInfoDto>(habitDrugs);
+            var infoHabitsDrugs = _mapper.Map<DrugsHabitInfoDto>(drugHabit);
 
             return infoHabitsDrugs;
         }
