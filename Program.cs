@@ -23,6 +23,8 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using Azure.Storage.Blobs;
+using AppVidaSana.Exceptions;
+using AppVidaSana.ProducesResponseType;
 
 Env.Load();
 
@@ -127,6 +129,18 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
         ClockSkew = TimeSpan.Zero
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            if (context.Exception is SecurityTokenExpiredException)
+            {
+                throw new TokenExpiredException();
+            }
+
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -193,6 +207,30 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "DeveloperTest V1");
+});
+
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next(); 
+    }
+    catch (TokenExpiredException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        context.Response.ContentType = "application/json";
+
+        var errorResponse = new ExpiredTokenException
+        {
+            status = StatusCodes.Status401Unauthorized,
+            error = "Unauthorized",
+            message = ex.Message,
+            timestamp = DateTime.UtcNow.ToString("o"),
+            path = context.Request.Path
+        };
+
+        await context.Response.WriteAsJsonAsync(errorResponse);
+    }
 });
 
 app.UseHttpsRedirection();
