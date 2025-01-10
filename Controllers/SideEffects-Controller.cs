@@ -2,6 +2,7 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
 using AppVidaSana.ProducesReponseType;
+using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Medications.SideEffects;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
@@ -36,9 +37,11 @@ namespace AppVidaSana.Controllers
         /// </remarks>
         /// <response code="201">Returns a message that the information has been successfully stored.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ReturnSideEffect))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPost("side-effects")]
@@ -82,7 +85,6 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
-
             }
         }
 
@@ -91,9 +93,11 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnSideEffect))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPut("side-effects")]
@@ -128,18 +132,18 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
-
             }
         }
-
 
         /// <summary>
         /// This controller deletes side effect records on a given day.
         /// </summary>
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnDeleteSideEffect))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("side-effects")]
         [Produces("application/json")]
@@ -166,7 +170,5 @@ namespace AppVidaSana.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
         }
-
-
     }
 }

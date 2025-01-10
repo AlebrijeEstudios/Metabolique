@@ -1,5 +1,6 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
+using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Habits;
 using AppVidaSana.Services.IServices.IHabits;
 using Microsoft.AspNetCore.Authorization;
@@ -36,7 +37,9 @@ namespace AppVidaSana.Controllers.Habits
         ///     
         /// </remarks>
         /// <response code="200">Returns all the information from the Habits section for a given day and the hours of sleep for the last 7 days.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnHabitsInfo))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
