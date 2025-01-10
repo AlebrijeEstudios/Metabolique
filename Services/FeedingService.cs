@@ -158,11 +158,20 @@ namespace AppVidaSana.Services
 
             await UpdateUserFeedNutrValues(values, values.foodsConsumed, nutritionalValues, cancellationToken);
 
-            Guid? saucerPictureID = null;
+            Guid? saucerPictureID = userFeed.saucerPictureID;
 
-            if (values.saucerPicture is not null)
+            if (values.saucerPicture is not null && values.saucerPicture != "")
             {
                 saucerPictureID = await SavePictureAsync(values.saucerPicture, cancellationToken);
+
+                userFeed.saucerPictureID = saucerPictureID;
+            }
+
+            if(values.saucerPicture is null)
+            {
+                saucerPictureID = null;
+
+                userFeed.saucerPictureID = saucerPictureID;
             }
 
             double totalKcal = TotalKcal(values.foodsConsumed);
@@ -180,7 +189,6 @@ namespace AppVidaSana.Services
             userFeed.satietyLevel = values.satietyLevel;
             userFeed.emotionsLinked = values.emotionsLinked;
             userFeed.totalCalories = totalKcal;
-            userFeed.saucerPictureID = saucerPictureID;
 
             ValidationValuesDB.ValidationValues(userFeed);
 
