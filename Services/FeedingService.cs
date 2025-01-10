@@ -39,7 +39,11 @@ namespace AppVidaSana.Services
 
             userFeedMapped.dailyMeal = dailyMeal!.dailyMeal;
 
-            userFeedMapped.foodsConsumed = await GetFoodsConsumedAsync(userFeedID, cancellationToken);
+            var foodsConsumed = await GetFoodsConsumedAsync(userFeedID, cancellationToken);
+
+            var foodsConsumedEnumerated = GetNutrValuesEnumerated(foodsConsumed);
+
+            userFeedMapped.foodsConsumed = foodsConsumedEnumerated;
 
             userFeedMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(userFeed.saucerPictureID, cancellationToken);
 
@@ -114,7 +118,7 @@ namespace AppVidaSana.Services
 
             var foods = await CreateFoods(values.foodsConsumed, cancellationToken);
 
-            var nutritionalValues = await CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
+            var nutritionalValues = CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
 
             CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues, values.foodsConsumed);
 
@@ -124,7 +128,9 @@ namespace AppVidaSana.Services
             
             userFeedingMapped.userFeedID = userFeed.userFeedID;
 
-            userFeedingMapped.foodsConsumed = values.foodsConsumed;
+            var foodsConsumedEnumerated = GetNutrValuesEnumerated(values.foodsConsumed);
+
+            userFeedingMapped.foodsConsumed = foodsConsumedEnumerated;
 
             userFeedingMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(userFeed.saucerPictureID, cancellationToken);
 
@@ -148,7 +154,7 @@ namespace AppVidaSana.Services
 
             var foods = await CreateFoods(values.foodsConsumed, cancellationToken);
 
-            var nutritionalValues = await CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
+            var nutritionalValues = CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
 
             await UpdateUserFeedNutrValues(values, values.foodsConsumed, nutritionalValues, cancellationToken);
 
@@ -182,7 +188,9 @@ namespace AppVidaSana.Services
 
             var userFeedingMapped = _mapper.Map<UserFeedsDto>(values);
 
-            userFeedingMapped.foodsConsumed = values.foodsConsumed;
+            var foodsConsumedEnumerated = GetNutrValuesEnumerated(values.foodsConsumed);
+
+            userFeedingMapped.foodsConsumed = foodsConsumedEnumerated;
 
             userFeedingMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(saucerPictureID, cancellationToken);
 
@@ -230,6 +238,36 @@ namespace AppVidaSana.Services
                 return false;
 
             }
+        }
+
+        public List<FoodsConsumedDto> GetNutrValuesEnumerated(List<FoodsConsumedDto> foodsConsumed)
+        {
+            int number = 0;
+
+            foreach (var food in foodsConsumed)
+            {
+                var newNutritionalValues = new List<NutritionalValuesDto>();
+
+                foreach (var nv in food.nutritionalValues)
+                {
+                    var newNv = new NutritionalValuesDto
+                    {
+                        portion = nv.portion,
+                        kilocalories = nv.kilocalories,
+                        protein = nv.protein,
+                        carbohydrates = nv.carbohydrates,
+                        totalLipids = nv.totalLipids
+                    };
+
+                    newNv.nutritionalValueCode = (++number).ToString();
+
+                    newNutritionalValues.Add(newNv);
+                }
+
+                food.nutritionalValues = newNutritionalValues;
+            }
+
+            return foodsConsumed;
         }
 
         private async Task<UserCalories> CreateUserCaloriesAsync(Guid accountID, CancellationToken cancellationToken)
@@ -764,33 +802,54 @@ namespace AppVidaSana.Services
             return existingFoods;
         }
 
-        private async Task<Dictionary<string, Guid>> CreateNutritionalValues(Dictionary<string, Guid> existingFoods, 
-                                                                             List<FoodsConsumedDto> foods, 
-                                                                             CancellationToken cancellationToken)
+        private List<NutritionalValues> CreateNutritionalValues(Dictionary<string, Guid> existingFoods, 
+                                                                List<FoodsConsumedDto> foods, 
+                                                                CancellationToken cancellationToken)
         {
             var allNutrValues = foods
-                                .SelectMany(nv => nv.nutritionalValues, (nv, nutrValue) => new NutritionalValues
+                                .SelectMany(food => food.nutritionalValues
+                                .GroupBy(nutrValue => new
                                 {
-                                    foodID = existingFoods[nv.foodCode],
-                                    nutritionalValueCode = nutrValue.nutritionalValueCode,
+                                    nutrValue.portion,
+                                    nutrValue.kilocalories,
+                                    nutrValue.protein,
+                                    nutrValue.carbohydrates,
+                                    nutrValue.totalLipids
+                                })
+                                .Select(group => group.First())
+                                .Select(nutrValue => new NutritionalValues
+                                {
+                                    foodID = existingFoods[food.foodCode],
                                     portion = nutrValue.portion,
                                     kilocalories = nutrValue.kilocalories,
                                     protein = nutrValue.protein,
                                     carbohydrates = nutrValue.carbohydrates,
                                     totalLipids = nutrValue.totalLipids
                                 })
-                                .DistinctBy(a => new { a.nutritionalValueCode }) 
-                                .ToList();
+                                ).ToList();
 
-            var nutrValuesCodes = allNutrValues.Select(nv => nv.nutritionalValueCode);
+            var foodIDs = allNutrValues.Select(nv => nv.foodID);
 
-            var existingNutrValues = await _bd.NutritionalValues
-                                     .Where(nv => nutrValuesCodes.Contains(nv.nutritionalValueCode))
-                                     .ToDictionaryAsync(nv => nv.nutritionalValueCode, nv => nv.nutritionalValueID, cancellationToken);
-
+            var existingNutrValues = _bd.NutritionalValues
+                                    .Where(nv => foodIDs.Contains(nv.foodID)) 
+                                    .AsEnumerable() 
+                                    .Where(nv => allNutrValues.Any(anv =>
+                                        anv.foodID == nv.foodID &&
+                                        anv.portion == nv.portion &&
+                                        anv.kilocalories == nv.kilocalories &&
+                                        anv.protein == nv.protein &&
+                                        anv.carbohydrates == nv.carbohydrates &&
+                                        anv.totalLipids == nv.totalLipids))
+                                    .ToList();
 
             var newNutrValues = allNutrValues
-                                .Where(nv => !existingNutrValues.ContainsKey(nv.nutritionalValueCode))
+                                .Where(nv => !existingNutrValues.Any(anv =>
+                                    anv.foodID == nv.foodID &&
+                                    anv.portion == nv.portion &&
+                                    anv.kilocalories == nv.kilocalories &&
+                                    anv.protein == nv.protein &&
+                                    anv.carbohydrates == nv.carbohydrates &&
+                                    anv.totalLipids == nv.totalLipids))
                                 .ToList();
 
             if (newNutrValues.Count > 0)
@@ -801,17 +860,13 @@ namespace AppVidaSana.Services
 
                 if (!Save()) { throw new UnstoredValuesException(); }
 
-                foreach (var newNutrValue in newNutrValues)
-                {
-                    existingNutrValues[newNutrValue.nutritionalValueCode] = newNutrValue.nutritionalValueID;
-                }
+                existingNutrValues.AddRange(newNutrValues);
             }
 
             return existingNutrValues;
         }
 
-        private void CreateUserFeedNutrValues(Guid userFeedID, Dictionary<string, Guid> existingNutrValues,
-                                              List<FoodsConsumedDto> foods)
+        private void CreateUserFeedNutrValues(Guid userFeedID, List<NutritionalValues> existingNutrValues, List<FoodsConsumedDto> foods)
         {
             var userFeedNutrValues = AllUserFeedNutrValues(userFeedID, foods, existingNutrValues);
 
@@ -823,7 +878,7 @@ namespace AppVidaSana.Services
         }
 
         private async Task UpdateUserFeedNutrValues(UpdateFeedingDto values, List<FoodsConsumedDto> foodsConsumed,
-                                                    Dictionary<string, Guid> existingNutrValues, CancellationToken cancellationToken)
+                                                    List<NutritionalValues> existingNutrValues, CancellationToken cancellationToken)
         {
             var userFeedNutrValues = AllUserFeedNutrValues(values.userFeedID, foodsConsumed, existingNutrValues);
 
@@ -854,18 +909,31 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private static List<UserFeedNutritionalValues> AllUserFeedNutrValues(Guid userFeedID, List<FoodsConsumedDto> foods, Dictionary<string, Guid> existingNutrValues)
+        private static List<UserFeedNutritionalValues> AllUserFeedNutrValues(Guid userFeedID, 
+                                                                             List<FoodsConsumedDto> foods,
+                                                                             List<NutritionalValues> existingNutrValues)
         {
             var allNutrValueCodes = foods
                                     .SelectMany(nv => nv.nutritionalValues)
-                                    .Select(nutrValue => nutrValue.nutritionalValueCode)
-                                    .ToList();
+                                    .Select(nutrValue => new
+                                    {
+                                        nutrValue.portion,
+                                        nutrValue.kilocalories,
+                                        nutrValue.protein,
+                                        nutrValue.carbohydrates,
+                                        nutrValue.totalLipids
+                                    }).ToList();
 
-            var userFeedNutrValues = allNutrValueCodes.GroupBy(nutrValueCode => nutrValueCode)
+            var userFeedNutrValues = allNutrValueCodes.GroupBy(nutrValue => nutrValue)
                                      .Select(group => new UserFeedNutritionalValues
                                      {
                                          userFeedID = userFeedID,
-                                         nutritionalValueID = existingNutrValues[group.Key],
+                                         nutritionalValueID = existingNutrValues
+                                                              .FirstOrDefault(e => e.portion == group.Key.portion
+                                                                              && e.kilocalories == group.Key.kilocalories
+                                                                              && e.protein == group.Key.protein
+                                                                              && e.carbohydrates == group.Key.carbohydrates
+                                                                              && e.totalLipids == group.Key.totalLipids)!.nutritionalValueID,
                                          MealFrequency = group.Count()
                                      })
                                      .ToList();
