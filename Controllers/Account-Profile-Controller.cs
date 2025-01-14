@@ -48,7 +48,7 @@ namespace AppVidaSana.Controllers
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="404">Return an error message if the user is not found.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountResponse))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet("{accountID:guid}")]
@@ -193,7 +193,7 @@ namespace AppVidaSana.Controllers
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response> 
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
@@ -261,7 +261,7 @@ namespace AppVidaSana.Controllers
         /// <response code="404">Return a message that the user does not exist in the Accounts table.</response> 
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{accountID:guid}")]

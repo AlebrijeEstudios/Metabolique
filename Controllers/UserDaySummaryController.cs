@@ -28,7 +28,7 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns account information if found.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDaySummaryResponse))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]

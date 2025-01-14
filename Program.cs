@@ -24,6 +24,7 @@ using System.Text;
 using Azure.Storage.Blobs;
 using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType;
+using Newtonsoft.Json;
 
 Env.Load();
 
@@ -57,17 +58,24 @@ builder.Services.AddCors(opt =>
 
 builder.Services.AddRequestTimeouts(options =>
 {
-    options.DefaultPolicy =
-        new RequestTimeoutPolicy
-        {
-            Timeout = TimeSpan.FromMilliseconds(1000),
-            TimeoutStatusCode = StatusCodes.Status503ServiceUnavailable
-        };
     options.AddPolicy("CustomPolicy",
         new RequestTimeoutPolicy
         {
-            Timeout = TimeSpan.FromMilliseconds(30000),
-            TimeoutStatusCode = StatusCodes.Status503ServiceUnavailable
+            Timeout = TimeSpan.FromSeconds(30),
+            TimeoutStatusCode = 503,
+            WriteTimeoutResponse = async (HttpContext context) => {
+                context.Response.ContentType = "application/json";
+                var errorResponse = new RequestTimeoutExceptionMessage
+                {
+                    status = StatusCodes.Status503ServiceUnavailable,
+                    error = "Service Unavailable",
+                    message = "La petición ha tardado más de lo esperado, intentelo de nuevo.",
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    path = context.Request.Path
+                };
+                var jsonResponse = JsonConvert.SerializeObject(errorResponse);
+                await context.Response.WriteAsync(jsonResponse);
+            }
         });
 });
 
@@ -219,7 +227,7 @@ app.Use(async (context, next) =>
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         context.Response.ContentType = "application/json";
 
-        var errorResponse = new ExpiredTokenException
+        var errorResponse = new ExceptionExpiredTokenMessage
         {
             status = StatusCodes.Status401Unauthorized,
             error = "Unauthorized",

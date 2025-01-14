@@ -45,7 +45,7 @@ namespace AppVidaSana.Controllers
         /// <response code="200">It returns three arrays, one with the user's default meals of the day, another with other meals of the day and the last one with the calories consumed during the last 7 days.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetInfoGeneralFeedingResponse))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
@@ -91,7 +91,7 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns information from the user's feed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetAddUpdateFeedingResponse))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet("{userFeedID:guid}")]
         [Produces("application/json")]
@@ -130,7 +130,7 @@ namespace AppVidaSana.Controllers
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(GetAddUpdateFeedingResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
@@ -202,7 +202,7 @@ namespace AppVidaSana.Controllers
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetAddUpdateFeedingResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
@@ -258,7 +258,7 @@ namespace AppVidaSana.Controllers
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeleteFeedingResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExpiredTokenException))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{userFeedID:guid}")]
         [Produces("application/json")]
