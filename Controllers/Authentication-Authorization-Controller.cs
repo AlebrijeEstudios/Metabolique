@@ -5,6 +5,7 @@ using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.ProducesReponseType;
+using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Authenticator;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Cors;
@@ -34,11 +35,13 @@ namespace AppVidaSana.Controllers
         /// <response code="401">Returns a message that you were unable to log in.</response>  
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="500">Returns a message indicating internal server errors.</response>
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPost("login")]
         [Produces("application/json")]
@@ -101,11 +104,13 @@ namespace AppVidaSana.Controllers
         /// <response code="401">Returns a message indicating the refresh token has expired.</response>  
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="500">Returns a message indicating internal server errors.</response>
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPost("refresh-token")]
         [Produces("application/json")]
@@ -165,8 +170,10 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="200">The closing session was a success.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LogoutResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("logout/{accountID:guid}")]
         [Produces("application/json")]
