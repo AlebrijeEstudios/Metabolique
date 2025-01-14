@@ -38,8 +38,10 @@ namespace AppVidaSana.Controllers.Habits
         /// </remarks>
         /// <response code="200">Returns all the information from the Habits section for a given day and the hours of sleep for the last 7 days.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnHabitsInfo))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
