@@ -92,7 +92,7 @@ namespace AppVidaSana.Services
                 new Claim(ClaimTypes.Role, role!.role)
             };
 
-            DateTime durationToken = DateTime.UtcNow.AddMinutes(1);
+            DateTime durationToken = DateTime.UtcNow.AddHours(1);
 
             var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
 
@@ -111,7 +111,7 @@ namespace AppVidaSana.Services
                 {
                     accountID = accountID,
                     refreshToken = refreshToken,
-                    dateExpiration = DateTime.Now.AddMinutes(2)
+                    dateExpiration = DateTime.Now.AddDays(14)
                 };
 
                 ValidationValuesDB.ValidationValues(historialRefreshToken);
@@ -125,7 +125,7 @@ namespace AppVidaSana.Services
 
             historial.refreshToken = refreshToken;
 
-            historial.dateExpiration = DateTime.Now.AddMinutes(2);
+            historial.dateExpiration = DateTime.Now.AddDays(14);
 
             ValidationValuesDB.ValidationValues(historial);
 
@@ -145,7 +145,7 @@ namespace AppVidaSana.Services
 
             historial.refreshToken = refreshToken;
 
-            historial.dateExpiration = DateTime.Now.AddMinutes(2);
+            historial.dateExpiration = DateTime.Now.AddDays(14);
 
             ValidationValuesDB.ValidationValues(historial);
 
