@@ -7,6 +7,7 @@ using AutoMapper;
 using AppVidaSana.ValidationValues;
 using Microsoft.AspNetCore.JsonPatch;
 using AppVidaSana.Exceptions.Habits;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services.Habits
 {
@@ -21,10 +22,10 @@ namespace AppVidaSana.Services.Habits
             _mapper = mapper;
         }
 
-        public SleepHabitInfoDto AddSleepHours(SleepHabitDto values)
+        public async Task<SleepHabitInfoDto> AddSleepHoursAsync(SleepHabitDto values, CancellationToken cancellationToken)
         {
-            var habitSleepExist = _bd.HabitsSleep.Any(e => e.accountID == values.accountID
-                                                      && e.sleepDateHabit == values.dateRegister);
+            var habitSleepExist = await _bd.HabitsSleep.AnyAsync(e => e.accountID == values.accountID
+                                                                 && e.sleepDateHabit == values.dateRegister, cancellationToken);
 
             if (habitSleepExist) { throw new RepeatRegistrationException(); }
 
@@ -42,19 +43,16 @@ namespace AppVidaSana.Services.Habits
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var habitSleep = _bd.HabitsSleep.FirstOrDefault(e => e.accountID == values.accountID
-                                                            && e.sleepDateHabit == values.dateRegister);
-
-            var infoHabitsSleep = _mapper.Map<SleepHabitInfoDto>(habitSleep);
+            var infoHabitsSleep = _mapper.Map<SleepHabitInfoDto>(sleepHabit);
 
             return infoHabitsSleep;
         }
 
-        public SleepHabitInfoDto UpdateSleepHours(Guid sleepHabitID, JsonPatchDocument values)
+        public async Task<SleepHabitInfoDto> UpdateSleepHoursAsync(Guid sleepHabitID, JsonPatchDocument values, CancellationToken cancellationToken)
         {
-            var habitSleep = _bd.HabitsSleep.Find(sleepHabitID);
+            var habitSleep = await _bd.HabitsSleep.FindAsync(new object[] { sleepHabitID }, cancellationToken);
 
-            if (habitSleep == null) { throw new HabitNotFoundException("No hay información de horas de sueño. Inténtelo de nuevo."); }
+            if (habitSleep is null) { throw new HabitNotFoundException("No hay información de horas de sueño. Inténtelo de nuevo."); }
 
             values.ApplyTo(habitSleep);
 

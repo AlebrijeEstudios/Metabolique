@@ -38,10 +38,6 @@ namespace AppVidaSana.Services
         public async Task<InfoGeneralExerciseDto> GetInfoGeneralExercisesAsync(Guid accountID, DateOnly date,
                                                                                CancellationToken cancellationToken)
         {
-            bool status = false;
-
-            InfoGeneralExerciseDto infoGeneral;
-
             List<ExerciseDto> exercises = await GetExercisesAsync(accountID, date, cancellationToken);
 
             List<ActiveMinutesExerciseDto> activeMinutes = await GetActiveMinutesAsync(accountID, date, cancellationToken);
@@ -54,26 +50,18 @@ namespace AppVidaSana.Services
            
             if (monthExist is null)
             {
-                infoGeneral = GeneratedInfoGeneralExercise(exercises, activeMinutes, status);
-
-                return infoGeneral;
+                return GeneratedInfoGeneralExercise(exercises, activeMinutes, false);
             }
             
             var mfuExist = await _bd.MFUsExercise.AnyAsync(e => e.accountID == accountID
                                                            && e.monthID == monthExist.monthID, cancellationToken);
 
-            if (mfuExist)
+            if (!mfuExist)
             {
-                status = true;
-
-                infoGeneral = GeneratedInfoGeneralExercise(exercises, activeMinutes, status);
-
-                return infoGeneral;
+                return GeneratedInfoGeneralExercise(exercises, activeMinutes, false);
             }
 
-            infoGeneral = GeneratedInfoGeneralExercise(exercises, activeMinutes, status);
-
-            return infoGeneral;
+            return GeneratedInfoGeneralExercise(exercises, activeMinutes, true);
         }
 
         public async Task<ExerciseDto> AddExerciseAsync(AddExerciseDto values, CancellationToken cancellationToken)
@@ -129,8 +117,6 @@ namespace AppVidaSana.Services
 
                 ValidationValuesDB.ValidationValues(previousTotal);
 
-                _bd.ActiveMinutes.Update(previousTotal);
-
                 if (!Save()) { throw new UnstoredValuesException(); }
             }
 
@@ -139,8 +125,6 @@ namespace AppVidaSana.Services
             exercise.timeSpent = values.timeSpent;
 
             ValidationValuesDB.ValidationValues(exercise);
-
-            _bd.Exercises.Update(exercise);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
@@ -174,8 +158,6 @@ namespace AppVidaSana.Services
                 previousTotal.totalTimeSpent = newTotal;
 
                 ValidationValuesDB.ValidationValues(previousTotal);
-
-                _bd.ActiveMinutes.Update(previousTotal);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
             }
@@ -227,30 +209,14 @@ namespace AppVidaSana.Services
 
             var dates = DatesInRange.GetDatesInRange(dateFinal, date);
 
-            List<ActiveMinutesExerciseDto> activeMinutes = new List<ActiveMinutesExerciseDto>();
+            var values = await _bd.ActiveMinutes.Where(c => c.accountID == accountID
+                                                       && dates.Contains(c.dateExercise)).ToListAsync(cancellationToken);
 
-            foreach (var item in dates)
-            {
-                var minutes = await _bd.ActiveMinutes.FirstOrDefaultAsync(e => e.dateExercise == item
-                                                                          && e.accountID == accountID, cancellationToken);
-
-                ActiveMinutesExerciseDto value = new ActiveMinutesExerciseDto();
-
-                if (minutes is not null)
-                {
-                    value.date = item;
-                    value.value = minutes.totalTimeSpent;
-
-                    activeMinutes.Add(value);
-                }
-                else
-                {
-                    value.date = item;
-                    value.value = 0;
-
-                    activeMinutes.Add(value);
-                }
-            }
+            var activeMinutes = dates.Select(date => new ActiveMinutesExerciseDto
+                                {
+                                    date = date,
+                                    value = values.FirstOrDefault(e => e.dateExercise == date)?.totalTimeSpent ?? 0
+                                }).ToList();
 
             activeMinutes = activeMinutes.OrderBy(x => x.date).ToList();
 
@@ -270,8 +236,6 @@ namespace AppVidaSana.Services
                 activeMinutesExisting.totalTimeSpent = value + timeSpent;
 
                 ValidationValuesDB.ValidationValues(activeMinutesExisting);
-
-                _bd.ActiveMinutes.Update(activeMinutesExisting);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
             }

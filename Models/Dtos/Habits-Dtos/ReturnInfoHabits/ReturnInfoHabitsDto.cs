@@ -5,7 +5,7 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos
 {
     public class ReturnInfoHabitsDto
     {
-        public List<GetDrinksConsumedDto> drinkConsumed { get; set; } = null!;
+        public GetDrinkConsumedDto drinkConsumed { get; set; } = null!;
 
         public GetHoursSleepConsumedDto hoursSleepConsumed { get; set; } = null!;
 

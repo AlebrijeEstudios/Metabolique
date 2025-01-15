@@ -1,5 +1,5 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.Models.Dtos.Habits_Dtos;
+using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Habits;
 using AppVidaSana.Services.IServices.IHabits;
 using Microsoft.AspNetCore.Authorization;
@@ -36,22 +36,26 @@ namespace AppVidaSana.Controllers.Habits
         ///     
         /// </remarks>
         /// <response code="200">Returns all the information from the Habits section for a given day and the hours of sleep for the last 7 days.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnHabitsInfo))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public IActionResult GetHabitsInfoGeneral([FromQuery] Guid accountID, [FromQuery] DateOnly date)
+        public async Task<IActionResult> GetHabitsInfoGeneralAsync([FromQuery] Guid accountID, [FromQuery] DateOnly date)
         {
 
-            ReturnInfoHabitsDto info = _HabitsInfoService.GetInfoGeneralHabits(accountID, date);
+            var infoGeneralHabits = await _HabitsInfoService.GetInfoGeneralHabitsAsync(accountID, date, HttpContext.RequestAborted);
 
             ReturnHabitsInfo response = new ReturnHabitsInfo
             {
-                drinkConsumed = info.drinkConsumed,
-                hoursSleepConsumed = info.hoursSleepConsumed,
-                drugsConsumed = info.drugsConsumed,
-                hoursSleep = info.hoursSleep,
-                mfuStatus = info.mfuStatus
+                drinkConsumed = infoGeneralHabits.drinkConsumed,
+                hoursSleepConsumed = infoGeneralHabits.hoursSleepConsumed,
+                drugsConsumed = infoGeneralHabits.drugsConsumed,
+                hoursSleep = infoGeneralHabits.hoursSleep,
+                mfuStatus = infoGeneralHabits.mfuStatus
             };
 
             return StatusCode(StatusCodes.Status200OK, new

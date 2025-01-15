@@ -2,10 +2,10 @@
 
 namespace AppVidaSana.ProducesResponseType.Habits.DrinkHabit
 {
-    public class ReturnAddUpdateDrinkConsumed
+    public class ResponseDrinkHabit
     {
         public string message { get; set; } = "Ok.";
 
-        public GetDrinksConsumedDto drinksConsumed { get; set; } = null!;
+        public DrinkHabitInfoDto drinkConsumed { get; set; } = null!;
     }
 }

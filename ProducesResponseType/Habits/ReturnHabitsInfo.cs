@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
-using AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits;
+﻿using AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits;
 
 namespace AppVidaSana.ProducesResponseType.Habits
 {
@@ -7,7 +6,7 @@ namespace AppVidaSana.ProducesResponseType.Habits
     {
         public string message { get; set; } = "Ok.";
 
-        public List<GetDrinksConsumedDto> drinkConsumed { get; set; } = null!;
+        public GetDrinkConsumedDto drinkConsumed { get; set; } = null!;
 
         public GetHoursSleepConsumedDto hoursSleepConsumed { get; set; } = null!;
 

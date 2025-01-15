@@ -3,13 +3,13 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Feeding;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.ProducesReponseType;
+using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Feeding;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace AppVidaSana.Controllers
 {
@@ -42,7 +42,11 @@ namespace AppVidaSana.Controllers
         ///     
         /// </remarks>
         /// <response code="200">It returns three arrays, one with the user's default meals of the day, another with other meals of the day and the last one with the calories consumed during the last 7 days.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetInfoGeneralFeedingResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
@@ -63,7 +67,7 @@ namespace AppVidaSana.Controllers
                 message = response.message,
                 defaultDailyMeals = response.defaultDailyMeals,
                 othersDailyMeals = response.othersDailyMeals,
-                caloriesConsumed = response.caloriesConsumed, 
+                caloriesConsumed = response.caloriesConsumed,
                 mfuStatus = response.mfuStatus
             });
         }
@@ -86,7 +90,11 @@ namespace AppVidaSana.Controllers
         ///     
         /// </remarks>
         /// <response code="200">Returns information from the user's feed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetAddUpdateFeedingResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet("{userFeedID:guid}")]
         [Produces("application/json")]
@@ -121,10 +129,14 @@ namespace AppVidaSana.Controllers
         /// </remarks>
         /// <response code="201">Returns a message that the information has been successfully stored.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(GetAddUpdateFeedingResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
@@ -190,12 +202,16 @@ namespace AppVidaSana.Controllers
         /// </remarks>
         /// <response code="200">Returns a message that the update has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="404">Returns a message indicating that no records have been found for a user feed.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetAddUpdateFeedingResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
@@ -246,8 +262,12 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeleteFeedingResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{userFeedID:guid}")]
         [Produces("application/json")]

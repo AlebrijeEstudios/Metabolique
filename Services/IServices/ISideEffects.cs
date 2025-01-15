@@ -4,10 +4,12 @@ namespace AppVidaSana.Services.IServices
 {
     public interface ISideEffects
     {
-        public SideEffectsListDto AddSideEffect(AddSideEffectDto values);
+        public Task<SideEffectsListDto> AddSideEffectAsync(AddSideEffectDto values, CancellationToken cancellationToken);
 
-        public SideEffectsListDto UpdateSideEffect(SideEffectsListDto values);
+        public Task<SideEffectsListDto> UpdateSideEffectAsync(SideEffectsListDto values, CancellationToken cancellationToken);
 
-        public string DeleteSideEffect(Guid id);
+        public Task<string> DeleteSideEffectAsync(Guid sideEffectID, CancellationToken cancellationToken);
+
+        bool Save();
     }
 }

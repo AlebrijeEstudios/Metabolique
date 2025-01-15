@@ -42,7 +42,11 @@ namespace AppVidaSana.Controllers
         /// </remarks>
         /// <response code="200">Returns two arrays, one with all the exercises performed by the user during the day and 
         /// another with the active minutes during the last 7 days, otherwise, an empty array will be returned for both cases.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetExerciseResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
@@ -78,10 +82,16 @@ namespace AppVidaSana.Controllers
         /// </remarks>
         /// <response code="201">Returns a message that the information has been successfully stored.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response>
+        /// <response code="404">Return an error message if the user is not found.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AddUpdateExercisesResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
@@ -133,12 +143,16 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="404">Returns a message indicating that no record(s) were found for a certain exercise.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AddUpdateExercisesResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
@@ -189,12 +203,16 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="404">Returns a message indicating that an exercise does not exist in the Exercises table.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpDelete("{exerciseID:guid}")]
         [Produces("application/json")]

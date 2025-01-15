@@ -92,7 +92,7 @@ namespace AppVidaSana.Services
                 new Claim(ClaimTypes.Role, role!.role)
             };
 
-            DateTime durationToken = DateTime.UtcNow.AddMinutes(30);
+            DateTime durationToken = DateTime.UtcNow.AddHours(1);
 
             var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
 

@@ -3,6 +3,7 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
 using AppVidaSana.ProducesReponseType;
+using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Habits.DrugsHabit;
 using AppVidaSana.Services.IServices.IHabits.IHabits;
 using Microsoft.AspNetCore.Authorization;
@@ -39,20 +40,22 @@ namespace AppVidaSana.Controllers.Habits
         /// </remarks>
         /// <response code="201">Returns a message that the information has been successfully stored.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="404">Return an error message if the user is not found.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ResponseDrugsHabit))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult AddDrugsConsumed([FromBody] DrugsHabitDto values)
+        public async Task<IActionResult> AddDrugsConsumedAsync([FromBody] DrugsHabitDto values)
         {
             try
             {
-                var infoHabit = _DrugsHabitService.AddDrugsConsumed(values);
+                var infoHabit = await _DrugsHabitService.AddDrugsConsumedAsync(values, HttpContext.RequestAborted);
 
                 ResponseDrugsHabit response = new ResponseDrugsHabit
                 {
@@ -107,18 +110,22 @@ namespace AppVidaSana.Controllers.Habits
         /// </remarks>
         /// <response code="200">Returns a message that the update has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="404">Returns a message indicating that there is no information on drug use.</response>     
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseDrugsHabit))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPatch]
         [Produces("application/json")]
-        public IActionResult UpdateDrugsConsumed([FromQuery] Guid drugsHabitID, [FromBody] JsonPatchDocument values)
+        public async Task<IActionResult> UpdateDrugsConsumedAsync([FromQuery] Guid drugsHabitID, [FromBody] JsonPatchDocument values)
         {
             try
             {
-                var infoHabit = _DrugsHabitService.UpdateDrugsConsumed(drugsHabitID, values);
+                var infoHabit = await _DrugsHabitService.UpdateDrugsConsumedAsync(drugsHabitID, values, HttpContext.RequestAborted);
 
                 ResponseDrugsHabit response = new ResponseDrugsHabit
                 {

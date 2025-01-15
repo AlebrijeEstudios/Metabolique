@@ -14,11 +14,7 @@ namespace AppVidaSana.Models.Habitos
         [Required(ErrorMessage = "El campo fecha es obligatorio")]
         public DateOnly drinkDateHabit { get; set; }
 
-        [Required(ErrorMessage = "El campo tipo de bebida es obligatorio")]
-        public string typeDrink { get; set; } = null!;
-
-        [Required(ErrorMessage = "El campo cantidad consumida es obligatorio")]
-        public string amountConsumed { get; set; } = null!;
+        public int? amountConsumed { get; set; }
 
         public Account? account { get; set; }
     }

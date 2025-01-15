@@ -23,6 +23,9 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using Azure.Storage.Blobs;
+using AppVidaSana.Exceptions;
+using AppVidaSana.ProducesResponseType;
+using Newtonsoft.Json;
 
 Env.Load();
 
@@ -56,17 +59,24 @@ builder.Services.AddCors(opt =>
 
 builder.Services.AddRequestTimeouts(options =>
 {
-    options.DefaultPolicy =
-        new RequestTimeoutPolicy
-        {
-            Timeout = TimeSpan.FromMilliseconds(1000),
-            TimeoutStatusCode = StatusCodes.Status503ServiceUnavailable
-        };
     options.AddPolicy("CustomPolicy",
         new RequestTimeoutPolicy
         {
-            Timeout = TimeSpan.FromMilliseconds(30000),
-            TimeoutStatusCode = StatusCodes.Status503ServiceUnavailable
+            Timeout = TimeSpan.FromSeconds(30),
+            TimeoutStatusCode = 503,
+            WriteTimeoutResponse = async (HttpContext context) => {
+                context.Response.ContentType = "application/json";
+                var errorResponse = new RequestTimeoutExceptionMessage
+                {
+                    status = StatusCodes.Status503ServiceUnavailable,
+                    error = "Service Unavailable",
+                    message = "La petición ha tardado más de lo esperado, intentelo de nuevo.",
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    path = context.Request.Path
+                };
+                var jsonResponse = JsonConvert.SerializeObject(errorResponse);
+                await context.Response.WriteAsync(jsonResponse);
+            }
         });
 });
 
@@ -106,7 +116,7 @@ builder.Services.AddScoped<IDrugsHabit, DrugsHabitService>();
 builder.Services.AddScoped<ISleepHabit, SleepHabitService>();
 builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
 builder.Services.AddScoped<IMedication, MedicationService>();
-builder.Services.AddScoped<ISideEffects, MedicationService>();
+builder.Services.AddScoped<ISideEffects, SideEffectsService>();
 builder.Services.AddScoped<IMFUsMedications, MFUsMedicationService>();
 
 builder.Services.AddAuthentication(options =>
@@ -126,6 +136,18 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
         ClockSkew = TimeSpan.Zero
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            if (context.Exception is SecurityTokenExpiredException)
+            {
+                throw new TokenExpiredException();
+            }
+
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -193,6 +215,30 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "DeveloperTest V1");
+});
+
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next(); 
+    }
+    catch (TokenExpiredException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        context.Response.ContentType = "application/json";
+
+        var errorResponse = new ExceptionExpiredTokenMessage
+        {
+            status = StatusCodes.Status401Unauthorized,
+            error = "Unauthorized",
+            message = ex.Message,
+            timestamp = DateTime.UtcNow.ToString("o"),
+            path = context.Request.Path
+        };
+
+        await context.Response.WriteAsJsonAsync(errorResponse);
+    }
 });
 
 app.UseHttpsRedirection();

@@ -4,6 +4,6 @@ namespace AppVidaSana.Services.IServices.IHabits
 {
     public interface IHabitsGeneral
     {
-        ReturnInfoHabitsDto GetInfoGeneralHabits(Guid idAccount, DateOnly date);
+        Task<ReturnInfoHabitsDto> GetInfoGeneralHabitsAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken);
     }
 }

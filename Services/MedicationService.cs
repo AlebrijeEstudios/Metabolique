@@ -1,6 +1,5 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Exceptions.Medication;
 using AppVidaSana.GraphicValues;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
@@ -8,13 +7,14 @@ using AppVidaSana.Models.Medications;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Sprache;
 using System.Data;
 using System.Globalization;
 
 namespace AppVidaSana.Services
 {
-    public class MedicationService : IMedication, ISideEffects
+    public class MedicationService : IMedication
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
@@ -25,37 +25,36 @@ namespace AppVidaSana.Services
             _mapper = mapper;
         }
 
-        public InfoMedicationDto? AddMedication(AddMedicationUseDto medication)
+        public async Task<InfoMedicationDto?> AddMedicationAsync(AddMedicationUseDto values, CancellationToken cancellationToken)
         {
-            if (!_bd.Accounts.Any(e => e.accountID == medication.accountID)) { throw new UserNotFoundException(); }
+            var medication = await _bd.Medications.FirstOrDefaultAsync(e => e.nameMedication == values.nameMedication, 
+                                                                       cancellationToken);
 
-            if (!_bd.Medications.Any(e => e.nameMedication == medication.nameMedication))
+            if (medication is null)
             {
-                CreateMedication(medication.nameMedication);
+                medication = CreateMedication(values.nameMedication);
             }
 
-            var findMedication = _bd.Medications.FirstOrDefault(e => e.nameMedication == medication.nameMedication);
-
-            if (findMedication == null) { throw new UnstoredValuesException(); }
-
-            var periodExist = _bd.PeriodsMedications.Any(e => e.medicationID == findMedication.medicationID
-                                                         && e.accountID == medication.accountID
-                                                         && e.initialFrec == medication.initialFrec
-                                                         && e.finalFrec == medication.finalFrec
-                                                         && e.dose == medication.dose
-                                                         && e.timesPeriod == medication.times);
+            var periodExist = await _bd.PeriodsMedications.AnyAsync(e => e.medicationID == medication.medicationID
+                                                                    && e.accountID == values.accountID
+                                                                    && e.initialFrec == values.initialFrec
+                                                                    && e.finalFrec == values.finalFrec
+                                                                    && e.dose == values.dose
+                                                                    && e.timesPeriod == values.times, cancellationToken);
 
             if (periodExist) { throw new NotRepeatPeriodException(); }
-            if (medication.finalFrec < medication.initialFrec) { throw new UnstoredValuesException(); }
+
+            if (values.finalFrec < values.initialFrec) { throw new UnstoredValuesException(); }
 
             PeriodsMedications period = new PeriodsMedications
             {
-                medicationID = findMedication.medicationID,
-                accountID = medication.accountID,
-                initialFrec = medication.initialFrec,
-                finalFrec = medication.finalFrec,
-                dose = medication.dose,
-                timesPeriod = medication.times
+                medicationID = medication.medicationID,
+                accountID = values.accountID,
+                initialFrec = values.initialFrec,
+                finalFrec = values.finalFrec,
+                dose = values.dose,
+                timesPeriod = values.times,
+                datesExcluded = ""
             };
 
             ValidationValuesDB.ValidationValues(period);
@@ -64,41 +63,31 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var findPeriod = _bd.PeriodsMedications.FirstOrDefault(e => e.accountID == medication.accountID
-                                                                  && e.medicationID == findMedication.medicationID
-                                                                  && e.initialFrec == medication.initialFrec
-                                                                  && e.finalFrec == medication.finalFrec);
-
-            if (findPeriod == null) { throw new UnstoredValuesException(); }
-
-            if (!(period.initialFrec <= medication.dateActual && medication.dateActual <= period.finalFrec))
+            if (!(period.initialFrec <= values.dateActual && values.dateActual <= period.finalFrec))
             {
-                CreateTimes(findPeriod.periodID, period.initialFrec, medication.times);
+                CreateTimes(period.periodID, period.initialFrec, values.times);
 
                 return null;
             }
 
-            CreateTimes(findPeriod.periodID, medication.dateActual, medication.times);
+            CreateTimes(period.periodID, values.dateActual, values.times);
 
-            var medicationsList = InfoMedicationJustAddUpdateDelete(findMedication.medicationID, findPeriod.periodID, medication.dateActual);
-
-            return medicationsList;
-
+            return await InfoMedicationAsync(medication, period, values.dateActual, cancellationToken);
         }
 
-        public MedicationsAndValuesGraphicDto GetMedications(Guid accountID, DateOnly dateActual)
+        public async Task<MedicationsAndValuesGraphicDto> GetMedicationsAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)
         {
-            var periods = _bd.PeriodsMedications.Where(e => e.accountID == accountID
-                                                       && e.initialFrec <= dateActual
-                                                       && dateActual <= e.finalFrec).ToList();
+            var periods = await _bd.PeriodsMedications.Where(e => e.accountID == accountID
+                                                             && e.initialFrec <= dateActual
+                                                             && dateActual <= e.finalFrec).ToListAsync(cancellationToken);
 
-            var listMedications = ListMedications(periods, dateActual);
+            var listMedications = await ListMedicationsAsync(periods, dateActual, cancellationToken);
 
-            var weeklyList = WeeklyList(accountID, dateActual);
+            var weeklyList = await WeeklyListAsync(accountID, dateActual, cancellationToken);
 
-            var sideEffects = SideEffects(accountID, dateActual);
+            var sideEffects = await SideEffectsAsync(accountID, dateActual, cancellationToken);
 
-            var existMFU = MFUExist(accountID, dateActual);
+            var existMFU = await MFUExistAsync(accountID, dateActual, cancellationToken);
 
             MedicationsAndValuesGraphicDto medications = new MedicationsAndValuesGraphicDto
             {
@@ -111,33 +100,31 @@ namespace AppVidaSana.Services
             return medications;
         }
 
-        public InfoMedicationDto? UpdateMedication(UpdateMedicationUseDto values)
+        public async Task<InfoMedicationDto?> UpdateMedicationAsync(UpdateMedicationUseDto values, CancellationToken cancellationToken)
         {
-            var period = _bd.PeriodsMedications.Find(values.periodID);
+            var period = await _bd.PeriodsMedications.FindAsync(new object[] { values.periodID }, cancellationToken);
 
-            if (period == null) { throw new UnstoredValuesException(); }
+            if (period is null) { throw new UnstoredValuesException(); }
 
-            UpdateNameMedication(period, values);
+            await UpdateNameMedicationAsync(period, values, cancellationToken);
 
-            var infoMedication = UpdateForNewDailyFrec(values, period.periodID);
+            var infoMedication = await UpdateForNewDailyFrecAsync(values, period.periodID, cancellationToken);
 
             if (period.initialFrec != values.initialFrec || period.finalFrec != values.finalFrec)
             {
-                infoMedication = UpdateForNewDateInitialAndFinal(period, values.updateDate,
-                                                                 values.initialFrec, values.finalFrec);
+                infoMedication = await UpdateForNewDateInitialAndFinalAsync(period, values.updateDate,
+                                                                            values.initialFrec, values.finalFrec, cancellationToken);
             }
 
             period.dose = values.dose;
 
             ValidationValuesDB.ValidationValues(period);
 
-            _bd.PeriodsMedications.Update(period);
-
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var periodUpdate = _bd.PeriodsMedications.Find(values.periodID);
+            var periodUpdate = await _bd.PeriodsMedications.FindAsync(new object[] { values.periodID }, cancellationToken);
 
-            if (periodUpdate == null) { throw new UnstoredValuesException(); }
+            if (periodUpdate is null) { throw new UnstoredValuesException(); }
 
             if (!(periodUpdate.initialFrec <= values.updateDate && values.updateDate <= periodUpdate.finalFrec))
             {
@@ -145,27 +132,25 @@ namespace AppVidaSana.Services
             }
 
             return infoMedication;
-
         }
 
-        public void UpdateStatusMedication(UpdateMedicationStatusDto value)
+        public async Task UpdateStatusMedicationAsync(UpdateMedicationStatusDto value, CancellationToken cancellationToken)
         {
-            var record = _bd.Times.Find(value.timeID);
+            var record = await _bd.Times.FindAsync(new object[] { value.timeID }, cancellationToken);
 
-            if (record == null) { throw new UnstoredValuesException(); }
+            if (record is null) { throw new UnstoredValuesException(); }
 
             record.medicationStatus = value.medicationStatus;
 
             ValidationValuesDB.ValidationValues(record);
 
-            _bd.Times.Update(record);
-
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        public string DeleteAMedication(Guid id, DateOnly date)
+        public async Task<string> DeleteAMedicationAsync(Guid periodID, DateOnly date, CancellationToken cancellationToken)
         {
-            var recordsToDelete = _bd.Times.Where(e => e.periodID == id && e.dateMedication >= date).ToList();
+            var recordsToDelete = await _bd.Times.Where(e => e.periodID == periodID 
+                                                        && e.dateMedication == date).ToListAsync(cancellationToken);
 
             if (recordsToDelete.Count == 0)
             {
@@ -176,76 +161,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            return "Se ha eliminado correctamente.";
-        }
-
-        public SideEffectsListDto AddSideEffect(AddSideEffectDto values)
-        {
-            var sideEffectExist = _bd.SideEffects.FirstOrDefault(e => e.accountID == values.accountID
-                                                                 && e.dateSideEffects == values.date
-                                                                 && e.description == values.description);
-
-            SideEffectsListDto sideEffectMapped;
-
-            if (sideEffectExist != null) { throw new RepeatRegistrationException(); }
-
-            SideEffects sideEffects = new SideEffects
-            {
-                accountID = values.accountID,
-                dateSideEffects = values.date,
-                initialTime = values.initialTime,
-                finalTime = values.finalTime,
-                description = values.description
-            };
-
-            ValidationValuesDB.ValidationValues(sideEffects);
-
-            _bd.SideEffects.Add(sideEffects);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
-
-            var recentlySideEffect = _bd.SideEffects.FirstOrDefault(e => e.accountID == values.accountID
-                                                                    && e.dateSideEffects == values.date
-                                                                    && e.description == values.description);
-
-            sideEffectMapped = _mapper.Map<SideEffectsListDto>(recentlySideEffect);
-
-            return sideEffectMapped;
-        }
-
-        public SideEffectsListDto UpdateSideEffect(SideEffectsListDto values)
-        {
-            var sideEffectToUpdate = _bd.SideEffects.Find(values.sideEffectID);
-
-            if (sideEffectToUpdate == null) { throw new UnstoredValuesException(); }
-
-            sideEffectToUpdate.initialTime = values.initialTime;
-            sideEffectToUpdate.finalTime = values.finalTime;
-            sideEffectToUpdate.description = values.description;
-
-            ValidationValuesDB.ValidationValues(sideEffectToUpdate);
-
-            _bd.SideEffects.Update(sideEffectToUpdate);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
-
-            var sideEffectMapped = _mapper.Map<SideEffectsListDto>(sideEffectToUpdate);
-
-            return sideEffectMapped;
-        }
-
-        public string DeleteSideEffect(Guid id)
-        {
-            var sideEffectToDelete = _bd.SideEffects.Find(id);
-
-            if (sideEffectToDelete == null)
-            {
-                return "Este registro no existe, inténtelo de nuevo.";
-            }
-
-            _bd.SideEffects.Remove(sideEffectToDelete);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
+            await UpdateDatesExcludedAsync(periodID, date, cancellationToken);
 
             return "Se ha eliminado correctamente.";
         }
@@ -263,41 +179,65 @@ namespace AppVidaSana.Services
             }
         }
 
-        private bool MFUExist(Guid accountID, DateOnly dateActual)
+        private async Task UpdateDatesExcludedAsync(Guid periodID, DateOnly date, CancellationToken cancellationToken)
+        {
+            var period = await _bd.PeriodsMedications.FindAsync(new object[] { periodID }, cancellationToken);
+
+            if (period is null) { throw new UnstoredValuesException(); }
+
+            var timesExisting = await _bd.Times.Where(e => e.periodID == periodID
+                                                      && period.initialFrec <= e.dateMedication
+                                                      && e.dateMedication <= period.finalFrec).ToListAsync(cancellationToken);
+
+            if (timesExisting.Count > 0)
+            {
+                if (period.datesExcluded == "")
+                {
+                    period.datesExcluded = date.ToString();
+                }else{
+                    period.datesExcluded = period.datesExcluded + "," + date.ToString();
+                }
+            }
+
+            if(timesExisting.Count == 0)
+            {
+                _bd.PeriodsMedications.Remove(period);
+            }
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private async Task<bool> MFUExistAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)
         {
             CultureInfo ci = new CultureInfo("es-ES");
-            var monthExist = _bd.Months.FirstOrDefault(e => e.month == dateActual.ToString("MMMM", ci)
-                                                       && e.year == Convert.ToInt32(dateActual.ToString("yyyy")));
+            var monthExist = await _bd.Months.FirstOrDefaultAsync(e => e.month == dateActual.ToString("MMMM", ci)
+                                                                  && e.year == Convert.ToInt32(dateActual.ToString("yyyy")),
+                                                                  cancellationToken);
 
-            if (monthExist == null) { return false; }
+            if (monthExist is null) { return false; }
 
-            var mfuExist = _bd.MFUsMedication.Any(e => e.accountID == accountID
-                                              && e.monthID == monthExist.monthID);
+            var mfuExist = await _bd.MFUsMedication.AnyAsync(e => e.accountID == accountID && e.monthID == monthExist.monthID,
+                                                             cancellationToken);
 
             if (!mfuExist) { return false; }
 
             return true;
         }
 
-        private InfoMedicationDto InfoMedicationJustAddUpdateDelete(Guid medicationID, Guid periodID, DateOnly dateRecord)
+        private async Task<InfoMedicationDto> InfoMedicationAsync(Medication medication, PeriodsMedications period, 
+                                                                  DateOnly dateRecord, CancellationToken cancellationToken)
         {
-            var recordsTimes = _bd.Times.Where(e => e.periodID == periodID
-                                               && e.dateMedication == dateRecord).ToList();
+            var recordsTimes = await _bd.Times.Where(e => e.periodID == period.periodID
+                                                     && e.dateMedication == dateRecord).ToListAsync(cancellationToken);
 
             var listTimes = _mapper.Map<List<TimeListDto>>(recordsTimes);
 
             listTimes = listTimes.OrderBy(x => x.time).ToList();
 
-            var medication = _bd.Medications.Find(medicationID);
-
-            var period = _bd.PeriodsMedications.Find(periodID);
-
-            if (medication == null || period == null) { throw new UnstoredValuesException(); }
-
             InfoMedicationDto infoMedication = new InfoMedicationDto
             {
-                medicationID = medicationID,
-                periodID = periodID,
+                medicationID = medication.medicationID,
+                periodID = period.periodID,
                 accountID = period.accountID,
                 nameMedication = medication.nameMedication,
                 dose = period.dose,
@@ -309,61 +249,66 @@ namespace AppVidaSana.Services
             return infoMedication;
         }
 
-        private List<InfoMedicationDto> ListMedications(List<PeriodsMedications> periods, DateOnly dateActual)
+        private async Task<List<InfoMedicationDto>> ListMedicationsAsync(List<PeriodsMedications> periods, DateOnly dateActual, 
+                                                                         CancellationToken cancellationToken)
         {
             List<InfoMedicationDto> listMedications = new List<InfoMedicationDto>();
 
-            List<Times> timesForMedication = new List<Times>();
+           
 
             var groupPeriodsByMedicationID = periods.GroupBy(obj => obj.medicationID)
                                                     .ToDictionary(
                                                         g => g.Key,
-                                                        g => g.Where(e => e.medicationID == g.Key)
+                                                        g => g.ToList()
                                                     );
+
+            var medicationIDs = groupPeriodsByMedicationID.Keys.ToList();
+            var medications = await _bd.Medications.Where(m => medicationIDs.Contains(m.medicationID))
+                                                   .ToDictionaryAsync(m => m.medicationID, cancellationToken);
 
             foreach (var med in groupPeriodsByMedicationID)
             {
-                var medication = _bd.Medications.Find(med.Key);
-
-                if (medication == null) { throw new UnstoredValuesException(); }
-
                 var periodsForMedication = med.Value;
 
                 foreach (var period in periodsForMedication)
-                {
-                    var times = TimesForPeriod(period, dateActual);
+                { 
+                    string[] datesExcluded = period.datesExcluded!.Split(',');
 
-                    timesForMedication.AddRange(times);
-
-                    var timesMapped = _mapper.Map<List<TimeListDto>>(timesForMedication);
-
-                    timesMapped = timesMapped.OrderBy(x => x.time).ToList();
-
-                    InfoMedicationDto infoMedication = new InfoMedicationDto
+                    if (!datesExcluded.Contains(dateActual.ToString()))
                     {
-                        medicationID = med.Key,
-                        periodID = period.periodID,
-                        accountID = period.accountID,
-                        nameMedication = medication.nameMedication,
-                        dose = period.dose,
-                        initialFrec = period.initialFrec,
-                        finalFrec = period.finalFrec,
-                        times = timesMapped
-                    };
+                        var times = await TimesForPeriodAsync(period, dateActual, cancellationToken);
 
-                    listMedications.Add(infoMedication);
+                        var timesMapped = _mapper.Map<List<TimeListDto>>(times)
+                                                 .OrderBy(x => x.time)
+                                                 .ToList();
 
-                    timesForMedication.Clear();
+                        var infoMedication = new InfoMedicationDto
+                        {
+                            medicationID = med.Key,
+                            periodID = period.periodID,
+                            accountID = period.accountID,
+                            nameMedication = medications[med.Key].nameMedication,
+                            dose = period.dose,
+                            initialFrec = period.initialFrec,
+                            finalFrec = period.finalFrec,
+                            times = timesMapped
+                        };
+
+                        listMedications.Add(infoMedication);
+                    }
                 }
             }
 
             return listMedications;
         }
 
-        private List<Times> TimesForPeriod(PeriodsMedications period, DateOnly dateActual)
+        private async Task<List<Times>> TimesForPeriodAsync(PeriodsMedications period, DateOnly dateActual, 
+                                                            CancellationToken cancellationToken)
         {
-            var times = _bd.Times.Where(e => e.periodID == period.periodID
-                                        && e.dateMedication == dateActual).ToList();
+            string[] datesExcluded = period.datesExcluded!.Split(',');
+
+            var times = await _bd.Times.Where(e => e.periodID == period.periodID
+                                              && e.dateMedication == dateActual).ToListAsync(cancellationToken);
 
             if (times.Count <= 0)
             {
@@ -371,23 +316,23 @@ namespace AppVidaSana.Services
 
                 foreach (var day in days)
                 {
-                    var existTimes = _bd.Times.Any(e => e.periodID == period.periodID
-                                                   && e.dateMedication == day);
+                    var existTimes = await _bd.Times.AnyAsync(e => e.periodID == period.periodID
+                                                              && e.dateMedication == day, cancellationToken);
 
-                    if (!existTimes)
+                    if (!existTimes && !datesExcluded.Contains(day.ToString()))
                     {
                         CreateTimes(period.periodID, day, period.timesPeriod);
                     }
                 }
 
-                times = _bd.Times.Where(e => e.periodID == period.periodID
-                                        && e.dateMedication == dateActual).ToList();
+                times = await _bd.Times.Where(e => e.periodID == period.periodID
+                                              && e.dateMedication == dateActual).ToListAsync(cancellationToken);
             }
 
             return times;
         }
 
-        private List<WeeklyAttachmentDto> WeeklyList(Guid accountID, DateOnly dateActual)
+        private async Task<List<WeeklyAttachmentDto>> WeeklyListAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)
         {
             int totalMedications = 0, medicationsConsumed = 0;
             List<WeeklyAttachmentDto> weeklyList = new List<WeeklyAttachmentDto>();
@@ -401,13 +346,13 @@ namespace AppVidaSana.Services
                                                 g => g.ToList()
                                             );
 
-            List<DateOnly> dates = DatesInRange.GetDatesInRange(dateFinal, dateActual);
+            var dates = DatesInRange.GetDatesInRange(dateFinal, dateActual);
 
             foreach (var date in dates)
             {
                 foreach (var time in groupTimesByID)
                 {
-                    var period = _bd.PeriodsMedications.Find(time.Key);
+                    var period = await _bd.PeriodsMedications.FindAsync(new object[] { time.Key }, cancellationToken);
 
                     if (period == null) { throw new UnstoredValuesException(); }
 
@@ -453,10 +398,10 @@ namespace AppVidaSana.Services
             return timeList;
         }
 
-        private List<SideEffectsListDto> SideEffects(Guid accountID, DateOnly dateActual)
+        private async Task<List<SideEffectsListDto>> SideEffectsAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)
         {
-            var searchSideEffects = _bd.SideEffects.Where(e => e.accountID == accountID
-                                                    && e.dateSideEffects == dateActual).ToList();
+            var searchSideEffects = await _bd.SideEffects.Where(e => e.accountID == accountID
+                                                                && e.dateSideEffects == dateActual).ToListAsync(cancellationToken);
 
             List<SideEffectsListDto> sideEffects = _mapper.Map<List<SideEffectsListDto>>(searchSideEffects);
 
@@ -464,7 +409,7 @@ namespace AppVidaSana.Services
 
         }
 
-        private void CreateMedication(string nameMedication)
+        private Medication CreateMedication(string nameMedication)
         {
             Medication newMedication = new Medication
             {
@@ -476,6 +421,8 @@ namespace AppVidaSana.Services
             _bd.Medications.Add(newMedication);
 
             if (!Save()) { throw new UnstoredValuesException(); }
+
+            return newMedication;
         }
 
         private void CreateTimes(Guid periodID, DateOnly dateActual, string times)
@@ -504,7 +451,7 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private void CreateTimes(List<DateOnly> dates, List<TimeOnly> times, Guid periodID)
+        private async Task CreateTimesAsync(List<DateOnly> dates, List<TimeOnly> times, Guid periodID, CancellationToken cancellationToken)
         {
             List<Times> newTimes = new List<Times>();
 
@@ -512,8 +459,8 @@ namespace AppVidaSana.Services
             {
                 foreach (var time in times)
                 {
-                    var timeExist = _bd.Times.Any(e => e.periodID == periodID
-                                                  && e.dateMedication == date);
+                    var timeExist = await _bd.Times.AnyAsync(e => e.periodID == periodID
+                                                             && e.dateMedication == date, cancellationToken);
 
                     if (!timeExist)
                     {
@@ -538,23 +485,22 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private void UpdateNameMedication(PeriodsMedications period, UpdateMedicationUseDto values)
+        private async Task UpdateNameMedicationAsync(PeriodsMedications period, UpdateMedicationUseDto values, CancellationToken cancellationToken)
         {
-            var medication = _bd.Medications.Find(period.medicationID);
+            var medication = await _bd.Medications.FindAsync(new object[] { period.medicationID }, cancellationToken);
 
-            if (medication == null) { throw new UnstoredValuesException(); }
+            if (medication is null) { throw new UnstoredValuesException(); }
 
             if (medication.nameMedication != values.nameMedication)
             {
-                var existNameMedication = _bd.Medications.FirstOrDefault(e => e.nameMedication == values.nameMedication);
+                var existNameMedication = await _bd.Medications.FirstOrDefaultAsync(e => e.nameMedication == values.nameMedication,
+                                                                                    cancellationToken);
 
-                if (existNameMedication != null)
+                if (existNameMedication is not null)
                 {
                     period.medicationID = existNameMedication.medicationID;
 
                     ValidationValuesDB.ValidationValues(period);
-
-                    _bd.PeriodsMedications.Update(period);
 
                     if (!Save()) { throw new UnstoredValuesException(); }
                 }
@@ -562,25 +508,28 @@ namespace AppVidaSana.Services
                 {
                     CreateMedication(values.nameMedication);
 
-                    var findMedication = _bd.Medications
-                                        .FirstOrDefault(e => e.nameMedication == values.nameMedication);
+                    var findMedication = await _bd.Medications.FirstOrDefaultAsync(e => e.nameMedication == values.nameMedication,
+                                                                                   cancellationToken);
 
-                    if (findMedication == null) { throw new UnstoredValuesException(); }
+                    if (findMedication is null) { throw new UnstoredValuesException(); }
 
                     period.medicationID = findMedication.medicationID;
 
                     ValidationValuesDB.ValidationValues(period);
-
-                    _bd.PeriodsMedications.Update(period);
 
                     if (!Save()) { throw new UnstoredValuesException(); }
                 }
             }
         }
 
-        private InfoMedicationDto? UpdateForNewDateInitialAndFinal(PeriodsMedications periods, DateOnly dateRecord,
-                                                                   DateOnly newInitialDate, DateOnly newFinalDate)
+        private async Task<InfoMedicationDto?> UpdateForNewDateInitialAndFinalAsync(PeriodsMedications periods, DateOnly dateRecord,
+                                                                                    DateOnly newInitialDate, DateOnly newFinalDate,
+                                                                                    CancellationToken cancellationToken)
         {
+            var medication = await _bd.Medications.FindAsync(new object[] { periods.medicationID }, cancellationToken);
+
+            if (medication is null) { throw new UnstoredValuesException(); }
+
             if (newFinalDate < newInitialDate) { throw new UnstoredValuesException(); }
 
             if (newFinalDate < dateRecord || dateRecord < newInitialDate)
@@ -589,8 +538,6 @@ namespace AppVidaSana.Services
                 periods.finalFrec = newFinalDate;
 
                 ValidationValuesDB.ValidationValues(periods);
-
-                _bd.PeriodsMedications.Update(periods);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
 
@@ -603,18 +550,16 @@ namespace AppVidaSana.Services
 
                 var dates = DatesInRange.GetDatesInRange(newInitialDate, periods.initialFrec.AddDays(-1));
 
-                var timesExample = _bd.Times.Where(e => e.periodID == periods.periodID
-                                                   && e.dateMedication == periods.initialFrec).ToList();
+                var timesExample = await _bd.Times.Where(e => e.periodID == periods.periodID
+                                                         && e.dateMedication == periods.initialFrec).ToListAsync(cancellationToken);
 
                 times.AddRange(timesExample.Select(e => e.time));
 
-                CreateTimes(dates, times, periods.periodID);
+                await CreateTimesAsync(dates, times, periods.periodID, cancellationToken);
 
                 periods.initialFrec = newInitialDate;
 
                 ValidationValuesDB.ValidationValues(periods);
-
-                _bd.PeriodsMedications.Update(periods);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
 
@@ -626,8 +571,6 @@ namespace AppVidaSana.Services
 
                 ValidationValuesDB.ValidationValues(periods);
 
-                _bd.PeriodsMedications.Update(periods);
-
                 if (!Save()) { throw new UnstoredValuesException(); }
             }
 
@@ -636,18 +579,20 @@ namespace AppVidaSana.Services
 
             ValidationValuesDB.ValidationValues(periods);
 
-            _bd.PeriodsMedications.Update(periods);
-
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            return InfoMedicationJustAddUpdateDelete(periods.medicationID, periods.periodID, dateRecord);
+            return await InfoMedicationAsync(medication, periods, dateRecord, cancellationToken);
         }
 
-        private InfoMedicationDto UpdateForNewDailyFrec(UpdateMedicationUseDto values, Guid periodID)
+        private async Task<InfoMedicationDto> UpdateForNewDailyFrecAsync(UpdateMedicationUseDto values, Guid periodID, CancellationToken cancellationToken)
         {
-            var period = _bd.PeriodsMedications.Find(periodID);
+            var period = await _bd.PeriodsMedications.FindAsync(new object[] { periodID }, cancellationToken);
 
-            if (period == null) { throw new UnstoredValuesException(); }
+            if (period is null) { throw new UnstoredValuesException(); }
+
+            var medication = await _bd.Medications.FindAsync(new object[] { period.medicationID }, cancellationToken);
+
+            if (medication is null) { throw new UnstoredValuesException(); }
 
             Action<List<TimeListDto>, DateOnly> processRecords = (list, date) =>
             {
@@ -655,7 +600,7 @@ namespace AppVidaSana.Services
                 {
                     var record = _bd.Times.Find(id.timeID);
 
-                    if (record == null) { throw new UnstoredValuesException(); }
+                    if (record is null) { throw new UnstoredValuesException(); }
 
                     var recordsToUpdate = _bd.Times.Where(e => e.periodID == periodID
                                                           && e.time == record.time
@@ -669,7 +614,6 @@ namespace AppVidaSana.Services
                     _bd.Times.UpdateRange(recordsToUpdate);
 
                     if (!Save()) { throw new UnstoredValuesException(); }
-
                 }
             };
 
@@ -677,27 +621,27 @@ namespace AppVidaSana.Services
             {
                 processRecords(values.times, values.updateDate);
 
-                RemoveTimes(periodID, values);
+                await RemoveTimesAsync(periodID, values, cancellationToken);
 
-                return InfoMedicationJustAddUpdateDelete(period.medicationID, periodID, values.updateDate);
+                return await InfoMedicationAsync(medication, period, values.updateDate, cancellationToken);
             }
             else
             {
                 processRecords(values.times, values.updateDate);
 
-                AddNewTimes(periodID, values);
+                await AddNewTimesAsync(periodID, values, cancellationToken);
 
-                return InfoMedicationJustAddUpdateDelete(period.medicationID, periodID, values.updateDate);
+                return await InfoMedicationAsync(medication, period, values.updateDate, cancellationToken);
             }
         }
 
-        private void RemoveTimes(Guid periodID, UpdateMedicationUseDto values)
+        private async Task RemoveTimesAsync(Guid periodID, UpdateMedicationUseDto values, CancellationToken cancellationToken)
         {
             List<Guid> idsPrevious = new List<Guid>();
             List<Guid> ids = new List<Guid>();
 
-            var recordsTimes = _bd.Times.Where(e => e.dateMedication == values.updateDate
-                                               && e.periodID == values.periodID).ToList();
+            var recordsTimes = await _bd.Times.Where(e => e.dateMedication == values.updateDate
+                                                     && e.periodID == values.periodID).ToListAsync(cancellationToken);
 
             idsPrevious.AddRange(recordsTimes.Select(e => e.timeID));
 
@@ -713,45 +657,46 @@ namespace AppVidaSana.Services
 
             foreach (var id in findIdsToDelete)
             {
-                var recordTime = _bd.Times.Find(id);
+                var recordTime = await _bd.Times.FindAsync(new object[] { id }, cancellationToken);
 
-                if (recordTime == null) { throw new UnstoredValuesException(); }
+                if (recordTime is null) { throw new UnstoredValuesException(); }
 
-                var recordsToDelete = _bd.Times.Where(e => e.periodID == periodID
-                                                      && e.time == recordTime.time
-                                                      && e.dateMedication >= values.updateDate).ToList();
+                var recordsToDelete = await _bd.Times.Where(e => e.periodID == periodID
+                                                            && e.time == recordTime.time
+                                                            && e.dateMedication >= values.updateDate).ToListAsync(cancellationToken);
 
                 _bd.Times.RemoveRange(recordsToDelete);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
             }
 
-            var period = _bd.PeriodsMedications.Find(periodID);
+            var period = await _bd.PeriodsMedications.FindAsync(new object[] { periodID }, cancellationToken);
 
-            if (period == null) { throw new UnstoredValuesException(); }
+            if (period is null) { throw new UnstoredValuesException(); }
 
             period.timesPeriod = idsToKeepString;
 
             ValidationValuesDB.ValidationValues(period);
 
-            _bd.PeriodsMedications.Update(period);
-
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private void AddNewTimes(Guid periodID, UpdateMedicationUseDto values)
+        private async Task AddNewTimesAsync(Guid periodID, UpdateMedicationUseDto values, CancellationToken cancellationToken)
         {
             List<Times> newTimes = new List<Times>();
 
-            var period = _bd.PeriodsMedications.Find(periodID)!;
+            var period = await _bd.PeriodsMedications.FindAsync(new object[] { periodID }, cancellationToken);
+
+            if (period is null) { throw new UnstoredValuesException(); }
 
             string[] subs = values.newTimes.Split(',');
 
             foreach (var sub in subs)
             {
-                var timeExist = _bd.Times.Any(e => e.periodID == periodID
-                                              && e.dateMedication == values.updateDate
-                                              && e.time == TimeOnly.Parse(sub, CultureInfo.InvariantCulture));
+                var timeExist = await _bd.Times.AnyAsync(e => e.periodID == periodID
+                                                         && e.dateMedication == values.updateDate
+                                                         && e.time == TimeOnly.Parse(sub, CultureInfo.InvariantCulture),
+                                                         cancellationToken);
 
                 if (!timeExist)
                 {
@@ -781,8 +726,6 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
 
             ValidationValuesDB.ValidationValues(period);
-
-            _bd.PeriodsMedications.Update(period);
 
             if (!Save()) { throw new UnstoredValuesException(); }
         }
