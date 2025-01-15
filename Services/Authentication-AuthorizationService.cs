@@ -111,7 +111,7 @@ namespace AppVidaSana.Services
                 {
                     accountID = accountID,
                     refreshToken = refreshToken,
-                    dateExpiration = DateTime.Now.AddDays(14)
+                    dateExpiration = DateTime.Now.AddMinutes(2)
                 };
 
                 ValidationValuesDB.ValidationValues(historialRefreshToken);
@@ -125,7 +125,7 @@ namespace AppVidaSana.Services
 
             historial.refreshToken = refreshToken;
 
-            historial.dateExpiration = DateTime.Now.AddDays(14);
+            historial.dateExpiration = DateTime.Now.AddMinutes(2);
 
             ValidationValuesDB.ValidationValues(historial);
 
@@ -145,7 +145,7 @@ namespace AppVidaSana.Services
 
             historial.refreshToken = refreshToken;
 
-            historial.dateExpiration = DateTime.Now.AddDays(14);
+            historial.dateExpiration = DateTime.Now.AddMinutes(2);
 
             ValidationValuesDB.ValidationValues(historial);
 
