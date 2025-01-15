@@ -51,11 +51,11 @@ namespace AppVidaSana.Controllers.Habits
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult AddSleepHours([FromBody] SleepHabitDto values)
+        public async Task<IActionResult> AddSleepHoursAsync([FromBody] SleepHabitDto values)
         {
             try
             {
-                var infoHabit = _SleepHabitService.AddSleepHours(values);
+                var infoHabit = await _SleepHabitService.AddSleepHoursAsync(values, HttpContext.RequestAborted);
 
                 ResponseSleepHabit response = new ResponseSleepHabit
                 {
@@ -121,11 +121,11 @@ namespace AppVidaSana.Controllers.Habits
         [ApiKeyAuthorizationFilter]
         [HttpPatch]
         [Produces("application/json")]
-        public IActionResult UpdateSleepHours([FromQuery] Guid sleepHabitID, [FromBody] JsonPatchDocument values)
+        public async Task<IActionResult> UpdateSleepHoursAsync([FromQuery] Guid sleepHabitID, [FromBody] JsonPatchDocument values)
         {
             try
             {
-                var infoHabit = _SleepHabitService.UpdateSleepHours(sleepHabitID, values);
+                var infoHabit = await _SleepHabitService.UpdateSleepHoursAsync(sleepHabitID, values, HttpContext.RequestAborted);
 
                 ResponseSleepHabit response = new ResponseSleepHabit
                 {

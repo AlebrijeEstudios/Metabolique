@@ -15,6 +15,5 @@ namespace AppVidaSana.Services.IServices
         Task<bool> DeleteFeedingAsync(Guid userFeedID, CancellationToken cancellationToken);
 
         bool Save();
-
     }
 }

@@ -5,11 +5,10 @@ namespace AppVidaSana.Services.IServices.IHabits.IHabits
 {
     public interface IDrugsHabit
     {
-        DrugsHabitInfoDto AddDrugsConsumed(DrugsHabitDto values);
+        Task<DrugsHabitInfoDto> AddDrugsConsumedAsync(DrugsHabitDto values, CancellationToken cancellationToken);
 
-        DrugsHabitInfoDto UpdateDrugsConsumed(Guid drugsHabitID, JsonPatchDocument values);
+        Task<DrugsHabitInfoDto> UpdateDrugsConsumedAsync(Guid drugsHabitID, JsonPatchDocument values, CancellationToken cancellationToken);
 
         bool Save();
-
     }
 }

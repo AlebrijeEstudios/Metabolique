@@ -3,10 +3,8 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Cuenta_Perfil;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Models.Feeding;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
-using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services
 {

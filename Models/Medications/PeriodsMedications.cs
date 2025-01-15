@@ -26,6 +26,8 @@ namespace AppVidaSana.Models.Medications
         [Required(ErrorMessage = "El campo tiempos del periodo es obligatorio")]
         public string timesPeriod { get; set; } = null!;
 
+        public string? datesExcluded { get; set; }
+
         public Medication? medication { get; set; }
 
         public Account? account { get; set; }

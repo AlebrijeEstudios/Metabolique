@@ -5,9 +5,9 @@ namespace AppVidaSana.Services.IServices.IHabits.IHabits
 {
     public interface IDrinkHabit
     {
-        DrinkHabitInfoDto AddDrinksConsumed(DrinkHabitDto values);
+        Task<DrinkHabitInfoDto> AddDrinksConsumedAsync(DrinkHabitDto values, CancellationToken cancellationToken);
 
-        DrinkHabitInfoDto UpdateDrinksConsumed(Guid sleepHabitID, JsonPatchDocument values); 
+        Task<DrinkHabitInfoDto> UpdateDrinksConsumedAsync(Guid sleepHabitID, JsonPatchDocument values, CancellationToken cancellationTokens); 
 
         bool Save();
     }

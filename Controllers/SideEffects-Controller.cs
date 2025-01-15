@@ -8,6 +8,7 @@ using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+
 namespace AppVidaSana.Controllers
 {
     [Authorize]
@@ -48,11 +49,11 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPost("side-effects")]
         [Produces("application/json")]
-        public IActionResult AddSideEffects([FromBody] AddSideEffectDto values)
+        public async Task<IActionResult> AddSideEffectsAsync([FromBody] AddSideEffectDto values)
         {
             try
             {
-                SideEffectsListDto sideEffect = _SideEffectsService.AddSideEffect(values);
+                var sideEffect = await _SideEffectsService.AddSideEffectAsync(values, HttpContext.RequestAborted);
 
                 ReturnSideEffect response = new ReturnSideEffect
                 {
@@ -106,11 +107,11 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpPut("side-effects")]
         [Produces("application/json")]
-        public IActionResult UpdateSideEffects([FromBody] SideEffectsListDto values)
+        public async Task<IActionResult> UpdateSideEffectsAsync([FromBody] SideEffectsListDto values)
         {
             try
             {
-                SideEffectsListDto sideEffect = _SideEffectsService.UpdateSideEffect(values);
+                var sideEffect = await _SideEffectsService.UpdateSideEffectAsync(values, HttpContext.RequestAborted);
 
                 ReturnSideEffect response = new ReturnSideEffect
                 {
@@ -153,11 +154,11 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [HttpDelete("side-effects")]
         [Produces("application/json")]
-        public IActionResult DeleteASideEffects([FromQuery] Guid sideEffectID)
+        public async Task<IActionResult> DeleteASideEffectsAsync([FromQuery] Guid sideEffectID)
         {
             try
             {
-                string res = _SideEffectsService.DeleteSideEffect(sideEffectID);
+                var res = await _SideEffectsService.DeleteSideEffectAsync(sideEffectID, HttpContext.RequestAborted);
 
                 ReturnDeleteSideEffect response = new ReturnDeleteSideEffect
                 {

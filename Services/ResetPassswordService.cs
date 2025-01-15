@@ -27,7 +27,7 @@ namespace AppVidaSana.Services
         {
             var account = await _bd.Accounts.FirstOrDefaultAsync(e => e.email == value.email, cancellationToken);
 
-            if (account == null) { throw new EmailNotSendException(); }
+            if (account is null) { throw new EmailNotSendException(); }
 
             Claim[] claims = new Claim[]
             {
@@ -96,13 +96,11 @@ namespace AppVidaSana.Services
             var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.username == usernameClaimType
                                                                  && u.email == values.email, cancellationToken);
 
-            if (account == null) { return false; }
+            if (account is null) { return false; }
 
             account.password = BCrypt.Net.BCrypt.HashPassword(values.confirmPassword);
 
             ValidationValuesDB.ValidationValues(account);
-
-            _bd.Accounts.Update(account);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 

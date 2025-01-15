@@ -2,8 +2,10 @@
 using AppVidaSana.GraphicValues;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits;
+using AppVidaSana.Models.Habitos;
 using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
 namespace AppVidaSana.Services.Habits
@@ -19,97 +21,66 @@ namespace AppVidaSana.Services.Habits
             _mapper = mapper;
         }
 
-        public ReturnInfoHabitsDto GetInfoGeneralHabits(Guid idAccount, DateOnly date)
+        public async Task<ReturnInfoHabitsDto> GetInfoGeneralHabitsAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
-            ReturnInfoHabitsDto info;
-
-            var habitDrink = _bd.HabitsDrink.FirstOrDefault(e => e.accountID == idAccount && e.drinkDateHabit == date);
-
-            var habitSleep = _bd.HabitsSleep.FirstOrDefault(e => e.accountID == idAccount && e.sleepDateHabit == date);
-
-            var habitDrugs = _bd.HabitsDrugs.FirstOrDefault(e => e.accountID == idAccount && e.drugsDateHabit == date);
-
-            List<GraphicValuesHabitSleepDto> hoursSleep = new List<GraphicValuesHabitSleepDto>();
-
             DateOnly dateFinal = date.AddDays(-6);
 
             var dates = DatesInRange.GetDatesInRange(dateFinal, date);
 
-            foreach (var item in dates)
-            {
-                var habits = _bd.HabitsSleep.FirstOrDefault(e => e.sleepDateHabit == item
-                                                            && e.accountID == idAccount);
+            var habitDrink = await _bd.HabitsDrink.FirstOrDefaultAsync(e => e.accountID == accountID 
+                                                                       && e.drinkDateHabit == date, cancellationToken);
 
-                if (habits != null && habits.sleepHours != null)
-                {
+            var habitSleep = await _bd.HabitsSleep.FirstOrDefaultAsync(e => e.accountID == accountID 
+                                                                       && e.sleepDateHabit == date, cancellationToken);
 
-                    GraphicValuesHabitSleepDto values = new GraphicValuesHabitSleepDto
-                    {
-                        date = item,
-                        value = habits.sleepHours
-                    };
+            var habitDrugs = await _bd.HabitsDrugs.FirstOrDefaultAsync(e => e.accountID == accountID 
+                                                                       && e.drugsDateHabit == date, cancellationToken);
 
-                    hoursSleep.Add(values);
-                }
-                else
-                {
-                    GraphicValuesHabitSleepDto values = new GraphicValuesHabitSleepDto
-                    {
-                        date = item,
-                        value = 0
-                    };
+            var values = await _bd.HabitsSleep.Where(c => c.accountID == accountID
+                                                     && dates.Contains(c.sleepDateHabit)).ToListAsync(cancellationToken);
 
-                    hoursSleep.Add(values);
-                }
-            }
+            var hoursSleep = dates.Select(date => new GraphicValuesHabitSleepDto
+                             {
+                                date = date,
+                                value = values.FirstOrDefault(e => e.sleepDateHabit == date)?.sleepHours ?? 0
+                             }).ToList();
 
             CultureInfo ci = new CultureInfo("es-ES");
 
-            var monthExist = _bd.Months.FirstOrDefault(e => e.month == date.ToString("MMMM", ci)
-                                                       && e.year == Convert.ToInt32(date.ToString("yyyy")));
+            var monthExist = await _bd.Months.FirstOrDefaultAsync(e => e.month == date.ToString("MMMM", ci)
+                                                                  && e.year == Convert.ToInt32(date.ToString("yyyy")), 
+                                                                  cancellationToken);
 
-            if (monthExist == null)
+            if (monthExist is null)
             {
-                info = new ReturnInfoHabitsDto
-                {
-                    drinkConsumed = _mapper.Map<GetDrinkConsumedDto>(habitDrink),
-                    hoursSleepConsumed = _mapper.Map<GetHoursSleepConsumedDto>(habitSleep),
-                    drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
-                    hoursSleep = hoursSleep,
-                    mfuStatus = false
-                };
-
-                return info;
+                return GetReturnInfoHabitsDto(habitDrink, habitSleep, habitDrugs, hoursSleep, false);
             }
 
-            var mfuExist = _bd.MFUsHabits.Any(e => e.accountID == idAccount
-                                              && e.monthID == monthExist.monthID);
+            var mfuExist = await _bd.MFUsHabits.AnyAsync(e => e.accountID == accountID 
+                                                         && e.monthID == monthExist.monthID, cancellationToken);
 
             if (!mfuExist)
             {
-                info = new ReturnInfoHabitsDto
-                {
-                    drinkConsumed = _mapper.Map<GetDrinkConsumedDto>(habitDrink),
-                    hoursSleepConsumed = _mapper.Map<GetHoursSleepConsumedDto>(habitSleep),
-                    drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
-                    hoursSleep = hoursSleep,
-                    mfuStatus = false
-                };
-
-                return info;
+                return GetReturnInfoHabitsDto(habitDrink, habitSleep, habitDrugs, hoursSleep, false);
             }
 
+            return GetReturnInfoHabitsDto(habitDrink, habitSleep, habitDrugs, hoursSleep, true);
+        }
 
-            info = new ReturnInfoHabitsDto
+        private ReturnInfoHabitsDto GetReturnInfoHabitsDto(DrinkHabit? habitDrink, SleepHabit? habitSleep,
+                                                           DrugsHabit? habitDrugs, List<GraphicValuesHabitSleepDto> hoursSleep,
+                                                           bool status)
+        {
+            ReturnInfoHabitsDto infoHabits = new ReturnInfoHabitsDto
             {
                 drinkConsumed = _mapper.Map<GetDrinkConsumedDto>(habitDrink),
                 hoursSleepConsumed = _mapper.Map<GetHoursSleepConsumedDto>(habitSleep),
                 drugsConsumed = _mapper.Map<GetDrugsConsumedDto>(habitDrugs),
                 hoursSleep = hoursSleep,
-                mfuStatus = true
+                mfuStatus = status
             };
 
-            return info;
+            return infoHabits;
         }
     }
 }

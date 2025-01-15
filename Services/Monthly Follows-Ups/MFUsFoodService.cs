@@ -135,8 +135,6 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             ValidationValuesDB.ValidationValues(mfuToUpdate);
 
-            _bd.MFUsFood.Update(mfuToUpdate);
-
             if (!Save()) { throw new UnstoredValuesException(); }
 
             AnswersMFUsFoodDto answers = new AnswersMFUsFoodDto
@@ -204,8 +202,6 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             resultsToUpdate.classification = classification;
 
             ValidationValuesDB.ValidationValues(resultsToUpdate);
-
-            _bd.ResultsFood.Update(resultsToUpdate);
 
             if (!Save()) { throw new UnstoredValuesException(); }
         }

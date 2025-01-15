@@ -70,7 +70,6 @@ namespace AppVidaSana.Services
             Guid accountID = account.accountID;
 
             return accountID;
-
         }
 
         public async Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken)
@@ -114,8 +113,6 @@ namespace AppVidaSana.Services
             user.email = values.email;
 
             ValidationValuesDB.ValidationValues(user);
-
-            _bd.Accounts.Update(user);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 

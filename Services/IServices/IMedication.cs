@@ -4,18 +4,16 @@ namespace AppVidaSana.Services.IServices
 {
     public interface IMedication
     {
+        public Task<MedicationsAndValuesGraphicDto> GetMedicationsAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken);
 
-        public MedicationsAndValuesGraphicDto GetMedications(Guid accountID, DateOnly dateActual);
+        public Task<InfoMedicationDto?> AddMedicationAsync(AddMedicationUseDto values, CancellationToken cancellationToken);
 
-        public InfoMedicationDto? AddMedication(AddMedicationUseDto medication);
+        public Task<InfoMedicationDto?> UpdateMedicationAsync(UpdateMedicationUseDto values, CancellationToken cancellationToken);
 
-        public InfoMedicationDto? UpdateMedication(UpdateMedicationUseDto values);
+        public Task UpdateStatusMedicationAsync(UpdateMedicationStatusDto value, CancellationToken cancellationToken);
 
-        public void UpdateStatusMedication(UpdateMedicationStatusDto value);
-
-        public string DeleteAMedication(Guid id, DateOnly date);
+        public Task<string> DeleteAMedicationAsync(Guid id, DateOnly date, CancellationToken cancellationToken);
 
         bool Save();
-
     }
 }

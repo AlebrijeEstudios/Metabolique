@@ -51,11 +51,11 @@ namespace AppVidaSana.Controllers.Habits
         [ApiKeyAuthorizationFilter]
         [HttpPost]
         [Produces("application/json")]
-        public IActionResult AddDrugsConsumed([FromBody] DrugsHabitDto values)
+        public async Task<IActionResult> AddDrugsConsumedAsync([FromBody] DrugsHabitDto values)
         {
             try
             {
-                var infoHabit = _DrugsHabitService.AddDrugsConsumed(values);
+                var infoHabit = await _DrugsHabitService.AddDrugsConsumedAsync(values, HttpContext.RequestAborted);
 
                 ResponseDrugsHabit response = new ResponseDrugsHabit
                 {
@@ -121,11 +121,11 @@ namespace AppVidaSana.Controllers.Habits
         [ApiKeyAuthorizationFilter]
         [HttpPatch]
         [Produces("application/json")]
-        public IActionResult UpdateDrugsConsumed([FromQuery] Guid drugsHabitID, [FromBody] JsonPatchDocument values)
+        public async Task<IActionResult> UpdateDrugsConsumedAsync([FromQuery] Guid drugsHabitID, [FromBody] JsonPatchDocument values)
         {
             try
             {
-                var infoHabit = _DrugsHabitService.UpdateDrugsConsumed(drugsHabitID, values);
+                var infoHabit = await _DrugsHabitService.UpdateDrugsConsumedAsync(drugsHabitID, values, HttpContext.RequestAborted);
 
                 ResponseDrugsHabit response = new ResponseDrugsHabit
                 {

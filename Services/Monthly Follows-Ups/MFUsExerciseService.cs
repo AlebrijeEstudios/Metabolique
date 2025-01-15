@@ -143,7 +143,6 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             return responses;
         }
 
-
         public async Task<RetrieveResponsesExerciseDto?> UpdateAnswersAsync(UpdateResponsesExerciseDto values, CancellationToken cancellationToken)
         {
             var mfuToUpdate = await _bd.MFUsExercise.FindAsync(new object[] { values.monthlyFollowUpID }, cancellationToken);
@@ -159,10 +158,6 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             mfuToUpdate.question7 = values.question7;
 
             ValidationValuesDB.ValidationValues(mfuToUpdate);
-
-            _bd.MFUsExercise.Update(mfuToUpdate);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
 
             AnswersDto answers = new AnswersDto
             {
@@ -204,8 +199,6 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             resultsToUpdate.levelAF = LevelAF;
 
             ValidationValuesDB.ValidationValues(resultsToUpdate);
-
-            _bd.ResultsExercise.Update(resultsToUpdate);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
@@ -314,7 +307,6 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             criterion3 = ((answers.question1 + answers.question5) >= 5 && (MET_AFvigorous + MET_AFwalking) >= 600) || ((answers.question3 + answers.question5) >= 5 && (MET_AFmoderate + MET_AFwalking) >= 600);
 
             return criterion1 || criterion2 || criterion3;
-
         }
     }
 }
