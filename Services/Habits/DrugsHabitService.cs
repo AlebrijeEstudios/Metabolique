@@ -7,6 +7,7 @@ using AppVidaSana.Services.IServices.IHabits.IHabits;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services.Habits
 {
@@ -21,10 +22,10 @@ namespace AppVidaSana.Services.Habits
             _mapper = mapper;
         }
 
-        public DrugsHabitInfoDto AddDrugsConsumed(DrugsHabitDto values)
+        public async Task<DrugsHabitInfoDto> AddDrugsConsumedAsync(DrugsHabitDto values, CancellationToken cancellationToken)
         {
-            var habitDrugsExisting = _bd.HabitsDrugs.Any(e => e.accountID == values.accountID
-                                                         && e.drugsDateHabit == values.dateRegister);
+            var habitDrugsExisting = await _bd.HabitsDrugs.AnyAsync(e => e.accountID == values.accountID
+                                                                    && e.drugsDateHabit == values.dateRegister, cancellationToken);
 
             if (habitDrugsExisting) { throw new RepeatRegistrationException(); }
 
@@ -47,11 +48,11 @@ namespace AppVidaSana.Services.Habits
             return infoHabitsDrugs;
         }
 
-        public DrugsHabitInfoDto UpdateDrugsConsumed(Guid drugsHabitID, JsonPatchDocument values)
+        public async Task<DrugsHabitInfoDto> UpdateDrugsConsumedAsync(Guid drugsHabitID, JsonPatchDocument values, CancellationToken cancellationToken)
         {
-            var habitDrugs = _bd.HabitsDrugs.Find(drugsHabitID);
+            var habitDrugs = await _bd.HabitsDrugs.FindAsync(new object[] { drugsHabitID }, cancellationToken);
 
-            if (habitDrugs == null) { throw new HabitNotFoundException("No hay información de consumo de drogas. Inténtelo de nuevo."); }
+            if (habitDrugs is null) { throw new HabitNotFoundException("No hay información de consumo de drogas. Inténtelo de nuevo."); }
 
             values.ApplyTo(habitDrugs);
 

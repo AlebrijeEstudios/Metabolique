@@ -51,11 +51,7 @@ namespace AppVidaSana.Services
         }
 
         public async Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
-        {
-            InfoGeneralFeedingDto infoGeneral;
-
-            bool status = false;
-            
+        {   
             await UpdateCaloriesRequiredPerDays(accountID, date, cancellationToken);
 
             var kcalConsumed = await GetCaloriesConsumedFeedingsAsync(accountID, date, cancellationToken);
@@ -68,8 +64,6 @@ namespace AppVidaSana.Services
                                       .Where(e => userFeeds.Select(uf => uf.dailyMealID).Contains(e.dailyMealID))
                                       .ToListAsync(cancellationToken);
 
-            
-
             CultureInfo cultureInfo = new CultureInfo("es-ES");
 
             var monthExist = await _bd.Months.FirstOrDefaultAsync(e => e.month == date.ToString("MMMM", cultureInfo)
@@ -78,26 +72,18 @@ namespace AppVidaSana.Services
 
             if (monthExist is null)
             {
-                infoGeneral = GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, status);
-
-                return infoGeneral;
+                return GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, false);
             }
             
             var mfuExist = await _bd.MFUsFood.AnyAsync(e => e.accountID == accountID
                                                        && e.monthID == monthExist.monthID, cancellationToken);
 
-            if (mfuExist)
+            if (!mfuExist)
             {
-                status = true;
-
-                infoGeneral = GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, status);
-
-                return infoGeneral;
+                return GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, false);
             }
 
-            infoGeneral = GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, status);
-
-            return infoGeneral;
+            return GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, true);
         }
 
         public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)

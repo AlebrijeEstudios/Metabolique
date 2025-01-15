@@ -7,6 +7,7 @@ using AppVidaSana.Services.IServices.IHabits.IHabits;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services.Habits
 {
@@ -21,10 +22,10 @@ namespace AppVidaSana.Services.Habits
             _mapper = mapper;
         }
 
-        public DrinkHabitInfoDto AddDrinksConsumed(DrinkHabitDto values)
+        public async Task<DrinkHabitInfoDto> AddDrinksConsumedAsync(DrinkHabitDto values, CancellationToken cancellationToken)
         {
-            var habitDrinkExist = _bd.HabitsDrink.Any(e => e.accountID == values.accountID
-                                                     && e.drinkDateHabit == values.dateRegister);
+            var habitDrinkExist = await _bd.HabitsDrink.AnyAsync(e => e.accountID == values.accountID
+                                                                 && e.drinkDateHabit == values.dateRegister, cancellationToken);
 
             if (habitDrinkExist) { throw new RepeatRegistrationException(); }
 
@@ -46,11 +47,11 @@ namespace AppVidaSana.Services.Habits
             return infoHabitsDrink;
         }
 
-        public DrinkHabitInfoDto UpdateDrinksConsumed(Guid drinkHabitID, JsonPatchDocument values)
+        public async Task<DrinkHabitInfoDto> UpdateDrinksConsumedAsync(Guid drinkHabitID, JsonPatchDocument values, CancellationToken cancellationToken)
         {
-            var habitDrink = _bd.HabitsDrink.Find(drinkHabitID);
+            var habitDrink = await _bd.HabitsDrink.FindAsync(new object[] { drinkHabitID }, cancellationToken);
 
-            if (habitDrink == null) { throw new HabitNotFoundException("No hay información de la cantidad consumida. Inténtelo de nuevo."); }
+            if (habitDrink is null) { throw new HabitNotFoundException("No hay información de la cantidad consumida. Inténtelo de nuevo."); }
 
             values.ApplyTo(habitDrink);
 

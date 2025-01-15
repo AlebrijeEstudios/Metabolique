@@ -167,10 +167,6 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             ValidationValuesDB.ValidationValues(mfuToUpdate);
 
-            _bd.MFUsHabits.Update(mfuToUpdate);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
-
             byte resultComponent1 = values.answerQuestion6;
             byte resultComponent2 = component2(values.answerQuestion2, values.answerQuestion5a);
             byte resultComponent3 = component3(values.answerQuestion4);
@@ -200,8 +196,6 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
             resultsToUpdate.classification = classificationPSQI;
 
             ValidationValuesDB.ValidationValues(resultsToUpdate);
-
-            _bd.ResultsHabits.Update(resultsToUpdate);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 

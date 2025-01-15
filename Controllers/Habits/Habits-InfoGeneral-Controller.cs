@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Habits;
 using AppVidaSana.Services.IServices.IHabits;
@@ -45,18 +44,18 @@ namespace AppVidaSana.Controllers.Habits
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public IActionResult GetHabitsInfoGeneral([FromQuery] Guid accountID, [FromQuery] DateOnly date)
+        public async Task<IActionResult> GetHabitsInfoGeneralAsync([FromQuery] Guid accountID, [FromQuery] DateOnly date)
         {
 
-            ReturnInfoHabitsDto info = _HabitsInfoService.GetInfoGeneralHabits(accountID, date);
+            var infoGeneralHabits = await _HabitsInfoService.GetInfoGeneralHabitsAsync(accountID, date, HttpContext.RequestAborted);
 
             ReturnHabitsInfo response = new ReturnHabitsInfo
             {
-                drinkConsumed = info.drinkConsumed,
-                hoursSleepConsumed = info.hoursSleepConsumed,
-                drugsConsumed = info.drugsConsumed,
-                hoursSleep = info.hoursSleep,
-                mfuStatus = info.mfuStatus
+                drinkConsumed = infoGeneralHabits.drinkConsumed,
+                hoursSleepConsumed = infoGeneralHabits.hoursSleepConsumed,
+                drugsConsumed = infoGeneralHabits.drugsConsumed,
+                hoursSleep = infoGeneralHabits.hoursSleep,
+                mfuStatus = infoGeneralHabits.mfuStatus
             };
 
             return StatusCode(StatusCodes.Status200OK, new

@@ -3,7 +3,6 @@ using AppVidaSana.Models.Dtos;
 using AppVidaSana.Models.Dtos.UserDaysSummary_Dtos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Services.IServices;
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services

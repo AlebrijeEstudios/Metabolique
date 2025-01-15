@@ -116,7 +116,7 @@ builder.Services.AddScoped<IDrugsHabit, DrugsHabitService>();
 builder.Services.AddScoped<ISleepHabit, SleepHabitService>();
 builder.Services.AddScoped<IMFUsHabits, MFUsHabitsService>();
 builder.Services.AddScoped<IMedication, MedicationService>();
-builder.Services.AddScoped<ISideEffects, MedicationService>();
+builder.Services.AddScoped<ISideEffects, SideEffectsService>();
 builder.Services.AddScoped<IMFUsMedications, MFUsMedicationService>();
 
 builder.Services.AddAuthentication(options =>

@@ -128,8 +128,6 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
             ValidationValuesDB.ValidationValues(mfuToUpdate);
 
-            _bd.MFUsMedication.Update(mfuToUpdate);
-
             if (!Save()) { throw new UnstoredValuesException(); }
 
             var responses = await RetrieveAnswersAsync(mfuToUpdate.accountID, values.month, values.year, cancellationToken);
