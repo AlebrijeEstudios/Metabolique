@@ -120,11 +120,13 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response> 
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="500">Returns a message indicating internal server errors.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResetPasswordResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
