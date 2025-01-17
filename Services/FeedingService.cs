@@ -545,15 +545,23 @@ namespace AppVidaSana.Services
 
         private async Task<List<CaloriesConsumedFeedingDto>> GetCaloriesConsumedFeedingsAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
-            DateOnly dateFinal = date.AddDays(-6);
+            var limit = await _bd.CaloriesRequiredPerDays.FirstOrDefaultAsync(e => e.accountID == accountID
+                                                                              && e.dateInitial <= date
+                                                                              && date <= e.dateFinal, cancellationToken);
 
-            var dates = DatesInRange.GetDatesInRange(dateFinal, date);
+            int DayOfWeek = (int)date.DayOfWeek;
 
-            var limits = await _bd.CaloriesRequiredPerDays
-                                  .Where(c => c.accountID == accountID 
-                                         && dates.Any(date => c.dateInitial <= date && date <= c.dateFinal))
-                                  .Distinct()
-                                  .ToListAsync(cancellationToken);
+            DayOfWeek = DayOfWeek == 0 ? 7 : DayOfWeek;
+
+            DateOnly dateInitial = date.AddDays(-(DayOfWeek - 1));
+            DateOnly dateFinal = dateInitial.AddDays(6);
+
+            var dates = DatesInRange.GetDatesInRange(dateInitial, dateFinal);
+
+            if (limit is not null)
+            {
+                dates = DatesInRange.GetDatesInRange(limit.dateInitial, limit.dateFinal);
+            }
 
             var values = await _bd.CaloriesConsumed
                                   .Where(c => c.accountID == accountID
@@ -562,7 +570,7 @@ namespace AppVidaSana.Services
             var kcalConsumedFeedings = dates.Select(date => new CaloriesConsumedFeedingDto
                                             {
                                                 date = date,
-                                                limit = limits.FirstOrDefault(e => e.dateInitial <= date && date <= e.dateFinal)?.caloriesNeeded ?? 0,
+                                                limit = limit?.caloriesNeeded ?? 0,
                                                 value = values.FirstOrDefault(e => e.dateCaloriesConsumed == date)?.totalCaloriesConsumed ?? 0
                                             }).ToList();
 
