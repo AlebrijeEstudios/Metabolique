@@ -254,8 +254,6 @@ namespace AppVidaSana.Services
         {
             List<InfoMedicationDto> listMedications = new List<InfoMedicationDto>();
 
-           
-
             var groupPeriodsByMedicationID = periods.GroupBy(obj => obj.medicationID)
                                                     .ToDictionary(
                                                         g => g.Key,
@@ -272,9 +270,9 @@ namespace AppVidaSana.Services
 
                 foreach (var period in periodsForMedication)
                 { 
-                    string[] datesExcluded = period.datesExcluded!.Split(',');
+                    string[] datesExcluded = period.datesExcluded?.Split(',') ?? [];
 
-                    if (!datesExcluded.Contains(dateActual.ToString()))
+                    if (!datesExcluded.Contains(dateActual.ToString()) && period.initialFrec <= dateActual && dateActual <= period.finalFrec)
                     {
                         var times = await TimesForPeriodAsync(period, dateActual, cancellationToken);
 
@@ -305,7 +303,7 @@ namespace AppVidaSana.Services
         private async Task<List<Times>> TimesForPeriodAsync(PeriodsMedications period, DateOnly dateActual, 
                                                             CancellationToken cancellationToken)
         {
-            string[] datesExcluded = period.datesExcluded!.Split(',');
+            string[] datesExcluded = period.datesExcluded?.Split(',') ?? [];
 
             var times = await _bd.Times.Where(e => e.periodID == period.periodID
                                               && e.dateMedication == dateActual).ToListAsync(cancellationToken);
@@ -336,7 +334,13 @@ namespace AppVidaSana.Services
         {
             int totalMedications = 0, medicationsConsumed = 0;
             List<WeeklyAttachmentDto> weeklyList = new List<WeeklyAttachmentDto>();
-            DateOnly dateFinal = dateActual.AddDays(-6);
+
+            int DayOfWeek = (int) dateActual.DayOfWeek;
+
+            DayOfWeek = DayOfWeek == 0 ? 7 : DayOfWeek;
+
+            DateOnly dateInitial = dateActual.AddDays(-(DayOfWeek - 1));
+            DateOnly dateFinal = dateInitial.AddDays(6);
 
             var timeList = GetTimesForPeriodMedication(accountID);
 
@@ -346,7 +350,7 @@ namespace AppVidaSana.Services
                                                 g => g.ToList()
                                             );
 
-            var dates = DatesInRange.GetDatesInRange(dateFinal, dateActual);
+            var dates = DatesInRange.GetDatesInRange(dateInitial, dateFinal);
 
             foreach (var date in dates)
             {
@@ -354,7 +358,7 @@ namespace AppVidaSana.Services
                 {
                     var period = await _bd.PeriodsMedications.FindAsync(new object[] { time.Key }, cancellationToken);
 
-                    if (period == null) { throw new UnstoredValuesException(); }
+                    if (period is null) { throw new UnstoredValuesException(); }
 
                     var listTimes = time.Value.Where(e => e.dateMedication == date
                                                      && period.initialFrec <= e.dateMedication
