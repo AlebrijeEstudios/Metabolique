@@ -1,4 +1,4 @@
-﻿namespace AppVidaSana.Exceptions.Ejercicio
+﻿namespace AppVidaSana.Exceptions.Exercise
 {
     public class ExerciseNotFoundException : Exception
     {

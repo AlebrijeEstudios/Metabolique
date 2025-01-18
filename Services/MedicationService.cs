@@ -1,7 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Medication;
-using AppVidaSana.GraphicValues;
+using AppVidaSana.Months_Dates;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Services.IServices;
@@ -108,7 +108,11 @@ namespace AppVidaSana.Services
 
             await UpdateNameMedicationAsync(period, values, cancellationToken);
 
-            var infoMedication = await UpdateForNewDailyFrecAsync(values, period.periodID, cancellationToken);
+            var medication = await _bd.Medications.FindAsync(new object[] { period.medicationID }, cancellationToken);
+
+            if (medication is null) { throw new UnstoredValuesException(); }
+
+            var infoMedication = await UpdateForNewDailyFrecAsync(values, period, medication, cancellationToken);
 
             if (period.initialFrec != values.initialFrec || period.finalFrec != values.finalFrec)
             {
@@ -588,16 +592,9 @@ namespace AppVidaSana.Services
             return await InfoMedicationAsync(medication, periods, dateRecord, cancellationToken);
         }
 
-        private async Task<InfoMedicationDto> UpdateForNewDailyFrecAsync(UpdateMedicationUseDto values, Guid periodID, CancellationToken cancellationToken)
+        private async Task<InfoMedicationDto> UpdateForNewDailyFrecAsync(UpdateMedicationUseDto values, PeriodsMedications period, 
+                                                                         Medication medication, CancellationToken cancellationToken)
         {
-            var period = await _bd.PeriodsMedications.FindAsync(new object[] { periodID }, cancellationToken);
-
-            if (period is null) { throw new UnstoredValuesException(); }
-
-            var medication = await _bd.Medications.FindAsync(new object[] { period.medicationID }, cancellationToken);
-
-            if (medication is null) { throw new UnstoredValuesException(); }
-
             Action<List<TimeListDto>, DateOnly> processRecords = (list, date) =>
             {
                 foreach (var id in list)
@@ -606,14 +603,11 @@ namespace AppVidaSana.Services
 
                     if (record is null) { throw new UnstoredValuesException(); }
 
-                    var recordsToUpdate = _bd.Times.Where(e => e.periodID == periodID
+                    var recordsToUpdate = _bd.Times.Where(e => e.periodID == period.periodID
                                                           && e.time == record.time
                                                           && e.dateMedication >= date).ToList();
 
-                    foreach (var val in recordsToUpdate)
-                    {
-                        val.time = id.time;
-                    }
+                    foreach (var val in recordsToUpdate) { val.time = id.time; }
 
                     _bd.Times.UpdateRange(recordsToUpdate);
 
@@ -625,7 +619,7 @@ namespace AppVidaSana.Services
             {
                 processRecords(values.times, values.updateDate);
 
-                await RemoveTimesAsync(periodID, values, cancellationToken);
+                await RemoveTimesAsync(period.periodID, values, cancellationToken);
 
                 return await InfoMedicationAsync(medication, period, values.updateDate, cancellationToken);
             }
@@ -633,7 +627,7 @@ namespace AppVidaSana.Services
             {
                 processRecords(values.times, values.updateDate);
 
-                await AddNewTimesAsync(periodID, values, cancellationToken);
+                await AddNewTimesAsync(period.periodID, values, cancellationToken);
 
                 return await InfoMedicationAsync(medication, period, values.updateDate, cancellationToken);
             }

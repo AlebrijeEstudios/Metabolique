@@ -1,4 +1,4 @@
-﻿using AppVidaSana.Models.Dtos;
+﻿using AppVidaSana.Models.Dtos.UserDaysSummary_Dtos;
 
 namespace AppVidaSana.ProducesResponseType
 {

@@ -1,4 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
+﻿using AppVidaSana.Models.Dtos.Exercise_Dtos;
 
 namespace AppVidaSana.ProducesResponseType.Exercise
 {

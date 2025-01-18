@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace AppVidaSana.Models.Dtos.Ejercicio_Dtos
+namespace AppVidaSana.Models.Dtos.Exercise_Dtos
 {
     public class AddExerciseDto
     {

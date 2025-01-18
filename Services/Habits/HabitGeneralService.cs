@@ -1,8 +1,8 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.GraphicValues;
+using AppVidaSana.Months_Dates;
 using AppVidaSana.Models.Dtos.Habits_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits;
-using AppVidaSana.Models.Habitos;
+using AppVidaSana.Models.Habits;
 using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;

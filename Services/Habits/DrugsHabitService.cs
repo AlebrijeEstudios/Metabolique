@@ -2,8 +2,8 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
-using AppVidaSana.Models.Habitos;
-using AppVidaSana.Services.IServices.IHabits.IHabits;
+using AppVidaSana.Models.Habits;
+using AppVidaSana.Services.IServices.IHabits;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;

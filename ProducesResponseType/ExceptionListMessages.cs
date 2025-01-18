@@ -1,4 +1,4 @@
-﻿namespace AppVidaSana.ProducesReponseType
+﻿namespace AppVidaSana.ProducesResponseType
 {
     public class ExceptionListMessages
     {

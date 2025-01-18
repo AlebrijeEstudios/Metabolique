@@ -2,14 +2,13 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
-using AppVidaSana.ProducesReponseType;
+using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Habits.DrinkHabit;
-using AppVidaSana.Services.IServices.IHabits.IHabits;
+using AppVidaSana.Services.IServices.IHabits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.JsonPatch;
-using AppVidaSana.ProducesResponseType;
 
 namespace AppVidaSana.Controllers.Habits
 {

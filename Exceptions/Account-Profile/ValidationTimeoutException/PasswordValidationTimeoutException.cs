@@ -1,4 +1,4 @@
-﻿namespace AppVidaSana.Exceptions.Cuenta_Perfil
+﻿namespace AppVidaSana.Exceptions.Account_Profile.ValidationTimeoutException
 {
     public class PasswordValidationTimeoutException : Exception
     {

@@ -2,8 +2,7 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
 using AppVidaSana.Models.Monthly_Follow_Ups;
-using AppVidaSana.Models.Seguimientos_Mensuales;
-using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
+using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
 using AppVidaSana.ValidationValues;

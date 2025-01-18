@@ -12,7 +12,7 @@ namespace AppVidaSana.Services.IServices
 
         public Task UpdateStatusMedicationAsync(UpdateMedicationStatusDto value, CancellationToken cancellationToken);
 
-        public Task<string> DeleteAMedicationAsync(Guid id, DateOnly date, CancellationToken cancellationToken);
+        public Task<string> DeleteAMedicationAsync(Guid periodID, DateOnly date, CancellationToken cancellationToken);
 
         bool Save();
     }
