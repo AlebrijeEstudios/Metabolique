@@ -23,9 +23,14 @@ namespace AppVidaSana.Services.Habits
 
         public async Task<ReturnInfoHabitsDto> GetInfoGeneralHabitsAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
-            DateOnly dateFinal = date.AddDays(-6);
+            int DayOfWeek = (int)date.DayOfWeek;
 
-            var dates = DatesInRange.GetDatesInRange(dateFinal, date);
+            DayOfWeek = DayOfWeek == 0 ? 7 : DayOfWeek;
+
+            DateOnly dateInitial = date.AddDays(-(DayOfWeek - 1));
+            DateOnly dateFinal = dateInitial.AddDays(6);
+
+            var dates = DatesInRange.GetDatesInRange(dateInitial, dateFinal);
 
             var habitDrink = await _bd.HabitsDrink.FirstOrDefaultAsync(e => e.accountID == accountID 
                                                                        && e.drinkDateHabit == date, cancellationToken);

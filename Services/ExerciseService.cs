@@ -205,9 +205,14 @@ namespace AppVidaSana.Services
         private async Task<List<ActiveMinutesExerciseDto>> GetActiveMinutesAsync(Guid accountID, 
                                                                                  DateOnly date, CancellationToken cancellationToken)
         {
-            DateOnly dateFinal = date.AddDays(-6);
+            int DayOfWeek = (int)date.DayOfWeek;
 
-            var dates = DatesInRange.GetDatesInRange(dateFinal, date);
+            DayOfWeek = DayOfWeek == 0 ? 7 : DayOfWeek;
+
+            DateOnly dateInitial = date.AddDays(-(DayOfWeek - 1));
+            DateOnly dateFinal = dateInitial.AddDays(6);
+
+            var dates = DatesInRange.GetDatesInRange(dateInitial, dateFinal);
 
             var values = await _bd.ActiveMinutes.Where(c => c.accountID == accountID
                                                        && dates.Contains(c.dateExercise)).ToListAsync(cancellationToken);
@@ -217,8 +222,6 @@ namespace AppVidaSana.Services
                                     date = date,
                                     value = values.FirstOrDefault(e => e.dateExercise == date)?.totalTimeSpent ?? 0
                                 }).ToList();
-
-            activeMinutes = activeMinutes.OrderBy(x => x.date).ToList();
 
             return activeMinutes;
         }
