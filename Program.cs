@@ -32,7 +32,7 @@ var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
 var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnvironmentVariable("TOKEN_Replacement");
-var keyBytes = Encoding.ASCII.GetBytes(token);
+var keyBytes = Encoding.ASCII.GetBytes(token!);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddDbContext<ApiDbContext>(options => options.UseInMemoryDatabase(nameof(ApiDbContext)));
@@ -45,11 +45,6 @@ builder.Services.AddCors(opt =>
     opt.AddPolicy(name: myrulesCORS, builder =>
     {
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-
-        /*
-         builder.WithOrigins("https://dominio1.com", "https://dominio2.com")
-               .AllowAnyMethod()
-               .AllowAnyHeader();*/
     });
 });
 
@@ -265,7 +260,7 @@ async Task Seed()
         throw new InvalidOperationException("La variable de entorno 'API_KEY' no está configurada.");
     }
 
-    if (!await context.ApiKeys.AnyAsync())
+    if (!await context!.ApiKeys.AnyAsync())
     {
         context.ApiKeys.Add(new ApiKey
         {
