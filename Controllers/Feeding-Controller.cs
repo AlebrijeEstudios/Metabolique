@@ -16,8 +16,8 @@ namespace AppVidaSana.Controllers
     [EnableCors("RulesCORS")]
     [ApiController]
     [Route("api/feeding")]
-    [RequestSizeLimit(10_000_000)]
-    [RequestFormLimits(MultipartBodyLengthLimit = 10_000_000)]
+    [RequestSizeLimit(8388608)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 8388608)]
     [RequestTimeout("CustomPolicy")]
     public class FeedingController : ControllerBase
     {
