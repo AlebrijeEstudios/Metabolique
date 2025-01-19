@@ -1,9 +1,9 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Feeding;
-using AppVidaSana.GraphicValues;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Models.Feeding;
+using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
@@ -104,7 +104,7 @@ namespace AppVidaSana.Services
 
             var foods = await CreateFoods(values.foodsConsumed, cancellationToken);
 
-            var nutritionalValues = CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
+            var nutritionalValues = CreateNutritionalValues(foods, values.foodsConsumed);
 
             CreateUserFeedNutrValues(userFeed.userFeedID, nutritionalValues, values.foodsConsumed);
 
@@ -140,7 +140,7 @@ namespace AppVidaSana.Services
 
             var foods = await CreateFoods(values.foodsConsumed, cancellationToken);
 
-            var nutritionalValues = CreateNutritionalValues(foods, values.foodsConsumed, cancellationToken);
+            var nutritionalValues = CreateNutritionalValues(foods, values.foodsConsumed);
 
             await UpdateUserFeedNutrValues(values, values.foodsConsumed, nutritionalValues, cancellationToken);
 
@@ -738,8 +738,7 @@ namespace AppVidaSana.Services
 
         private static string GetImageHashSHA256(byte[] imageBytes)
         {
-            var sha256 = SHA256.Create();
-            var imageToHash = sha256.ComputeHash(imageBytes);
+            byte[] imageToHash = SHA256.HashData(imageBytes);
 
             return BitConverter.ToString(imageToHash).Replace("-", "").ToLower();
         }
@@ -805,9 +804,10 @@ namespace AppVidaSana.Services
         }
 
         private List<NutritionalValues> CreateNutritionalValues(Dictionary<string, Guid> existingFoods, 
-                                                                List<FoodsConsumedDto> foods, 
-                                                                CancellationToken cancellationToken)
+                                                                List<FoodsConsumedDto> foods)
         {
+            float tolerance = 0.0001f;
+
             var allNutrValues = foods
                                 .SelectMany(food => food.nutritionalValues
                                 .GroupBy(nutrValue => new
@@ -838,20 +838,20 @@ namespace AppVidaSana.Services
                                     .Where(nv => allNutrValues.Any(anv =>
                                         anv.foodID == nv.foodID &&
                                         anv.portion == nv.portion &&
-                                        anv.kilocalories == nv.kilocalories &&
-                                        anv.protein == nv.protein &&
-                                        anv.carbohydrates == nv.carbohydrates &&
-                                        anv.totalLipids == nv.totalLipids))
+                                        Math.Abs(anv.kilocalories - nv.kilocalories) < tolerance &&
+                                        Math.Abs(anv.protein - nv.protein) < tolerance &&
+                                        Math.Abs(anv.carbohydrates - nv.carbohydrates) < tolerance &&
+                                        Math.Abs(anv.totalLipids - nv.totalLipids) < tolerance))
                                     .ToList();
 
             var newNutrValues = allNutrValues
                                 .Where(nv => !existingNutrValues.Any(anv =>
                                     anv.foodID == nv.foodID &&
                                     anv.portion == nv.portion &&
-                                    anv.kilocalories == nv.kilocalories &&
-                                    anv.protein == nv.protein &&
-                                    anv.carbohydrates == nv.carbohydrates &&
-                                    anv.totalLipids == nv.totalLipids))
+                                    Math.Abs(anv.kilocalories - nv.kilocalories) < tolerance &&
+                                    Math.Abs(anv.protein - nv.protein) < tolerance &&
+                                    Math.Abs(anv.carbohydrates - nv.carbohydrates) < tolerance &&
+                                    Math.Abs(anv.totalLipids - nv.totalLipids) < tolerance))
                                 .ToList();
 
             if (newNutrValues.Count > 0)
@@ -915,6 +915,8 @@ namespace AppVidaSana.Services
                                                                              List<FoodsConsumedDto> foods,
                                                                              List<NutritionalValues> existingNutrValues)
         {
+            float tolerance = 0.0001f;
+
             var allNutrValueCodes = foods
                                     .SelectMany(nv => nv.nutritionalValues)
                                     .Select(nutrValue => new
@@ -931,11 +933,11 @@ namespace AppVidaSana.Services
                                      {
                                          userFeedID = userFeedID,
                                          nutritionalValueID = existingNutrValues
-                                                              .FirstOrDefault(e => e.portion == group.Key.portion
-                                                                              && e.kilocalories == group.Key.kilocalories
-                                                                              && e.protein == group.Key.protein
-                                                                              && e.carbohydrates == group.Key.carbohydrates
-                                                                              && e.totalLipids == group.Key.totalLipids)!.nutritionalValueID,
+                                                              .FirstOrDefault(e => e.portion == group.Key.portion &&
+                                                                              Math.Abs(e.kilocalories - group.Key.kilocalories) < tolerance &&
+                                                                              Math.Abs(e.protein - group.Key.protein) < tolerance &&
+                                                                              Math.Abs(e.carbohydrates - group.Key.carbohydrates) < tolerance &&
+                                                                              Math.Abs(e.totalLipids - group.Key.totalLipids) < tolerance)!.nutritionalValueID,
                                          MealFrequency = group.Count()
                                      })
                                      .ToList();

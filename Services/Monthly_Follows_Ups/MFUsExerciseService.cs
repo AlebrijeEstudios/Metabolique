@@ -1,17 +1,15 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos;
-using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
 using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
-using AppVidaSana.Models.Seguimientos_Mensuales;
 using AppVidaSana.Months_Dates;
-using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
+using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
-namespace AppVidaSana.Services.Seguimientos_Mensuales
+namespace AppVidaSana.Services.Monthly_Follows_Ups
 {
     public class MFUsExerciseService : IMFUsExercise
     {
@@ -100,12 +98,10 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             bool levelHigh = levelActHigh(values.question1, METactvigorous, METactmoderate, METactwalking);
             bool levelModerate = levelActModerate(answers, METactvigorous, METactmoderate, METactwalking);
 
-            string LevelAF = "";
+            var LevelAF = levelModerate ? "MODERADO" : "BAJO";
 
             if (levelHigh) { LevelAF = "ALTO"; }
             
-            LevelAF = levelModerate ? "MODERADO" : "BAJO";
-
             MFUsExercise mfus = new MFUsExercise
             {
                 accountID = values.accountID,
@@ -180,11 +176,9 @@ namespace AppVidaSana.Services.Seguimientos_Mensuales
             bool levelHigh = levelActHigh(values.question1, METactvigorous, METactmoderate, METactwalking);
             bool levelModerate = levelActModerate(answers, METactvigorous, METactmoderate, METactwalking);
 
-            string LevelAF = "";
+            var LevelAF = levelModerate ? "MODERADO" : "BAJO";
 
             if (levelHigh) { LevelAF = "ALTO"; }
-
-            LevelAF = levelModerate ? "MODERADO" : "BAJO";
 
             var resultsToUpdate = await _bd.ResultsExercise.FirstOrDefaultAsync(e => e.monthlyFollowUpID == values.monthlyFollowUpID,
                                                                                 cancellationToken);

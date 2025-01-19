@@ -1,4 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
+﻿using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos;
 
 namespace AppVidaSana.ProducesResponseType.Exercise.MFUsExercise
 {

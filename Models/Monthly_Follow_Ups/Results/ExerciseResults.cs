@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models.Seguimientos_Mensuales;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models.Monthly_Follow_Ups.Results

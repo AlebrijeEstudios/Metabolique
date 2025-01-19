@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AppVidaSana.Models.Habitos
+namespace AppVidaSana.Models.Habits
 {
     public class SleepHabit
     {

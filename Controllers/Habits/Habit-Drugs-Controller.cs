@@ -2,10 +2,9 @@
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Habits;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
-using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Habits.DrugsHabit;
-using AppVidaSana.Services.IServices.IHabits.IHabits;
+using AppVidaSana.Services.IServices.IHabits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.JsonPatch;

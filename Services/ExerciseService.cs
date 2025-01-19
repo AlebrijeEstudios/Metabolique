@@ -1,16 +1,14 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Ejercicio;
-using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
 using AppVidaSana.Models.Dtos.Exercise_Dtos;
-using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Exercises;
 using AppVidaSana.Services.IServices;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using AppVidaSana.ValidationValues;
-using AppVidaSana.GraphicValues;
+using AppVidaSana.Exceptions.Exercise;
+using AppVidaSana.Months_Dates;
 
 namespace AppVidaSana.Services
 {

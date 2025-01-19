@@ -1,8 +1,7 @@
 ﻿using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
+using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
-using AppVidaSana.Models.Dtos.Graphics_Dtos;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drink;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
 using AppVidaSana.Models.Dtos.Habits_Dtos.ReturnInfoHabits;
@@ -10,15 +9,13 @@ using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Food_Dtos;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
-using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
+using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Feeding;
-using AppVidaSana.Models.Habitos;
+using AppVidaSana.Models.Habits;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
-using AppVidaSana.Models.Seguimientos_Mensuales;
-using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
 
 namespace AppVidaSana.Mappers
 {

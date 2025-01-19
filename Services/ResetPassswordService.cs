@@ -1,7 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Account_Profile.ResetPasswordException;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.KeyToken;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.Services.IServices;
@@ -11,6 +11,7 @@ using Azure;
 using Azure.Communication.Email;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using AppVidaSana.Exceptions.Account_Profile.ValidationTimeoutException;
 
 namespace AppVidaSana.Services
 {

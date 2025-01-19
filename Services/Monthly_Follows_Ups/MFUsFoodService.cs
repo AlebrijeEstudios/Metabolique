@@ -226,19 +226,19 @@ namespace AppVidaSana.Services.Monthly_Follows_Ups
 
         private static float TotalPts(AnswersMFUsFoodDto values)
         {
-            float tolerancia = 0.0001f;
+            float tolerance = 0.0001f;
 
             float total = values.answerQuestion1 + values.answerQuestion2 + values.answerQuestion3 + values.answerQuestion4 +
                           values.answerQuestion5 + values.answerQuestion6 + values.answerQuestion7 + values.answerQuestion8 +
                           values.answerQuestion9;
 
-            if (Math.Abs(values.answerQuestion1 - 10) < tolerancia) { total = total + 2; }
-            if (Math.Abs(values.answerQuestion2 - 10) < tolerancia) { total = total + 2; }
-            if (Math.Abs(values.answerQuestion3 - 10) < tolerancia) { total = total + 2; }
-            if (Math.Abs(values.answerQuestion4 - 10) < tolerancia) { total = total + 2; }
+            if (Math.Abs(values.answerQuestion1 - 10) < tolerance) { total = total + 2; }
+            if (Math.Abs(values.answerQuestion2 - 10) < tolerance) { total = total + 2; }
+            if (Math.Abs(values.answerQuestion3 - 10) < tolerance) { total = total + 2; }
+            if (Math.Abs(values.answerQuestion4 - 10) < tolerance) { total = total + 2; }
 
-            if (Math.Abs(values.answerQuestion5 - 10) < tolerancia) { total = total + 1; }
-            if (Math.Abs(values.answerQuestion6 - 10) < tolerancia) { total = total + 1; }
+            if (Math.Abs(values.answerQuestion5 - 10) < tolerance) { total = total + 1; }
+            if (Math.Abs(values.answerQuestion6 - 10) < tolerance) { total = total + 1; }
 
             return total;
         }

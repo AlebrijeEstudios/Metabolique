@@ -1,8 +1,7 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
-using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Habits.MFUsHabits;
 using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;

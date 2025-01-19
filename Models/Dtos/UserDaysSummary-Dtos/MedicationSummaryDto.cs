@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 
-
 namespace AppVidaSana.Models.Dtos.UserDaysSummary_Dtos
 {
     public class MedicationSummaryDto
