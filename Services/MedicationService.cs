@@ -699,8 +699,6 @@ namespace AppVidaSana.Services
                 ValidationValuesDB.ValidationValues(time);
 
                 newTimes.Add(time);
-                
-                string[] actualTimes = period.timesPeriod.Split(", ");
 
                 period.timesPeriod = period.timesPeriod + ", " + sub;
             }
