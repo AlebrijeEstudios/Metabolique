@@ -597,22 +597,23 @@ namespace AppVidaSana.Services
         {
             Action<List<TimeListDto>, DateOnly> processRecords = (list, date) =>
             {
+                List<Times> recordsToUpdate = new List<Times>();
+
                 foreach (var id in list)
                 {
-                    var record = _bd.Times.Find(id.timeID);
+                    var time = _bd.Times.FirstOrDefault(e => e.periodID == period.periodID
+                                                         && e.timeID == id.timeID && e.dateMedication >= date);
 
-                    if (record is null) { throw new UnstoredValuesException(); }
+                    if (time is null) { throw new UnstoredValuesException(); }
 
-                    var recordsToUpdate = _bd.Times.Where(e => e.periodID == period.periodID
-                                                          && e.time == record.time
-                                                          && e.dateMedication >= date).ToList();
+                    time.time = id.time;
 
-                    foreach (var val in recordsToUpdate) { val.time = id.time; }
-
-                    _bd.Times.UpdateRange(recordsToUpdate);
-
-                    if (!Save()) { throw new UnstoredValuesException(); }
+                    recordsToUpdate.Add(time);
                 }
+
+                _bd.Times.UpdateRange(recordsToUpdate);
+
+                if (!Save()) { throw new UnstoredValuesException(); }
             };
 
             if (String.IsNullOrEmpty(values.newTimes))
@@ -653,19 +654,15 @@ namespace AppVidaSana.Services
 
             var findIdsToDelete = idsPrevious.Except(ids).ToList();
 
-            foreach (var id in findIdsToDelete)
+            foreach (var timeID in findIdsToDelete)
             {
-                var recordTime = await _bd.Times.FindAsync(new object[] { id }, cancellationToken);
+                var recordToDelete = await _bd.Times.FirstOrDefaultAsync(e => e.periodID == periodID
+                                                                          && e.timeID == timeID
+                                                                          && e.dateMedication >= values.updateDate, cancellationToken);
 
-                if (recordTime is null) { throw new UnstoredValuesException(); }
+                if (recordToDelete is null) { throw new UnstoredValuesException(); }
 
-                var recordsToDelete = await _bd.Times.Where(e => e.periodID == periodID
-                                                            && e.time == recordTime.time
-                                                            && e.dateMedication >= values.updateDate).ToListAsync(cancellationToken);
-
-                _bd.Times.RemoveRange(recordsToDelete);
-
-                if (!Save()) { throw new UnstoredValuesException(); }
+                _bd.Times.Remove(recordToDelete);
             }
 
             var period = await _bd.PeriodsMedications.FindAsync(new object[] { periodID }, cancellationToken);
@@ -691,37 +688,22 @@ namespace AppVidaSana.Services
 
             foreach (var sub in subs)
             {
-                var timeExist = await _bd.Times.AnyAsync(e => e.periodID == periodID
-                                                         && e.dateMedication == values.updateDate
-                                                         && e.time == TimeOnly.Parse(sub, CultureInfo.InvariantCulture),
-                                                         cancellationToken);
-
-                if (!timeExist)
+                Times time = new Times
                 {
-                    Times time = new Times
-                    {
-                        periodID = periodID,
-                        dateMedication = values.updateDate,
-                        time = TimeOnly.Parse(sub, CultureInfo.InvariantCulture),
-                        medicationStatus = false
-                    };
+                    periodID = periodID,
+                    dateMedication = values.updateDate,
+                    time = TimeOnly.Parse(sub, CultureInfo.InvariantCulture),
+                    medicationStatus = false
+                };
 
-                    ValidationValuesDB.ValidationValues(time);
+                ValidationValuesDB.ValidationValues(time);
 
-                    newTimes.Add(time);
-                }
+                newTimes.Add(time);
 
-                string[] actualTimes = period.timesPeriod.Split(", ");
-
-                if (!actualTimes.Contains(sub))
-                {
-                    period.timesPeriod = period.timesPeriod + ", " + sub;
-                }
+                period.timesPeriod = period.timesPeriod + ", " + sub;
             }
 
             _bd.Times.AddRange(newTimes);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
 
             ValidationValuesDB.ValidationValues(period);
 
