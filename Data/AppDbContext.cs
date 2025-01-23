@@ -1,12 +1,10 @@
 ﻿using AppVidaSana.Models;
 using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Feeding;
-using AppVidaSana.Models.Habitos;
+using AppVidaSana.Models.Habits;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
-using AppVidaSana.Models.Seguimientos_Mensuales;
-using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
 using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Data

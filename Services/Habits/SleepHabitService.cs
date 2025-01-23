@@ -1,7 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.Habits_Dtos.Sleep;
-using AppVidaSana.Models.Habitos;
+using AppVidaSana.Models.Habits;
 using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
 using AppVidaSana.ValidationValues;

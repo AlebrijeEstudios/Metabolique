@@ -1,9 +1,8 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Account_Profile.ResetPasswordException;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
-using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Authenticator;
 using AppVidaSana.Services.IServices;

@@ -1,7 +1,6 @@
 ﻿using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos;
-using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
 
-namespace AppVidaSana.Services.IServices.ISeguimientos_Mensuales
+namespace AppVidaSana.Services.IServices.IMonthly_Follow_Ups
 {
     public interface IMFUsExercise
     {

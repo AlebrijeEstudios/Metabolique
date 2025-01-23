@@ -1,7 +1,6 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
-using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Medications.SideEffects;
 using AppVidaSana.Services.IServices;

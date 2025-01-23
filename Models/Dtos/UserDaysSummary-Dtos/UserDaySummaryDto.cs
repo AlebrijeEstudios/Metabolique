@@ -1,7 +1,6 @@
-﻿using AppVidaSana.Models.Dtos.UserDaysSummary_Dtos;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
-namespace AppVidaSana.Models.Dtos
+namespace AppVidaSana.Models.Dtos.UserDaysSummary_Dtos
 {
     public class UserDaySummaryDto
     {

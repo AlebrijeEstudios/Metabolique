@@ -1,9 +1,8 @@
-﻿using AppVidaSana.Models.Monthly_Follow_Ups;
-using AppVidaSana.Models.Seguimientos_Mensuales.Resultados;
+﻿using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AppVidaSana.Models.Seguimientos_Mensuales
+namespace AppVidaSana.Models.Monthly_Follow_Ups
 {
     public class MFUsHabits
     {

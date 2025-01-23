@@ -1,9 +1,8 @@
 ﻿using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Feeding;
-using AppVidaSana.Models.Habitos;
+using AppVidaSana.Models.Habits;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
-using AppVidaSana.Models.Seguimientos_Mensuales;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

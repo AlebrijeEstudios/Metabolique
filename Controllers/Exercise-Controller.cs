@@ -1,8 +1,7 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Ejercicio;
-using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
-using AppVidaSana.ProducesReponseType;
+using AppVidaSana.Exceptions.Exercise;
+using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Exercise;
 using AppVidaSana.Services.IServices;

@@ -1,7 +1,7 @@
 ﻿using AppVidaSana.Models.Dtos.Habits_Dtos.Drugs;
 using Microsoft.AspNetCore.JsonPatch;
 
-namespace AppVidaSana.Services.IServices.IHabits.IHabits
+namespace AppVidaSana.Services.IServices.IHabits
 {
     public interface IDrugsHabit
     {

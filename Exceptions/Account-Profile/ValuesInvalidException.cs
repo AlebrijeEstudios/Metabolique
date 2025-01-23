@@ -1,4 +1,4 @@
-﻿namespace AppVidaSana.Exceptions.Cuenta_Perfil
+﻿namespace AppVidaSana.Exceptions.Account_Profile
 {
     public class ValuesInvalidException : Exception
     {

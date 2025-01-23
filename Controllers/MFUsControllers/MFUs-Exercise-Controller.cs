@@ -1,12 +1,10 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Cuenta_Perfil;
+using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos;
-using AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos;
-using AppVidaSana.ProducesReponseType;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Exercise.MFUsExercise;
-using AppVidaSana.Services.IServices.ISeguimientos_Mensuales;
+using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;

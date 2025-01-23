@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Ejercicio_Dtos;
-using AppVidaSana.Models.Dtos.Graphics_Dtos;
+﻿using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using Newtonsoft.Json;
 
 namespace AppVidaSana.Models.Dtos.Exercise_Dtos

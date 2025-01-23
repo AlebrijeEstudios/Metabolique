@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace AppVidaSana.Models.Dtos.Seguimientos_Mensuales_Dto.Ejercicio_Dtos
+namespace AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos
 {
     public class RetrieveResponsesExerciseDto
     {

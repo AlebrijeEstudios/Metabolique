@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AppVidaSana.Models.Seguimientos_Mensuales.Resultados
+namespace AppVidaSana.Models.Monthly_Follow_Ups.Results
 {
     public class HabitsResults
     {
