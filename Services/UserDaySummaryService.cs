@@ -1,7 +1,5 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Models.Dtos;
 using AppVidaSana.Models.Dtos.UserDaysSummary_Dtos;
-using AppVidaSana.Models.Medications;
 using AppVidaSana.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +13,7 @@ namespace AppVidaSana.Services
         {
             _bd = bd;
         }
-
+        
         public async Task<UserDaySummaryDto> GetUserDaySummaryAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
             var userName = await GetUserNameAsync(accountID, cancellationToken);
@@ -26,7 +24,7 @@ namespace AppVidaSana.Services
 
             var timeSleepSummary = await GetTimeSleepSummaryAsync(accountID, date, cancellationToken);
 
-            var medicationSummary = GetMedicationSummaryAsync(accountID, date);
+            var medicationSummary = await GetMedicationSummaryAsync(accountID, date, cancellationToken);
 
             UserDaySummaryDto userDaySummary = new UserDaySummaryDto
             {
@@ -102,23 +100,26 @@ namespace AppVidaSana.Services
             return 0;
         }
 
-        private MedicationSummaryDto GetMedicationSummaryAsync(Guid accountID, DateOnly date)
+        private async Task<MedicationSummaryDto> GetMedicationSummaryAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
+            var periods = await _bd.PeriodsMedications.Where(e => e.accountID == accountID
+                                                            && e.initialFrec <= date && date <= e.finalFrec).ToListAsync(cancellationToken);
+
+            var periodsID = periods.Select(e => e.periodID).ToList();
+
+            var daysConsumed = await _bd.DaysConsumedOfMedications.Where(e => periodsID.Contains(e.periodID) && e.dateConsumed == date)
+                                                                  .ToListAsync(cancellationToken);
+
+            var times = await _bd.Times.Where(e => daysConsumed.Select(d => d.dayConsumedID).Contains(e.dayConsumedID))
+                                       .ToListAsync(cancellationToken);
+
+
             MedicationSummaryDto medications = new MedicationSummaryDto();
 
-            var timesPeriod = from pMed in _bd.Set<PeriodsMedications>()
-                              join t in _bd.Set<Times>()
-                              on pMed.periodID equals t.periodID
-                              where pMed.accountID == accountID && t.dateMedication == date
-                              orderby t.time
-                              select t;
-
-            var timeList = timesPeriod.ToList();
-
-            if(timeList.Count > 0)
+            if(times.Count > 0)
             {
-                medications.limit = timeList.Count;
-                medications.value = timeList.Count(e => e.medicationStatus);
+                medications.limit = times.Count;
+                medications.value = times.Count(e => e.medicationStatus);
 
                 return medications;
             }
