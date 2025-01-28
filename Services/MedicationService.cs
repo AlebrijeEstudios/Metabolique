@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Sprache;
 using System.Data;
 using System.Globalization;
-using System.Linq;
 
 namespace AppVidaSana.Services
 {
@@ -124,11 +123,11 @@ namespace AppVidaSana.Services
 
             if (medication is null) { throw new UnstoredValuesException(); }
 
-            var infoMedication = await UpdateForNewDailyFrecAsync(values, period, medication, cancellationToken);
+            var dayConsumedID = await UpdateForNewDailyFrecAsync(values, period, medication, cancellationToken);
 
             if (period.initialFrec != values.initialFrec || period.finalFrec != values.finalFrec)
             {
-                infoMedication = await UpdateForNewDateInitialAndFinalAsync(period, values, medication, cancellationToken);
+                await UpdateForNewDateInitialAndFinalAsync(period, values, medication, cancellationToken);
             }
 
             period.dose = values.dose;
@@ -142,7 +141,7 @@ namespace AppVidaSana.Services
                 return null;
             }
 
-            return infoMedication;
+            return await InfoMedicationAsync(medication, period, dayConsumedID, values.updateDate, cancellationToken); ;
         }
 
         public async Task UpdateStatusMedicationAsync(UpdateMedicationStatusDto value, CancellationToken cancellationToken)
@@ -160,26 +159,14 @@ namespace AppVidaSana.Services
 
         public async Task<string> DeleteAMedicationAsync(Guid periodID, DateOnly date, CancellationToken cancellationToken)
         {
-            var daysConsumed = await _bd.DaysConsumedOfMedications.Where(e => e.periodID == periodID).ToListAsync(cancellationToken);
+            var dayConsumed = await _bd.DaysConsumedOfMedications.FirstOrDefaultAsync(e => e.periodID == periodID
+                                                                                       && e.dateConsumed == date, cancellationToken);
 
-            var dayConsumedToDelete = daysConsumed.FirstOrDefault(e => e.dateConsumed == date);
+            if (dayConsumed is null) { return "Este registro no existe, inténtelo de nuevo."; }
 
-            if (dayConsumedToDelete is null) { return "Este registro no existe, inténtelo de nuevo."; }
-
-            _bd.DaysConsumedOfMedications.Remove(dayConsumedToDelete);
+            _bd.DaysConsumedOfMedications.Remove(dayConsumed);
 
             if (!Save()) { throw new UnstoredValuesException(); }
-
-            if(daysConsumed.Count == 0)
-            {
-                var period = await _bd.PeriodsMedications.FindAsync(new object[] { periodID }, cancellationToken);
-
-                _bd.PeriodsMedications.Remove(period!);
-
-                if (!Save()) { throw new UnstoredValuesException(); }
-
-                return "Se ha eliminado correctamente.";
-            }
             
             await UpdateDatesExcludedAsync(periodID, date, cancellationToken);
 
@@ -211,7 +198,24 @@ namespace AppVidaSana.Services
             } else {
                 period.datesExcluded = period.datesExcluded + "," + date.ToString();
             }
-            
+
+            if(period.initialFrec == date)
+            {
+                period.initialFrec = date.AddDays(1);
+            }
+
+            if(period.finalFrec == date)
+            {
+                period.finalFrec = date.AddDays(-1);
+            }
+
+            var daysConsumed = await _bd.DaysConsumedOfMedications.Where(e => e.periodID == periodID).ToListAsync(cancellationToken);
+
+            if(daysConsumed.Count == 0)
+            { 
+                _bd.PeriodsMedications.Remove(period);
+            }
+
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
@@ -233,7 +237,7 @@ namespace AppVidaSana.Services
         }
 
         private async Task<InfoMedicationDto> InfoMedicationAsync(Medication medication, PeriodsMedications period, 
-                                                                  Guid dayConsumedID, DateOnly date, CancellationToken cancellationToken)
+                                                                  Guid dayConsumedID, DateOnly date,CancellationToken cancellationToken)
         {
             var recordsTimes = await _bd.Times.Where(e => e.dayConsumedID == dayConsumedID).ToListAsync(cancellationToken);
 
@@ -378,13 +382,6 @@ namespace AppVidaSana.Services
             var periods = await _bd.PeriodsMedications.Where(e => e.accountID == accountID
                                                              && dates.Any(date => e.initialFrec <= date && date <= e.finalFrec )).ToListAsync(cancellationToken);
 
-            /*var datesExcludedPeriods = periods.Select(e => e.datesExcluded).ToList();
-
-            string[] datesExcluded = period.datesExcluded?.Split(',') ?? [];
-
-            if (!datesExcluded.Contains(dateActual.ToString())*/
-
-
             var periodsID = periods.Select(e => e.periodID).ToList();
 
             var daysConsumed = await _bd.DaysConsumedOfMedications.Where(e => periodsID.Contains(e.periodID))
@@ -395,9 +392,8 @@ namespace AppVidaSana.Services
 
             foreach(var date in dates)
             {
-                //datesExcludedPeriods
-
-                var daysConsumedToPeriod = daysConsumed.Where(e => e.dateConsumed == date).ToList();
+                var daysConsumedToPeriod = daysConsumed.Where(e => e.dateConsumed == date
+                                                              && !((periods.FirstOrDefault(p => p.periodID == e.periodID)?.datesExcluded ?? "")?.Split(',') ?? []).Contains(date.ToString())).ToList();
 
                 foreach (var day in daysConsumedToPeriod)
                 {
@@ -518,29 +514,16 @@ namespace AppVidaSana.Services
             }
         }
 
-        private async Task<InfoMedicationDto?> UpdateForNewDateInitialAndFinalAsync(PeriodsMedications period, UpdateMedicationUseDto values,
-                                                                                    Medication medication, CancellationToken cancellationToken)
+        private async Task UpdateForNewDateInitialAndFinalAsync(PeriodsMedications period, UpdateMedicationUseDto values,
+                                                                Medication medication, CancellationToken cancellationToken)
         {
-            string[] datesExcluded = period.datesExcluded?.Split(',') ?? [];
+            string[] datesExcluded = period.datesExcluded?.Split(',').Where(date => !string.IsNullOrWhiteSpace(date)).ToArray() ?? [];
 
             List<DateOnly> dates = new List<DateOnly>();
 
             string[] updateDatesExcluded;
 
             if (values.finalFrec < values.initialFrec) { throw new UnstoredValuesException(); }
-
-            if (values.finalFrec < values.updateDate || values.updateDate < values.initialFrec)
-            {
-                dates = DatesInRange.GetDatesInRange(values.initialFrec, values.finalFrec);
-
-                var datesPrevious = DatesInRange.GetDatesInRange(period.initialFrec, period.finalFrec);
-
-                updateDatesExcluded = datesPrevious.Select(e => e.ToString()).Where(date => !dates.Select(e => e.ToString()).Contains(date)).ToArray();
-
-                datesExcluded = (datesExcluded ?? []).Union(updateDatesExcluded).ToArray();
-
-                period.datesExcluded = string.Join(",", datesExcluded ?? []);
-            }
 
             if (values.initialFrec < period.initialFrec)
             {
@@ -568,7 +551,9 @@ namespace AppVidaSana.Services
 
                 updateDatesExcluded = datesPrevious.Select(e => e.ToString()).Where(date => !dates.Select(e => e.ToString()).Contains(date)).ToArray();
 
-                datesExcluded = (datesExcluded ?? []).Union(updateDatesExcluded).ToArray();
+                datesExcluded = ((datesExcluded ?? []).Where(date => !dates.Select(e => e.ToString()).Contains(date))).Union(updateDatesExcluded).ToArray();
+
+                await DeleteDatesExcludedAsync(period.periodID, datesExcluded, cancellationToken);
 
                 period.datesExcluded = string.Join(",", datesExcluded ?? []);
             }
@@ -579,11 +564,6 @@ namespace AppVidaSana.Services
             ValidationValuesDB.ValidationValues(period);
 
             if (!Save()) { throw new UnstoredValuesException(); }
-
-            var dayConsumed = await _bd.DaysConsumedOfMedications.FirstOrDefaultAsync(e => e.periodID == values.periodID
-                                                                                      && e.dateConsumed == values.updateDate, cancellationToken);
-
-            return await InfoMedicationAsync(medication, period, dayConsumed!.dayConsumedID, values.updateDate, cancellationToken);
         }
 
         private string[] UpdateDatesExcluded(string[] datesExcluded, List<DateOnly> dates)
@@ -593,8 +573,18 @@ namespace AppVidaSana.Services
             return datesExcluded.Except(updateDatesExcluded).ToArray();
         } 
 
-        private async Task<InfoMedicationDto> UpdateForNewDailyFrecAsync(UpdateMedicationUseDto values, PeriodsMedications period, 
-                                                                         Medication medication, CancellationToken cancellationToken)
+        private async Task DeleteDatesExcludedAsync(Guid periodID, string[] datesExcluded, CancellationToken cancellationToken)
+        {
+            var dates = await _bd.DaysConsumedOfMedications.Where(e => e.periodID == periodID
+                                                                  && datesExcluded.Select(e => DateOnly.Parse(e)).Contains(e.dateConsumed)).ToListAsync(cancellationToken);
+
+            _bd.DaysConsumedOfMedications.RemoveRange(dates);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private async Task<Guid> UpdateForNewDailyFrecAsync(UpdateMedicationUseDto values, PeriodsMedications period, 
+                                                            Medication medication, CancellationToken cancellationToken)
         {
             var dayConsumed = await _bd.DaysConsumedOfMedications.FirstOrDefaultAsync(e => e.periodID == values.periodID
                                                                                       && e.dateConsumed == values.updateDate, cancellationToken);
@@ -628,15 +618,15 @@ namespace AppVidaSana.Services
 
                 await RemoveTimesAsync(period, dayConsumed, values.times, cancellationToken);
 
-                return await InfoMedicationAsync(medication, period, dayConsumed.dayConsumedID, values.updateDate, cancellationToken);
+                return dayConsumed.dayConsumedID;
             }
             else
             {
                 processRecords(values.times, values.updateDate);
 
-                AddNewTimes(period, dayConsumed, values.newTimes);
+                AddNewTimes(period, dayConsumed, values.times, values.newTimes);
 
-                return await InfoMedicationAsync(medication, period, dayConsumed.dayConsumedID, values.updateDate, cancellationToken);
+                return dayConsumed.dayConsumedID;
             }
         }
 
@@ -673,13 +663,17 @@ namespace AppVidaSana.Services
 
             period.timesPeriod = joinTimes;
 
-
             if (!Save()) { throw new UnstoredValuesException(); }
         }
 
-        private void AddNewTimes(PeriodsMedications period, DaysConsumedOfMedications dayConsumed, string newTimes)
+        private void AddNewTimes(PeriodsMedications period, DaysConsumedOfMedications dayConsumed,
+                                 List<TimeListDto> times, string newTimes)
         {
-            List<Times> times = new List<Times>();
+            List<Times> newTimesList = new List<Times>();
+
+            var joinTimes = string.Join(", ", times.Select(e => e.time.ToString("HH:mm")));
+
+            dayConsumed.consumptionTimes = joinTimes;
 
             string[] subs = newTimes.Split(',');
 
@@ -694,12 +688,12 @@ namespace AppVidaSana.Services
 
                 ValidationValuesDB.ValidationValues(time);
 
-                times.Add(time);
+                newTimesList.Add(time);
 
                 dayConsumed.consumptionTimes = dayConsumed.consumptionTimes + ", " + sub;
             }
 
-            _bd.Times.AddRange(times);
+            _bd.Times.AddRange(newTimesList);
 
             ValidationValuesDB.ValidationValues(dayConsumed);
 
