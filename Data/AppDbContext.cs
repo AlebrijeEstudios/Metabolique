@@ -43,6 +43,7 @@ namespace AppVidaSana.Data
         public DbSet<Medication> Medications { get; set; }
         public DbSet<MFUsMedication> MFUsMedication { get; set; }
         public DbSet<PeriodsMedications> PeriodsMedications { get; set; }
+        public DbSet<DaysConsumedOfMedications> DaysConsumedOfMedications { get; set; }
         public DbSet<Times> Times { get; set; }
         public DbSet<SideEffects> SideEffects { get; set; }
         public DbSet<StatusAdherence> StatusAdherence { get; set; }
@@ -241,9 +242,15 @@ namespace AppVidaSana.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PeriodsMedications>()
-                .HasMany(periods => periods.times)
-                .WithOne(times => times.periods)
-                .HasForeignKey(times => times.periodID)
+                .HasMany(periods => periods.daysConsumedOfMedications)
+                .WithOne(days => days.periodMedication)
+                .HasForeignKey(days => days.periodID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DaysConsumedOfMedications>()
+                .HasMany(days => days.times)
+                .WithOne(times => times.daysConsumedOfMedications)
+                .HasForeignKey(times => times.dayConsumedID)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Times>()
