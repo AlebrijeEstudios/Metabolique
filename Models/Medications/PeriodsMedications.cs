@@ -32,7 +32,6 @@ namespace AppVidaSana.Models.Medications
 
         public Account? account { get; set; }
 
-        public ICollection<Times> times { get; set; } = new List<Times>();
-
+        public ICollection<DaysConsumedOfMedications> daysConsumedOfMedications { get; set; } = new List<DaysConsumedOfMedications>();
     }
 }

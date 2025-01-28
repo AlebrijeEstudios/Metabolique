@@ -8,11 +8,8 @@ namespace AppVidaSana.Models.Medications
         [Key]
         public Guid timeID { get; set; } = Guid.NewGuid();
 
-        [ForeignKey("PeriodsMedications")]
-        public Guid periodID { get; set; }
-
-        [Required(ErrorMessage = "El campo fecha es obligatoria.")]
-        public DateOnly dateMedication { get; set; }
+        [ForeignKey("DaysConsumedOfMedications")]
+        public Guid dayConsumedID { get; set; }
 
         [Required(ErrorMessage = "El campo horario es obligatoria.")]
         public TimeOnly time { get; set; }
@@ -20,7 +17,6 @@ namespace AppVidaSana.Models.Medications
         [Required(ErrorMessage = "El campo status de medicamento es obligatorio.")]
         public bool medicationStatus { get; set; }
 
-        public PeriodsMedications? periods { get; set; }
-
+        public DaysConsumedOfMedications? daysConsumedOfMedications { get; set; }
     }
 }
