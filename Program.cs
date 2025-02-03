@@ -1,4 +1,3 @@
-using AppVidaSana.Api;
 using AppVidaSana.Api.Key;
 using AppVidaSana.Data;
 using AppVidaSana.JsonFormat;
@@ -27,7 +26,7 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
@@ -35,7 +34,7 @@ var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnviro
 var keyBytes = Encoding.ASCII.GetBytes(token!);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
-builder.Services.AddDbContext<ApiDbContext>(options => options.UseInMemoryDatabase(nameof(ApiDbContext)));
+//builder.Services.AddDbContext<ApiDbContext>(options => options.UseInMemoryDatabase(nameof(ApiDbContext)));
 
 builder.Services.AddSingleton(x => new BlobServiceClient(storageAccount));
 
@@ -70,7 +69,6 @@ builder.Services.AddRequestTimeouts(options =>
             }
         });
 });
-
 
 builder.Services.AddControllers(options =>
 {
@@ -144,14 +142,14 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
+/*builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
     .AddScheme<ApiKeySchemeOptions, ApiKeySchemeHandler>(
         ApiKeySchemeOptions.Scheme, options =>
         {
             options.HeaderName = "Metabolique_API_KEY";
-        });
+        });*/
 
-builder.Services.AddControllers();
+//builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -230,6 +228,22 @@ app.Use(async (context, next) =>
 
         await context.Response.WriteAsJsonAsync(errorResponse);
     }
+    catch (ApiKeyException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        context.Response.ContentType = "application/json";
+
+        var errorResponse = new ExceptionExpiredTokenMessage
+        {
+            status = StatusCodes.Status401Unauthorized,
+            error = "Unauthorized",
+            message = ex.Message,
+            timestamp = DateTime.UtcNow.ToString("o"),
+            path = context.Request.Path
+        };
+
+        await context.Response.WriteAsJsonAsync(errorResponse);
+    }
 });
 
 app.UseHttpsRedirection();
@@ -244,11 +258,11 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllers();
 
-await Seed();
+//await Seed();
 
 await app.RunAsync();
 
-async Task Seed()
+/*async Task Seed()
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetService<ApiDbContext>();
@@ -270,5 +284,5 @@ async Task Seed()
 
         await context.SaveChangesAsync();
     }
-}
+}*/
 
