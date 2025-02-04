@@ -7,6 +7,3 @@ TestResult/
 Test/
 AppVidaSana.http
 appsettings.Development.json
-Api/Key/*
-Api/ApiKeySchemeHandler.cs
-Api/ApiKeySchemeOptions.cs
