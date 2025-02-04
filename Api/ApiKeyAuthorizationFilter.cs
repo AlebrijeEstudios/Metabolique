@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AppVidaSana.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace AppVidaSana.Api
@@ -13,7 +14,7 @@ namespace AppVidaSana.Api
 
             if (string.IsNullOrEmpty(apiKeyHeader) || (storedApiKey != headerApiKey))
             {
-                context.Result = new UnauthorizedResult();
+                throw new ApiKeyException();
             }
         }
     }
