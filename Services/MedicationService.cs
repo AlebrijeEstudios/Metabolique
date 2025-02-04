@@ -199,14 +199,34 @@ namespace AppVidaSana.Services
                 period.datesExcluded = period.datesExcluded + "," + date.ToString();
             }
 
-            if(period.initialFrec == date)
+            string[] datesExcluded = period.datesExcluded?.Split(',') ?? [];
+
+            if (period.initialFrec == date)
             {
-                period.initialFrec = date.AddDays(1);
+                var dates = DatesInRange.GetDatesInRange(date.AddDays(1), period.finalFrec);
+
+                foreach(var newDate in dates)
+                {
+                    if (!datesExcluded.Contains(newDate.ToString()))
+                    {
+                        period.initialFrec = newDate;
+                        break;
+                    }
+                }
             }
 
             if(period.finalFrec == date)
             {
-                period.finalFrec = date.AddDays(-1);
+                var dates = DatesInRange.GetDatesInRange(period.initialFrec, date.AddDays(-1)).OrderDescending();
+
+                foreach (var newDate in dates)
+                {
+                    if (!datesExcluded.Contains(newDate.ToString()))
+                    {
+                        period.finalFrec = newDate;
+                        break;
+                    }
+                }
             }
 
             var daysConsumed = await _bd.DaysConsumedOfMedications.Where(e => e.periodID == periodID).ToListAsync(cancellationToken);

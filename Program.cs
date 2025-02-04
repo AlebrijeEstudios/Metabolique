@@ -1,5 +1,3 @@
-using AppVidaSana.Api;
-using AppVidaSana.Api.Key;
 using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.JsonFormat;
@@ -36,7 +34,6 @@ var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnviro
 var keyBytes = Encoding.ASCII.GetBytes(token!);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
-builder.Services.AddDbContext<ApiDbContext>(options => options.UseInMemoryDatabase(nameof(ApiDbContext)));
 
 builder.Services.AddSingleton(x => new BlobServiceClient(storageAccount));
 
@@ -62,7 +59,7 @@ builder.Services.AddRequestTimeouts(options =>
                 {
                     status = StatusCodes.Status503ServiceUnavailable,
                     error = "Service Unavailable",
-                    message = "La petición ha tardado más de lo esperado, intentelo de nuevo.",
+                    message = "La peticiï¿½n ha tardado mï¿½s de lo esperado, intentelo de nuevo.",
                     timestamp = DateTime.UtcNow.ToString("o"),
                     path = context.Request.Path
                 };
@@ -71,7 +68,6 @@ builder.Services.AddRequestTimeouts(options =>
             }
         });
 });
-
 
 builder.Services.AddControllers(options =>
 {
@@ -144,15 +140,6 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-
-builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
-    .AddScheme<ApiKeySchemeOptions, ApiKeySchemeHandler>(
-        ApiKeySchemeOptions.Scheme, options =>
-        {
-            options.HeaderName = "Metabolique_API_KEY";
-        });
-
-builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -231,6 +218,22 @@ app.Use(async (context, next) =>
 
         await context.Response.WriteAsJsonAsync(errorResponse);
     }
+    catch (ApiKeyException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        context.Response.ContentType = "application/json";
+
+        var errorResponse = new ExceptionExpiredTokenMessage
+        {
+            status = StatusCodes.Status401Unauthorized,
+            error = "Unauthorized",
+            message = ex.Message,
+            timestamp = DateTime.UtcNow.ToString("o"),
+            path = context.Request.Path
+        };
+
+        await context.Response.WriteAsJsonAsync(errorResponse);
+    }
 });
 
 app.UseHttpsRedirection();
@@ -245,31 +248,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllers();
 
-await Seed();
-
 await app.RunAsync();
-
-async Task Seed()
-{
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetService<ApiDbContext>();
-
-    var apiKeyEnv = Environment.GetEnvironmentVariable("API_KEY");
-
-    if (string.IsNullOrEmpty(apiKeyEnv))
-    {
-        throw new InvalidOperationException("La variable de entorno 'API_KEY' no estï¿½ configurada.");
-    }
-
-    if (!await context!.ApiKeys.AnyAsync())
-    {
-        context.ApiKeys.Add(new ApiKey
-        {
-            Key = Guid.Parse(apiKeyEnv),
-            Name = "Metabolique"
-        });
-
-        await context.SaveChangesAsync();
-    }
-}
-
