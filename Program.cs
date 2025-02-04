@@ -1,4 +1,3 @@
-using AppVidaSana.Api.Key;
 using AppVidaSana.Data;
 using AppVidaSana.JsonFormat;
 using AppVidaSana.Mappers;
@@ -26,7 +25,7 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
+var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
 
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
@@ -34,7 +33,6 @@ var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnviro
 var keyBytes = Encoding.ASCII.GetBytes(token!);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
-//builder.Services.AddDbContext<ApiDbContext>(options => options.UseInMemoryDatabase(nameof(ApiDbContext)));
 
 builder.Services.AddSingleton(x => new BlobServiceClient(storageAccount));
 
@@ -141,15 +139,6 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-
-/*builder.Services.AddAuthentication(ApiKeySchemeOptions.Scheme)
-    .AddScheme<ApiKeySchemeOptions, ApiKeySchemeHandler>(
-        ApiKeySchemeOptions.Scheme, options =>
-        {
-            options.HeaderName = "Metabolique_API_KEY";
-        });*/
-
-//builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -258,31 +247,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllers();
 
-//await Seed();
-
 await app.RunAsync();
-
-/*async Task Seed()
-{
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetService<ApiDbContext>();
-
-    var apiKeyEnv = Environment.GetEnvironmentVariable("API_KEY");
-
-    if (string.IsNullOrEmpty(apiKeyEnv))
-    {
-        throw new InvalidOperationException("La variable de entorno 'API_KEY' no está configurada.");
-    }
-
-    if (!await context!.ApiKeys.AnyAsync())
-    {
-        context.ApiKeys.Add(new ApiKey
-        {
-            Key = Guid.Parse(apiKeyEnv),
-            Name = "Metabolique"
-        });
-
-        await context.SaveChangesAsync();
-    }
-}*/
-
