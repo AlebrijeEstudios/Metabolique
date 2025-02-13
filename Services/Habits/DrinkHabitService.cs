@@ -51,7 +51,7 @@ namespace AppVidaSana.Services.Habits
         {
             var habitDrink = await _bd.HabitsDrink.FindAsync(new object[] { drinkHabitID }, cancellationToken);
 
-            if (habitDrink is null) { throw new HabitNotFoundException("No hay información de la cantidad consumida. Inténtelo de nuevo."); }
+            if (habitDrink is null) { throw new HabitNotFoundException("No hay informaci&oacute;n de la cantidad consumida. Int&eacute;ntelo de nuevo."); }
 
             values.ApplyTo(habitDrink);
 

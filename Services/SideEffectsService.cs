@@ -73,7 +73,7 @@ namespace AppVidaSana.Services
 
             if (sideEffectToDelete is null)
             {
-                return "Este registro no existe, inténtelo de nuevo.";
+                return "Este registro no existe, int&eacute;ntelo de nuevo.";
             }
 
             _bd.SideEffects.Remove(sideEffectToDelete);

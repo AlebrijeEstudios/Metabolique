@@ -2,7 +2,7 @@
 {
     public class RequestTimeoutException : Exception
     {
-        public RequestTimeoutException() : base("La petición ha tardado más de lo esperado, intentelo de nuevo.")
+        public RequestTimeoutException() : base("La petici&oacute;n ha tardado m&aacute;s de lo esperado, int&eacute;ntelo de nuevo.")
         {
         }
     }

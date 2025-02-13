@@ -2,7 +2,7 @@
 {
     public class ComparedEmailException : Exception
     {
-        public ComparedEmailException() : base("Autenticación fallida: El correo no corresponde al del usuario autenticado.")
+        public ComparedEmailException() : base("Autenticaci&oacute;n fallida: El correo no corresponde al del usuario autenticado.")
         {
         }
     }

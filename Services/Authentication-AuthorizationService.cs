@@ -49,13 +49,13 @@ namespace AppVidaSana.Services
         {
             var refreshToken = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
 
-            if (refreshToken is null) { return "Cierre de sesión reciente.";  } 
+            if (refreshToken is null) { return "Cierre de sesi&oacute;n reciente.";  } 
 
             _bd.HistorialRefreshTokens.Remove(refreshToken!);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            return "Cierre de sesión exitoso.";
+            return "Cierre de sesi&oacute;n exitoso.";
         }
 
         public async Task<TokensDto> RefreshTokenAsync(TokensDto values, CancellationToken cancellationToken)
