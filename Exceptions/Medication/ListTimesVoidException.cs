@@ -2,7 +2,7 @@
 {
     public class ListTimesVoidException : Exception
     {
-        public ListTimesVoidException() : base("Debe agregar al menos un horario, inténtelo de nuevo.") { }
+        public ListTimesVoidException() : base("Debe agregar al menos un horario, int&eacute;ntelo de nuevo.") { }
 
     }
 }

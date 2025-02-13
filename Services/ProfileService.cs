@@ -52,7 +52,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            return "Su cuenta se actualizó con éxito.";
+            return "Su cuenta se actualiz&oacute; con &eacute;xito.";
         }
 
         public bool Save()

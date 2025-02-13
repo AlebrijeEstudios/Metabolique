@@ -162,7 +162,7 @@ namespace AppVidaSana.Services
             var dayConsumed = await _bd.DaysConsumedOfMedications.FirstOrDefaultAsync(e => e.periodID == periodID
                                                                                        && e.dateConsumed == date, cancellationToken);
 
-            if (dayConsumed is null) { return "Este registro no existe, inténtelo de nuevo."; }
+            if (dayConsumed is null) { return "Este registro no existe, int&eacute;ntelo de nuevo."; }
 
             _bd.DaysConsumedOfMedications.Remove(dayConsumed);
 

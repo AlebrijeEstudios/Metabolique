@@ -2,7 +2,7 @@
 {
     public class RefreshTokenExpirationException : Exception
     {
-        public RefreshTokenExpirationException() : base("El refresh token expiró, inicie sesión.")
+        public RefreshTokenExpirationException() : base("El refresh token expir&oacute;, inicie sesi&oacute;n.")
         {
         }
     }
