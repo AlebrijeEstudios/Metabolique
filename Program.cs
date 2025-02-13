@@ -58,7 +58,7 @@ builder.Services.AddRequestTimeouts(options =>
                 {
                     status = StatusCodes.Status503ServiceUnavailable,
                     error = "Service Unavailable",
-                    message = "La petici&oacute;n ha tardado m&aacute;s de lo esperado, int&eacute;ntelo de nuevo.",
+                    message = "La petición ha tardado más de lo esperado, inténtelo de nuevo.",
                     timestamp = DateTime.UtcNow.ToString("o"),
                     path = context.Request.Path
                 };
