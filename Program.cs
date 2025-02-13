@@ -50,7 +50,7 @@ builder.Services.AddRequestTimeouts(options =>
     options.AddPolicy("CustomPolicy",
         new RequestTimeoutPolicy
         {
-            Timeout = TimeSpan.FromSeconds(1),
+            Timeout = TimeSpan.FromSeconds(45),
             TimeoutStatusCode = 503,
             WriteTimeoutResponse = async (HttpContext context) => {
                 context.Response.ContentType = "application/json";
@@ -58,7 +58,7 @@ builder.Services.AddRequestTimeouts(options =>
                 {
                     status = StatusCodes.Status503ServiceUnavailable,
                     error = "Service Unavailable",
-                    message = "La petición ha tardado más de lo esperado, inténtelo de nuevo.",
+                    message = "La petici&oacute;n ha tardado m&aacute;s de lo esperado, int&eacute;ntelo de nuevo.",
                     timestamp = DateTime.UtcNow.ToString("o"),
                     path = context.Request.Path
                 };
