@@ -51,7 +51,7 @@ builder.Services.AddRequestTimeouts(options =>
     options.AddPolicy("CustomPolicy",
         new RequestTimeoutPolicy
         {
-            Timeout = TimeSpan.FromSeconds(30),
+            Timeout = TimeSpan.FromSeconds(1),
             TimeoutStatusCode = 503,
             WriteTimeoutResponse = async (HttpContext context) => {
                 context.Response.ContentType = "application/json";
