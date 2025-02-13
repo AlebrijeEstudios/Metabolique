@@ -2,7 +2,7 @@
 {
     public class NullTokenException : Exception
     {
-        public NullTokenException() : base("El keyToken no está configurado.")
+        public NullTokenException() : base("El keyToken no est&aacute; configurado.")
         {
         }
     }

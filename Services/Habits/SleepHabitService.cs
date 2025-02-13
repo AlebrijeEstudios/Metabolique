@@ -52,7 +52,7 @@ namespace AppVidaSana.Services.Habits
         {
             var habitSleep = await _bd.HabitsSleep.FindAsync(new object[] { sleepHabitID }, cancellationToken);
 
-            if (habitSleep is null) { throw new HabitNotFoundException("No hay información de horas de sueño. Inténtelo de nuevo."); }
+            if (habitSleep is null) { throw new HabitNotFoundException("No hay informaci&oacute;n de horas de sueño. Int&eacute;ntelo de nuevo."); }
 
             values.ApplyTo(habitSleep);
 

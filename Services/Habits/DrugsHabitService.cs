@@ -52,7 +52,7 @@ namespace AppVidaSana.Services.Habits
         {
             var habitDrugs = await _bd.HabitsDrugs.FindAsync(new object[] { drugsHabitID }, cancellationToken);
 
-            if (habitDrugs is null) { throw new HabitNotFoundException("No hay información de consumo de drogas. Inténtelo de nuevo."); }
+            if (habitDrugs is null) { throw new HabitNotFoundException("No hay informaci&oacute;n de consumo de drogas. Int&eacute;ntelo de nuevo."); }
 
             values.ApplyTo(habitDrugs);
 

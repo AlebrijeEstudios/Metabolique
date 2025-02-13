@@ -2,7 +2,7 @@
 {
     public class EmailValidationTimeoutException : Exception
     {
-        public EmailValidationTimeoutException() : base("La verificación del formato del correo electrónico ha tomado demasiado tiempo.")
+        public EmailValidationTimeoutException() : base("La verificaci&oacute;n del formato del correo electr&oacute;nico ha tomado demasiado tiempo.")
         {
         }
     }

@@ -161,12 +161,12 @@ namespace AppVidaSana.Services
 
             if (!RegexPatterns.RegexPatterns.Emailregex.IsMatch(email))
             {
-                return "El correo electrónico no tiene un formato válido.";
+                return "El correo electr&oacute;nico no tiene un formato v&aacute;lido.";
             }
 
             if (existingEmail!)
             {
-                return "Este correo electrónico está ligado a una cuenta existente.";
+                return "Este correo electr&oacute;nico est&aacute; ligado a una cuenta existente.";
             }
 
             return "";
@@ -176,12 +176,12 @@ namespace AppVidaSana.Services
         {
             if (password.Length < 8)
             {
-                return "La contraseña debe tener al menos 8 caracteres.";
+                return "La contrase&ntilde;a debe tener al menos 8 caracteres.";
             }
 
             if (!RegexPatterns.RegexPatterns.Passwordregex.IsMatch(password))
             {
-                return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico.";
+                return "La contrase&ntilde;a debe contener al menos un n&uacute;mero, una letra min&uacute;scula o letra may&uacute;scula y un car&aacute;cter alfanum&eacute;rico.";
             }
 
             return "";

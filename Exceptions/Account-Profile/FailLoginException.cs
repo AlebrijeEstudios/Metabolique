@@ -2,7 +2,7 @@
 {
     public class FailLoginException : Exception
     {
-        public FailLoginException() : base("El usuario o contraseña no existen y/o estan incorrectos.")
+        public FailLoginException() : base("El usuario o contrase&ntilde;a no existen y/o estan incorrectos.")
         {
         }
     }

@@ -2,7 +2,7 @@
 {
     public class UnstoredValuesException : Exception
     {
-        public UnstoredValuesException() : base("No se puede realizar la acción requerida, inténtelo de nuevo.")
+        public UnstoredValuesException() : base("No se puede realizar la acci&oacute;n requerida, int&eacute;ntelo de nuevo.")
         {
         }
     }
