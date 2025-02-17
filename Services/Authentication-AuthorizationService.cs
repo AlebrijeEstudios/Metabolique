@@ -7,82 +7,97 @@ using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.Tokens;
-using AppVidaSana.ValidationValues;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Threading;
 
 namespace AppVidaSana.Services
 {
     public class AuthenticationAuthorizationService : IAuthenticationAuthorization
     {
-        private readonly AppDbContext _bd;
+        private readonly IDbContextFactory<AppDbContext> _contextFactory;
 
-        public AuthenticationAuthorizationService(AppDbContext bd)
+        public AuthenticationAuthorizationService(IDbContextFactory<AppDbContext> contextFactory)
         {
-            _bd = bd;
+            _contextFactory = contextFactory;
         }
 
         public async Task<TokensDto> LoginAccountAsync(LoginDto login, CancellationToken cancellationToken)
         {
-            var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.email == login.email, cancellationToken);
+            using var context = _contextFactory.CreateDbContext();
+
+            var account = await context.Accounts.FirstOrDefaultAsync(u => u.email == login.email, cancellationToken);
 
             if (account is null || !BCrypt.Net.BCrypt.Verify(login.password, account.password))
             {
                 throw new FailLoginException();
             }
 
-            var accessToken = await CreateTokenAsync(account, cancellationToken);
-            var refreshToken = await CreateRefreshTokenAsync(account.accountID, cancellationToken);
+            var accessToken = CreateAccessTokenAsync(account, cancellationToken);
+            var refreshToken = CreateRefreshTokenAsync(account.accountID, cancellationToken);
 
-            TokensDto response = new TokensDto()
-            {
-                accountID = account.accountID,
-                accessToken = accessToken,
-                refreshToken = refreshToken
-            };
+            TokensDto response = new TokensDto();
+
+            response.accountID = account.accountID;
+            response.accessToken = await accessToken;
+            response.refreshToken = await refreshToken;
 
             return response;
         }
 
         public async Task<string> LogoutAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
-            var refreshToken = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+            using var context = _contextFactory.CreateDbContext();
 
-            if (refreshToken is null) { return "Cierre de sesi&oacute;n reciente.";  } 
+            var refreshToken = await context.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
 
-            _bd.HistorialRefreshTokens.Remove(refreshToken!);
+            if (refreshToken is null) { return "Cierre de sesi&oacute;n reciente."; }
 
-            if (!Save()) { throw new UnstoredValuesException(); }
+            context.HistorialRefreshTokens.Remove(refreshToken!);
+
+            try
+            {
+                await context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+
+                throw new UnstoredValuesException();
+
+            }
 
             return "Cierre de sesi&oacute;n exitoso.";
         }
 
         public async Task<TokensDto> RefreshTokenAsync(TokensDto values, CancellationToken cancellationToken)
         {
-            var user = await _bd.Accounts.FirstOrDefaultAsync(e => e.accountID == values.accountID, cancellationToken);
+            using var context = _contextFactory.CreateDbContext();
 
-            var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.refreshToken == values.refreshToken, 
-                                                                                 cancellationToken);
+            var account = await context.Accounts.FirstOrDefaultAsync(e => e.accountID == values.accountID, cancellationToken);
 
-            if(user is null || historial is null) { throw new UnstoredValuesException(); }
+            var historial = await context.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.refreshToken == values.refreshToken,
+                                                                                        cancellationToken);
 
-            var accessToken = await CreateTokenAsync(user, cancellationToken);
-            var refreshToken = UpdateRefreshTokenAsync(historial);
+            if (account is null || historial is null) { throw new UnstoredValuesException(); }
 
-            TokensDto response = new TokensDto()
-            {
-                accountID = user.accountID,
-                accessToken = accessToken,
-                refreshToken = refreshToken
-            };
+            var accessToken = CreateAccessTokenAsync(account, cancellationToken);
+            var refreshToken = UpdateRefreshTokenAsync(context, historial, cancellationToken);
+
+            TokensDto response = new TokensDto();
+
+            response.accountID = account.accountID;
+            response.accessToken = await accessToken;
+            response.refreshToken = await refreshToken;
 
             return response;
         }
 
-        private async Task<string> CreateTokenAsync(Account account, CancellationToken cancellationToken)
+        private async Task<string> CreateAccessTokenAsync(Account account, CancellationToken cancellationToken)
         {
-            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID, cancellationToken);
+            using var context = _contextFactory.CreateDbContext();
+
+            var role = await context.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID, cancellationToken);
 
             Claim[] claims = new Claim[]
             {
@@ -100,11 +115,13 @@ namespace AppVidaSana.Services
 
         private async Task<string> CreateRefreshTokenAsync(Guid accountID, CancellationToken cancellationToken)
         {
+            using var context = _contextFactory.CreateDbContext();
+
             var refreshToken = GenerateRefreshToken();
 
-            var historial = await _bd.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
-            
-            if(historial is null)
+            var historial = await context.HistorialRefreshTokens.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            if (historial is null)
             {
                 HistorialRefreshToken historialRefreshToken = new HistorialRefreshToken
                 {
@@ -113,27 +130,40 @@ namespace AppVidaSana.Services
                     dateExpiration = DateTime.Now.AddDays(14)
                 };
 
-                ValidationValuesDB.ValidationValues(historialRefreshToken);
+                await context.HistorialRefreshTokens.AddAsync(historialRefreshToken, cancellationToken);
 
-                _bd.HistorialRefreshTokens.Add(historialRefreshToken);
+                try {
+                    await context.SaveChangesAsync(cancellationToken);
+                }
+                catch (Exception)
+                {
 
-                if (!Save()) { throw new UnstoredValuesException(); }
+                    throw new UnstoredValuesException();
+
+                }
 
                 return refreshToken;
-            } 
+            }
 
             historial.refreshToken = refreshToken;
 
             historial.dateExpiration = DateTime.Now.AddDays(14);
 
-            ValidationValuesDB.ValidationValues(historial);
+            try
+            {
+                await context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
 
-            if (!Save()) { throw new UnstoredValuesException(); }
-            
+                throw new UnstoredValuesException();
+
+            }
+
             return refreshToken;
-        }
+        }    
 
-        private string UpdateRefreshTokenAsync(HistorialRefreshToken historial)
+        private static async Task<string> UpdateRefreshTokenAsync(AppDbContext context, HistorialRefreshToken historial, CancellationToken cancellationToken)
         {
             var refreshToken = GenerateRefreshToken();
 
@@ -146,9 +176,16 @@ namespace AppVidaSana.Services
 
             historial.dateExpiration = DateTime.Now.AddDays(14);
 
-            ValidationValuesDB.ValidationValues(historial);
+            try
+            {
+                await context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
 
-            if (!Save()) { throw new UnstoredValuesException(); }
+                throw new UnstoredValuesException();
+
+            }
 
             return refreshToken;
         }
@@ -160,19 +197,6 @@ namespace AppVidaSana.Services
             {
                 rng.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
-            }
-        }
-
-        public bool Save()
-        {
-            try
-            {
-                return _bd.SaveChanges() >= 0;
-            }
-            catch (Exception)
-            {
-                return false;
-
             }
         }
     }

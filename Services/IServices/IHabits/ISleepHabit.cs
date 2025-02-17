@@ -8,7 +8,5 @@ namespace AppVidaSana.Services.IServices.IHabits
         Task<SleepHabitInfoDto> AddSleepHoursAsync(SleepHabitDto values, CancellationToken cancellationToken);
 
         Task<SleepHabitInfoDto> UpdateSleepHoursAsync(Guid sleepHabitID, JsonPatchDocument values, CancellationToken cancellationToken);
-
-        bool Save();
     }
 }
