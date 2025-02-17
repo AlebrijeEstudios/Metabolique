@@ -10,6 +10,7 @@ using AppVidaSana.Tokens;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Threading;
 
 namespace AppVidaSana.Services
 {
@@ -57,7 +58,7 @@ namespace AppVidaSana.Services
 
             try
             {
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(cancellationToken);
             }
             catch (Exception)
             {
@@ -81,7 +82,7 @@ namespace AppVidaSana.Services
             if (account is null || historial is null) { throw new UnstoredValuesException(); }
 
             var accessToken = CreateAccessTokenAsync(account, cancellationToken);
-            var refreshToken = UpdateRefreshTokenAsync(context, historial);
+            var refreshToken = UpdateRefreshTokenAsync(context, historial, cancellationToken);
 
             TokensDto response = new TokensDto();
 
@@ -132,7 +133,7 @@ namespace AppVidaSana.Services
                 await context.HistorialRefreshTokens.AddAsync(historialRefreshToken, cancellationToken);
 
                 try {
-                    await context.SaveChangesAsync();
+                    await context.SaveChangesAsync(cancellationToken);
                 }
                 catch (Exception)
                 {
@@ -150,7 +151,7 @@ namespace AppVidaSana.Services
 
             try
             {
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(cancellationToken);
             }
             catch (Exception)
             {
@@ -162,7 +163,7 @@ namespace AppVidaSana.Services
             return refreshToken;
         }    
 
-        private async Task<string> UpdateRefreshTokenAsync(AppDbContext context, HistorialRefreshToken historial)
+        private static async Task<string> UpdateRefreshTokenAsync(AppDbContext context, HistorialRefreshToken historial, CancellationToken cancellationToken)
         {
             var refreshToken = GenerateRefreshToken();
 
@@ -177,7 +178,7 @@ namespace AppVidaSana.Services
 
             try
             {
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(cancellationToken);
             }
             catch (Exception)
             {

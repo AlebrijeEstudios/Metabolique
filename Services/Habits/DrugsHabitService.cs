@@ -43,7 +43,7 @@ namespace AppVidaSana.Services.Habits
 
             try
             {
-                await _bd.SaveChangesAsync();
+                await _bd.SaveChangesAsync(cancellationToken);
             }
             catch (Exception)
             {
@@ -67,7 +67,7 @@ namespace AppVidaSana.Services.Habits
 
             try
             {
-                await _bd.SaveChangesAsync();
+                await _bd.SaveChangesAsync(cancellationToken);
             }
             catch (Exception)
             {
