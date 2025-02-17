@@ -10,7 +10,5 @@ namespace AppVidaSana.Services.IServices
         Task<string> LogoutAccountAsync(Guid accountID, CancellationToken cancellationToken);
 
         Task<TokensDto> RefreshTokenAsync(TokensDto values, CancellationToken cancellationToken);
-
-        bool Save();
     }
 }

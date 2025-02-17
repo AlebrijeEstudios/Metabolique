@@ -53,4 +53,8 @@ jobs:
           app-name: 'metaboliqueapp'
           slot-name: 'Production'
           package: .
+<<<<<<< HEAD:.github/workflows/main_metaboliqueapp.yml
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_30E50E6B144940608EB2189DEB5DF3E5 }}
+=======
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D0EB0FFCF5DD47599F306AA65980BA59 }}
+>>>>>>> dev:.github/workflows/dev_metaboliquetestapp.yml

@@ -38,9 +38,18 @@ namespace AppVidaSana.Services.Habits
 
             ValidationValuesDB.ValidationValues(drinkHabit);
 
-            _bd.HabitsDrink.Add(drinkHabit);
+            await _bd.HabitsDrink.AddAsync(drinkHabit, cancellationToken);
 
-            if (!Save()) { throw new UnstoredValuesException(); }
+            try
+            {
+                await _bd.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+
+                throw new UnstoredValuesException();
+
+            }
 
             var infoHabitsDrink = _mapper.Map<DrinkHabitInfoDto>(drinkHabit);
 
@@ -55,24 +64,20 @@ namespace AppVidaSana.Services.Habits
 
             values.ApplyTo(habitDrink);
 
-            if (!Save()) { throw new UnstoredValuesException(); }
+            try
+            {
+                await _bd.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+
+                throw new UnstoredValuesException();
+
+            }
 
             var infoHabitsDrink = _mapper.Map<DrinkHabitInfoDto>(habitDrink);
 
             return infoHabitsDrink;
-        }
-
-        public bool Save()
-        {
-            try
-            {
-                return _bd.SaveChanges() >= 0;
-            }
-            catch (Exception)
-            {
-                return false;
-
-            }
         }
     }
 }
