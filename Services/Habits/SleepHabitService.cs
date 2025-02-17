@@ -39,9 +39,18 @@ namespace AppVidaSana.Services.Habits
 
             ValidationValuesDB.ValidationValues(sleepHabit);
 
-            _bd.HabitsSleep.Add(sleepHabit);
+            await _bd.HabitsSleep.AddAsync(sleepHabit, cancellationToken);
 
-            if (!Save()) { throw new UnstoredValuesException(); }
+            try
+            {
+                await _bd.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+
+                throw new UnstoredValuesException();
+
+            }
 
             var infoHabitsSleep = _mapper.Map<SleepHabitInfoDto>(sleepHabit);
 
@@ -56,24 +65,20 @@ namespace AppVidaSana.Services.Habits
 
             values.ApplyTo(habitSleep);
 
-            if (!Save()) { throw new UnstoredValuesException(); }
+            try
+            {
+                await _bd.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+
+                throw new UnstoredValuesException();
+
+            }
 
             var infoHabitsSleep = _mapper.Map<SleepHabitInfoDto>(habitSleep);
 
             return infoHabitsSleep;
-        }
-
-        public bool Save()
-        {
-            try
-            {
-                return _bd.SaveChanges() >= 0;
-            }
-            catch (Exception)
-            {
-                return false;
-
-            }
         }
     }
 }

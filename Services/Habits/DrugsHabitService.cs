@@ -39,9 +39,18 @@ namespace AppVidaSana.Services.Habits
 
             ValidationValuesDB.ValidationValues(drugHabit);
 
-            _bd.HabitsDrugs.Add(drugHabit);
+            await _bd.HabitsDrugs.AddAsync(drugHabit, cancellationToken);
 
-            if (!Save()) { throw new UnstoredValuesException(); }
+            try
+            {
+                await _bd.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+
+                throw new UnstoredValuesException();
+
+            }
 
             var infoHabitsDrugs = _mapper.Map<DrugsHabitInfoDto>(drugHabit);
 
@@ -56,24 +65,20 @@ namespace AppVidaSana.Services.Habits
 
             values.ApplyTo(habitDrugs);
 
-            if (!Save()) { throw new UnstoredValuesException(); }
+            try
+            {
+                await _bd.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+
+                throw new UnstoredValuesException();
+
+            }
 
             var infoHabitsDrugs = _mapper.Map<DrugsHabitInfoDto>(habitDrugs);
 
             return infoHabitsDrugs;
-        }
-
-        public bool Save()
-        {
-            try
-            {
-                return _bd.SaveChanges() >= 0;
-            }
-            catch (Exception)
-            {
-                return false;
-
-            }
         }
     }
 }

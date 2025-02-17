@@ -8,7 +8,5 @@ namespace AppVidaSana.Services.IServices.IHabits
         Task<DrugsHabitInfoDto> AddDrugsConsumedAsync(DrugsHabitDto values, CancellationToken cancellationToken);
 
         Task<DrugsHabitInfoDto> UpdateDrugsConsumedAsync(Guid drugsHabitID, JsonPatchDocument values, CancellationToken cancellationToken);
-
-        bool Save();
     }
 }

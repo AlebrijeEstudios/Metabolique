@@ -33,6 +33,7 @@ var token = Environment.GetEnvironmentVariable("TOKEN") ?? Environment.GetEnviro
 var keyBytes = Encoding.ASCII.GetBytes(token!);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString), ServiceLifetime.Scoped);
 
 builder.Services.AddSingleton(x => new BlobServiceClient(storageAccount));
 

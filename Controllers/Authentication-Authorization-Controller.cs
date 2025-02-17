@@ -31,13 +31,11 @@ namespace AppVidaSana.Controllers
         /// <response code="200">The start of the session was successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message that you were unable to log in.</response>  
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="500">Returns a message indicating internal server errors.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
@@ -74,15 +72,6 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status401Unauthorized, new { message = response.message, status = response.status });
             }
-            catch (ErrorDatabaseException ex)
-            {
-                ExceptionListMessages response = new ExceptionListMessages
-                {
-                    status = ex.Errors
-                };
-
-                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
-            }
             catch (NullTokenException ex)
             {
                 ExceptionMessage response = new ExceptionMessage
@@ -100,13 +89,11 @@ namespace AppVidaSana.Controllers
         /// <response code="200">The tokens were successfully generated.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating the refresh token has expired.</response>  
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="500">Returns a message indicating internal server errors.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
@@ -142,15 +129,6 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status401Unauthorized, new { message = response.message, status = response.status });
-            }
-            catch (ErrorDatabaseException ex)
-            {
-                ExceptionListMessages response = new ExceptionListMessages
-                {
-                    status = ex.Errors
-                };
-
-                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
             catch (NullTokenException ex)
             {
