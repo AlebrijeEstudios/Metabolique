@@ -4,6 +4,7 @@ using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.KeyToken;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.Tokens;
@@ -42,6 +43,27 @@ namespace AppVidaSana.Services
             response.accountID = account.accountID;
             response.accessToken = await accessToken;
             response.refreshToken = await refreshToken;
+
+            return response;
+        }
+
+        public async Task<TokenAdminDto> LoginAdminAsync(LoginAdminDto login, CancellationToken cancellationToken)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var account = await context.Doctors.FirstOrDefaultAsync(u => u.username == login.username, cancellationToken);
+
+            if (account is null || !BCrypt.Net.BCrypt.Verify(login.password, account.password))
+            {
+                throw new FailLoginException();
+            }
+
+            var accessToken = CreateAccessTokenAdminAsync(account, cancellationToken);
+
+            TokenAdminDto response = new TokenAdminDto();
+
+            response.doctorID = account.doctorID;
+            response.accessToken = await accessToken;
 
             return response;
         }
@@ -107,6 +129,26 @@ namespace AppVidaSana.Services
             };
 
             DateTime durationToken = DateTime.UtcNow.AddHours(1);
+
+            var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
+
+            return accessToken;
+        }
+
+        private async Task<string> CreateAccessTokenAdminAsync(Doctors account, CancellationToken cancellationToken)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var role = await context.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID, cancellationToken);
+
+            Claim[] claims = new Claim[]
+            {
+                new Claim(ClaimTypes.Name, account.username.ToString()),
+                new Claim(ClaimTypes.Email, account.email.ToString()),
+                new Claim(ClaimTypes.Role, role!.role)
+            };
+
+            DateTime durationToken = DateTime.UtcNow.AddDays(7);
 
             var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
 
