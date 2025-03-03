@@ -34,6 +34,8 @@ namespace AppVidaSana.Models
 
         public HistorialRefreshToken? historialRefreshToken { get; set; }
 
+        public ICollection<PacientDoctor> pacientDoctor { get; set; } = new List<PacientDoctor>();
+
         public ICollection<UserFeeds> userFeeds { get; set; } = new List<UserFeeds>();
         public ICollection<CaloriesConsumed> caloriesConsumed { get; set; } = new List<CaloriesConsumed>();
         public ICollection<CaloriesRequiredPerDay> caloriesRequiredPerDays { get; set; } = new List<CaloriesRequiredPerDay>();

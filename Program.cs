@@ -150,6 +150,7 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1",
         Description = "An ASP.NET Core web API to manage medical tracking elements of a user's medical record."
     });
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,

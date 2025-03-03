@@ -1,6 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Feeding;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Models.Feeding;
 using AppVidaSana.Months_Dates;
@@ -85,6 +86,173 @@ namespace AppVidaSana.Services
 
             return GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, true);
         }
+
+
+
+        public async Task<List<FeedingsAdminDto>> GetFeedingsAsync(Guid accountID, int page, CancellationToken cancellationToken) 
+        {
+            var feedings = await _bd.UserFeeds
+                            .Where(e => e.accountID == accountID)
+                            .Include(f => f.dailyMeals)
+                            .Include(f => f.saucerPicture)
+                            .Skip((page - 1) * 10)
+                            .Take(10)
+                            .ToListAsync(cancellationToken);
+
+            var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
+            {
+                userFeedID = feeding.userFeedID,
+                userFeedDate = feeding.userFeedDate,
+                userFeedTime = feeding.userFeedTime,
+                dailyMeal = feeding.dailyMeals.dailyMeal, 
+                satietyLevel = feeding.satietyLevel,
+                emotionsLinked = feeding.emotionsLinked,
+                totalCalories = feeding.totalCalories,
+                saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl 
+            }).ToList();
+
+            return feedingDTOs;
+        }
+
+        public async Task<List<FeedingsAdminDto>> GetFilterFeedingsAsync(Guid accountID, int page, DateOnly dateInitial, DateOnly dateFinal, CancellationToken cancellationToken)
+        {
+            var feedings = await _bd.UserFeeds
+                            .Where(e => e.accountID == accountID &&
+                                        e.userFeedDate >= dateInitial &&
+                                        e.userFeedDate <= dateFinal
+                            )
+                            .Include(f => f.dailyMeals)
+                            .Include(f => f.saucerPicture)
+                            .Skip((page - 1) * 10)
+                            .Take(10)
+                            .ToListAsync(cancellationToken);
+
+            var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
+            {
+                userFeedID = feeding.userFeedID,
+                userFeedDate = feeding.userFeedDate,
+                userFeedTime = feeding.userFeedTime,
+                dailyMeal = feeding.dailyMeals.dailyMeal,
+                satietyLevel = feeding.satietyLevel,
+                emotionsLinked = feeding.emotionsLinked,
+                totalCalories = feeding.totalCalories,
+                saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl
+            }).ToList();
+
+            return feedingDTOs;
+        }
+
+        public async Task<byte[]> ExportAllToCsvAsync(Guid accountID, CancellationToken cancellationToken) 
+        {
+            const int pageSize = 1000; 
+            int currentPage = 0;
+            bool hasMoreData = true;
+
+            using (var memoryStream = new MemoryStream())
+            using (var streamWriter = new StreamWriter(memoryStream))
+            {
+                await streamWriter.WriteLineAsync("UserFeedID,UserFeedDate,UserFeedTime,DailyMeal,SatietyLevel,EmotionsLinked,TotalCalories,SaucerPictureUrl");
+
+                while (hasMoreData)
+                {
+                    var feedings = await _bd.UserFeeds
+                            .Where(e => e.accountID == accountID)
+                            .Include(f => f.dailyMeals)
+                            .Include(f => f.saucerPicture)
+                            .OrderBy(f => f.userFeedID) 
+                            .Skip(currentPage * pageSize)
+                            .Take(pageSize)
+                            .ToListAsync(cancellationToken);
+
+                    var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
+                    {
+                        userFeedID = feeding.userFeedID,
+                        userFeedDate = feeding.userFeedDate,
+                        userFeedTime = feeding.userFeedTime,
+                        dailyMeal = feeding.dailyMeals.dailyMeal,
+                        satietyLevel = feeding.satietyLevel,
+                        emotionsLinked = feeding.emotionsLinked,
+                        totalCalories = feeding.totalCalories,
+                        saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl
+                    }).ToList();
+
+                    if (feedingDTOs.Count == 0)
+                    {
+                        hasMoreData = false;
+                        break;
+                    }
+
+                    foreach (var feeding in feedingDTOs)
+                    {
+                        var csvLine = $"{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"},{feeding.satietyLevel},\"{feeding.emotionsLinked}\",{feeding.totalCalories},{feeding.saucerPictureUrl ?? "N/A"}";
+                        await streamWriter.WriteLineAsync(csvLine);
+                    }
+                    currentPage++;
+                }
+
+                await streamWriter.FlushAsync();
+
+                return memoryStream.ToArray();
+            }
+        }
+
+        public async Task<byte[]> ExportFilteredToCsvAsync(Guid accountID, DateOnly dateInitial, DateOnly dateFinal, CancellationToken cancellationToken)
+        {
+            const int pageSize = 1000;
+            int currentPage = 0;
+            bool hasMoreData = true;
+
+            using (var memoryStream = new MemoryStream())
+            using (var streamWriter = new StreamWriter(memoryStream))
+            {
+                await streamWriter.WriteLineAsync("UserFeedID,UserFeedDate,UserFeedTime,DailyMeal,SatietyLevel,EmotionsLinked,TotalCalories,SaucerPictureUrl");
+
+                while (hasMoreData)
+                {
+                    var feedings = await _bd.UserFeeds
+                            .Where(e => e.accountID == accountID &&
+                                        e.userFeedDate >= dateInitial &&
+                                        e.userFeedDate <= dateFinal)
+                            .Include(f => f.dailyMeals)
+                            .Include(f => f.saucerPicture)
+                            .OrderBy(f => f.userFeedID)
+                            .Skip(currentPage * pageSize)
+                            .Take(pageSize)
+                            .ToListAsync(cancellationToken);
+
+                    var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
+                    {
+                        userFeedID = feeding.userFeedID,
+                        userFeedDate = feeding.userFeedDate,
+                        userFeedTime = feeding.userFeedTime,
+                        dailyMeal = feeding.dailyMeals.dailyMeal,
+                        satietyLevel = feeding.satietyLevel,
+                        emotionsLinked = feeding.emotionsLinked,
+                        totalCalories = feeding.totalCalories,
+                        saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl
+                    }).ToList();
+
+                    if (feedingDTOs.Count == 0)
+                    {
+                        hasMoreData = false;
+                        break;
+                    }
+
+                    foreach (var feeding in feedingDTOs)
+                    {
+                        var csvLine = $"{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"},{feeding.satietyLevel},\"{feeding.emotionsLinked}\",{feeding.totalCalories},{feeding.saucerPictureUrl ?? "N/A"}";
+                        await streamWriter.WriteLineAsync(csvLine);
+                    }
+                    currentPage++;
+                }
+
+                await streamWriter.FlushAsync();
+
+                return memoryStream.ToArray();
+            }
+        }
+
+
 
         public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)
         {
@@ -684,7 +852,11 @@ namespace AppVidaSana.Services
         {
             try
             {
-                string cleanBase64 = picture.Split(',')[1];
+                string[] parts = picture.Split(',');
+
+                string imagePrefix = parts[0];
+
+                string cleanBase64 = parts[1];
 
                 var imageBytes = Convert.FromBase64String(cleanBase64);
 
@@ -694,7 +866,7 @@ namespace AppVidaSana.Services
 
                 if(fileUrl is null)
                 {
-                    var namePicture = GetNameToImage(picture);
+                    var namePicture = GetNameToImage(imagePrefix);
 
                     var blobClient = GetContainerClient().GetBlobClient(namePicture);
 
@@ -743,14 +915,14 @@ namespace AppVidaSana.Services
             return BitConverter.ToString(imageToHash).Replace("-", "").ToLower();
         }
 
-        private static string GetNameToImage(string base64Image)
+        private static string GetNameToImage(string imageIndex)
         {
             string name = "";
 
-            if (base64Image.StartsWith("data:image/jpg")) { name = $"{Guid.NewGuid()}.jpg"; }
-            if (base64Image.StartsWith("data:image/jpeg")) { name = $"{Guid.NewGuid()}.jpeg"; }
-            if (base64Image.StartsWith("data:image/png")) { name = $"{Guid.NewGuid()}.png"; }
-            if (base64Image.StartsWith("data:image/webp")) { name = $"{Guid.NewGuid()}.webp"; }
+            if (imageIndex.StartsWith("data:image/jpg")) { name = $"{Guid.NewGuid()}.jpg"; }
+            if (imageIndex.StartsWith("data:image/jpeg")) { name = $"{Guid.NewGuid()}.jpeg"; }
+            if (imageIndex.StartsWith("data:image/png")) { name = $"{Guid.NewGuid()}.png"; }
+            if (imageIndex.StartsWith("data:image/webp")) { name = $"{Guid.NewGuid()}.webp"; }
 
             return name;
         }
