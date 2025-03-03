@@ -17,6 +17,8 @@ namespace AppVidaSana.Data
 
         public DbSet<HistorialRefreshToken> HistorialRefreshTokens { get; set; }
         public DbSet<MFUsMonths> Months { get; set; }
+        public DbSet<Doctors> Doctors { get; set; }
+        public DbSet<PacientDoctor> PacientDoctor { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Profiles> Profiles { get; set; }
@@ -56,12 +58,24 @@ namespace AppVidaSana.Data
                 .HasForeignKey<HistorialRefreshToken>(historial => historial.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            //Account-Profile
+            //Account-Profile-Doctor
             modelBuilder.Entity<Account>()
                 .HasOne(account => account.profile)
                 .WithOne(profile => profile.account)
                 .HasForeignKey<Profiles>(profile => profile.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PacientDoctor>()
+                .HasOne(a => a.account)
+                .WithMany(f => f.pacientDoctor)
+                .HasForeignKey(f => f.accountID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PacientDoctor>()
+                .HasOne(d => d.doctor)
+                .WithMany(f => f.pacientDoctor)
+                .HasForeignKey(f => f.doctorID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Roles>().HasData(
                 new Roles { roleID = Guid.Parse("2bc6e28a-7fbb-4649-aa30-f1f3e3202f81"), role = "User" },
@@ -72,6 +86,12 @@ namespace AppVidaSana.Data
                 .HasMany(rol => rol.account)
                 .WithOne(account => account.roles)
                 .HasForeignKey(account => account.roleID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Roles>()
+                .HasMany(rol => rol.doctor)
+                .WithOne(doctor => doctor.roles)
+                .HasForeignKey(doctor => doctor.roleID)
                 .OnDelete(DeleteBehavior.Restrict);
 
             //Feeding and MFUsFood
