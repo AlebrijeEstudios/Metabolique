@@ -265,7 +265,7 @@ namespace AppVidaSana.Data
                 .HasMany(periods => periods.daysConsumedOfMedications)
                 .WithOne(days => days.periodMedication)
                 .HasForeignKey(days => days.periodID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DaysConsumedOfMedications>()
                 .HasMany(days => days.times)

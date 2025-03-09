@@ -8,14 +8,18 @@ namespace AppVidaSana.Services
     public class UserDaySummaryService : IUserDaySummary
     {
         private readonly AppDbContext _bd;
+        private readonly ICalories _CaloriesService;
 
-        public UserDaySummaryService(AppDbContext bd)
+        public UserDaySummaryService(AppDbContext bd, ICalories CaloriesService)
         {
             _bd = bd;
+            _CaloriesService = CaloriesService;
         }
         
         public async Task<UserDaySummaryDto> GetUserDaySummaryAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
+            await CreateCaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
+
             var userName = await GetUserNameAsync(accountID, cancellationToken);
 
             var caloriesSummary = await GetCaloriesSummaryAsync(accountID, date, cancellationToken);
@@ -36,6 +40,21 @@ namespace AppVidaSana.Services
             };
 
             return userDaySummary;
+        }
+
+        private async Task CreateCaloriesRequiredPerDaysAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        {
+            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            var kcalRequiredPerDay = await _bd.CaloriesRequiredPerDays
+                                              .AnyAsync(e => e.accountID == accountID
+                                                            && e.dateInitial <= date
+                                                            && date <= e.dateFinal, cancellationToken);
+
+            if (!kcalRequiredPerDay)
+            {
+                _CaloriesService.CreateCaloriesRequiredPerDays(userKcal!, date);
+            }
         }
 
         private async Task<string> GetUserNameAsync(Guid accountID, CancellationToken cancellationToken)

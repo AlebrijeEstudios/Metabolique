@@ -11,14 +11,18 @@ namespace AppVidaSana.Services
     public class ProfileService : IProfile
     {
         private readonly AppDbContext _bd;
+        private readonly ICalories _CaloriesService;
 
-        public ProfileService(AppDbContext bd)
+        public ProfileService(AppDbContext bd, ICalories CaloriesService)
         {
             _bd = bd;
+            _CaloriesService = CaloriesService;
         }
 
         public void CreateProfile(Guid accountID, AccountDto values)
         {
+            var today = DateOnly.FromDateTime(DateTime.Now);
+
             Profiles profile = new Profiles
             {
                 accountID = accountID,
@@ -34,10 +38,16 @@ namespace AppVidaSana.Services
             _bd.Profiles.Add(profile);
 
             if (!Save()) { throw new UnstoredValuesException(); }
+
+            var userKcal = _CaloriesService.CreateUserCalories(profile);
+
+            _CaloriesService.CreateCaloriesRequiredPerDays(userKcal, today);
         }
 
         public async Task<string> UpdateProfileAsync(ProfileDto values, CancellationToken cancellationToken)
         {
+            var today = DateOnly.FromDateTime(DateTime.Now);
+
             var profile = await _bd.Profiles.FindAsync(new object[] { values.accountID }, cancellationToken);
 
             if (profile is null) { throw new UserNotFoundException(); }
@@ -51,6 +61,10 @@ namespace AppVidaSana.Services
             ValidationValuesDB.ValidationValues(profile);
 
             if (!Save()) { throw new UnstoredValuesException(); }
+
+            var userKcal = await _CaloriesService.UpdateUserCaloriesAsync(profile, cancellationToken);
+
+            await _CaloriesService.UpdateCaloriesRequiredPerDaysAsync(userKcal, today, cancellationToken);
 
             return "Su cuenta se actualiz&oacute; con &eacute;xito.";
         }

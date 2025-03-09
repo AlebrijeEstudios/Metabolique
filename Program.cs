@@ -25,7 +25,7 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
@@ -90,6 +90,7 @@ builder.Services.AddAutoMapper(typeof(Mapper));
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<IUserDaySummary, UserDaySummaryService>();
+builder.Services.AddScoped<ICalories, CaloriesService>();
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IAuthenticationAuthorization, AuthenticationAuthorizationService>();

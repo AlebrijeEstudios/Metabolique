@@ -20,74 +20,17 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
+        private readonly ICalories _CaloriesService;
         private const string ContainerName = "storageimages";
         private readonly BlobServiceClient _blobServiceClient;
 
-        public FeedingService(AppDbContext bd, IMapper mapper, BlobServiceClient blobServiceClient)
+        public FeedingService(AppDbContext bd, IMapper mapper, ICalories CaloriesService, BlobServiceClient blobServiceClient)
         {
             _bd = bd;
             _mapper = mapper;
+            _CaloriesService = CaloriesService;
             _blobServiceClient = blobServiceClient;
         }
-
-        public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
-        {
-            var userFeed = await _bd.UserFeeds.FindAsync(new object[] { userFeedID }, cancellationToken);
-
-            var userFeedMapped = _mapper.Map<UserFeedsDto>(userFeed);
-
-            var dailyMeal = await _bd.DailyMeals.FindAsync(new object[] { userFeed!.dailyMealID }, cancellationToken);
-
-            userFeedMapped.dailyMeal = dailyMeal!.dailyMeal;
-
-            var foodsConsumed = await GetFoodsConsumedAsync(userFeedID, cancellationToken);
-
-            var foodsConsumedEnumerated = GetNutrValuesEnumerated(foodsConsumed);
-
-            userFeedMapped.foodsConsumed = foodsConsumedEnumerated;
-
-            userFeedMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(userFeed.saucerPictureID, cancellationToken);
-
-            return userFeedMapped;
-        }
-
-        public async Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
-        {   
-            await UpdateCaloriesRequiredPerDays(accountID, date, cancellationToken);
-
-            var kcalConsumed = await GetCaloriesConsumedFeedingsAsync(accountID, date, cancellationToken);
-
-            var userFeeds = await _bd.UserFeeds.Where(e => e.accountID == accountID
-                                                      && e.userFeedDate == date).ToListAsync(cancellationToken);
-
-
-            var dailyMeals = await _bd.DailyMeals
-                                      .Where(e => userFeeds.Select(uf => uf.dailyMealID).Contains(e.dailyMealID))
-                                      .ToListAsync(cancellationToken);
-
-            CultureInfo cultureInfo = new CultureInfo("es-ES");
-
-            var monthExist = await _bd.Months.FirstOrDefaultAsync(e => e.month == date.ToString("MMMM", cultureInfo)
-                                                                  && e.year == Convert.ToInt32(date.ToString("yyyy")),
-                                                                  cancellationToken);
-
-            if (monthExist is null)
-            {
-                return GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, false);
-            }
-            
-            var mfuExist = await _bd.MFUsFood.AnyAsync(e => e.accountID == accountID
-                                                       && e.monthID == monthExist.monthID, cancellationToken);
-
-            if (!mfuExist)
-            {
-                return GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, false);
-            }
-
-            return GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, true);
-        }
-
-
 
         public async Task<List<FeedingsAdminDto>> GetFeedingsAsync(Guid accountID, int page, CancellationToken cancellationToken) 
         {
@@ -253,6 +196,63 @@ namespace AppVidaSana.Services
         }
 
 
+
+        public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
+        {
+            var userFeed = await _bd.UserFeeds.FindAsync(new object[] { userFeedID }, cancellationToken);
+
+            var userFeedMapped = _mapper.Map<UserFeedsDto>(userFeed);
+
+            var dailyMeal = await _bd.DailyMeals.FindAsync(new object[] { userFeed!.dailyMealID }, cancellationToken);
+
+            userFeedMapped.dailyMeal = dailyMeal!.dailyMeal;
+
+            var foodsConsumed = await GetFoodsConsumedAsync(userFeedID, cancellationToken);
+
+            var foodsConsumedEnumerated = GetNutrValuesEnumerated(foodsConsumed);
+
+            userFeedMapped.foodsConsumed = foodsConsumedEnumerated;
+
+            userFeedMapped.saucerPictureUrl = await GetSaucerPictureUrlAsync(userFeed.saucerPictureID, cancellationToken);
+
+            return userFeedMapped;
+        }
+
+        public async Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        {   
+            await CreateCaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
+
+            var kcalConsumed = await GetCaloriesConsumedFeedingsAsync(accountID, date, cancellationToken);
+
+            var userFeeds = await _bd.UserFeeds.Where(e => e.accountID == accountID
+                                                      && e.userFeedDate == date).ToListAsync(cancellationToken);
+
+
+            var dailyMeals = await _bd.DailyMeals
+                                      .Where(e => userFeeds.Select(uf => uf.dailyMealID).Contains(e.dailyMealID))
+                                      .ToListAsync(cancellationToken);
+
+            CultureInfo cultureInfo = new CultureInfo("es-ES");
+
+            var monthExist = await _bd.Months.FirstOrDefaultAsync(e => e.month == date.ToString("MMMM", cultureInfo)
+                                                                  && e.year == Convert.ToInt32(date.ToString("yyyy")),
+                                                                  cancellationToken);
+
+            if (monthExist is null)
+            {
+                return GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, false);
+            }
+            
+            var mfuExist = await _bd.MFUsFood.AnyAsync(e => e.accountID == accountID
+                                                       && e.monthID == monthExist.monthID, cancellationToken);
+
+            if (!mfuExist)
+            {
+                return GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, false);
+            }
+
+            return GeneratedInfoGeneralFeeding(userFeeds, dailyMeals, kcalConsumed, true);
+        }
 
         public async Task<UserFeedsDto> AddFeedingAsync(AddFeedingDto values, CancellationToken cancellationToken)
         {
@@ -432,165 +432,19 @@ namespace AppVidaSana.Services
             return foodsConsumed;
         }
 
-        private async Task<UserCalories> CreateUserCaloriesAsync(Guid accountID, CancellationToken cancellationToken)
-        {
-            var profile = await _bd.Profiles.FindAsync(new object[] { accountID }, cancellationToken);
-
-            double kcalNeeded = 0;
-
-            int age = GetAge(profile!.birthDate);
-
-            if (profile.sex.Equals("Masculino"))
-            {
-                kcalNeeded = 88.362 + (13.397 * profile.weight) + (4.799 * profile.stature) - (5.677 * age);
-            }
-
-            if (profile.sex.Equals("Femenino"))
-            {
-                kcalNeeded = 447.593 + (9.247 * profile.weight) + (3.098 * profile.stature) - (4.330 * age);
-            }
-
-            UserCalories userKcal = new UserCalories
-            {
-                accountID = profile.accountID,
-                caloriesNeeded = kcalNeeded
-            };
-
-            ValidationValuesDB.ValidationValues(profile);
-
-            _bd.UserCalories.Add(userKcal);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
-
-            return userKcal;
-        }
-
-        private static int GetAge(DateOnly date)
-        {
-            DateTime dateActual = DateTime.Today;
-            int age = dateActual.Year - date.Year;
-
-            if (date.Month > dateActual.Month || (date.Month == dateActual.Month && date.Day > dateActual.Day))
-            {
-                age--;
-            }
-
-            return age;
-        }
-
-        private async Task<CaloriesRequiredPerDay> CreateCaloriesRequiredPerDays(Guid accountID, DateOnly date, CancellationToken cancellationToken)
-        {
+        private async Task CreateCaloriesRequiredPerDaysAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        {   
             var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
-
-            int DayOfWeek = (int) date.DayOfWeek;
-
-            DayOfWeek = DayOfWeek == 0 ? 7 : DayOfWeek;
-
-            DateOnly dateInitial = date.AddDays(-(DayOfWeek - 1));
-            DateOnly dateFinal = dateInitial.AddDays(6);
-
-            CaloriesRequiredPerDay kcalRequiredPerDay = new CaloriesRequiredPerDay
-            {
-                accountID = accountID,
-                dateInitial = dateInitial,
-                dateFinal = dateFinal,
-                caloriesNeeded = userKcal!.caloriesNeeded
-            };
-
-            ValidationValuesDB.ValidationValues(kcalRequiredPerDay);
-
-            _bd.CaloriesRequiredPerDays.Add(kcalRequiredPerDay);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
-
-            return kcalRequiredPerDay;
-        }
-
-        private async Task<UserCalories> UpdateUserCaloriesAsync(Guid accountID, CancellationToken cancellationToken)
-        {
-            var profile = await _bd.Profiles.FindAsync(new object[] { accountID }, cancellationToken);
-
-            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
-
-            if(userKcal is null)
-            {
-                userKcal = await CreateUserCaloriesAsync(accountID, cancellationToken);
-                return userKcal;
-            }
-
-            double kcalNeeded = 0;
-
-            int age = GetAge(profile!.birthDate);
-
-            if (profile.sex.Equals("Masculino"))
-            {
-                kcalNeeded = 88.362 + (13.397 * profile.weight) + (4.799 * profile.stature) - (5.677 * age);
-            }
-
-            if (profile.sex.Equals("Femenino"))
-            {
-                kcalNeeded = 447.593 + (9.247 * profile.weight) + (3.098 * profile.stature) - (4.330 * age);
-            }
-
-            userKcal.caloriesNeeded = kcalNeeded;
-
-            ValidationValuesDB.ValidationValues(userKcal);
-
-            return userKcal;
-        }
-
-        private async Task UpdateCaloriesRequiredPerDays(Guid accountID, DateOnly date, CancellationToken cancellationToken)
-        {
-            var userKcal = await UpdateUserCaloriesAsync(accountID, cancellationToken);
 
             var kcalRequiredPerDay = await _bd.CaloriesRequiredPerDays
-                                              .FirstOrDefaultAsync(e => e.accountID == accountID
-                                                                   && e.dateInitial <= date
-                                                                   && date <= e.dateFinal, cancellationToken);
+                                              .AnyAsync(e => e.accountID == accountID
+                                                            && e.dateInitial <= date
+                                                            && date <= e.dateFinal, cancellationToken);
 
-            if(kcalRequiredPerDay is null)
+            if (!kcalRequiredPerDay)
             {
-                kcalRequiredPerDay = await CreateCaloriesRequiredPerDays(accountID, date, cancellationToken);
+                _CaloriesService.CreateCaloriesRequiredPerDays(userKcal!, date);
             }
-
-            int daysForExercise = await _bd.ActiveMinutes.Where(e => e.accountID == accountID
-                                                                && kcalRequiredPerDay.dateInitial <= e.dateExercise
-                                                                && e.dateExercise <= kcalRequiredPerDay.dateFinal)
-                                                         .CountAsync(cancellationToken);
-
-            if(daysForExercise != 0 && daysForExercise <= 3)
-            {
-                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.375;
-            }
-
-            if(3 < daysForExercise && daysForExercise <= 5)
-            {
-                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.55;
-            }
-
-            if(daysForExercise == 6 || daysForExercise == 7)
-            {
-                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.725;
-            }
-            
-            int daysExtenuating = await _bd.Exercises.Where(e => e.accountID == accountID 
-                                                            && kcalRequiredPerDay.dateInitial <= e.dateExercise
-                                                            && e.dateExercise <= kcalRequiredPerDay.dateFinal
-                                                            && e.intensityExercise == "Extenuante")
-                                                     .Select(e => e.dateExercise)
-                                                     .Distinct()
-                                                     .CountAsync(cancellationToken);
-
-            if(daysExtenuating == 6 || daysExtenuating == 7)
-            {
-                kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.9;
-            }
-
-            if (daysForExercise == 0) { kcalRequiredPerDay.caloriesNeeded = userKcal!.caloriesNeeded * 1.2; }
-
-            ValidationValuesDB.ValidationValues(kcalRequiredPerDay);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
         }
 
         private static InfoGeneralFeedingDto GeneratedInfoGeneralFeeding(List<UserFeeds> userFeeds, List<DailyMeals> dailyMeals,

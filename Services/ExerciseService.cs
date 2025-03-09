@@ -16,11 +16,13 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
-        
-        public ExerciseService(AppDbContext bd, IMapper mapper)
+        private readonly ICalories _CaloriesService;
+
+        public ExerciseService(AppDbContext bd, IMapper mapper, ICalories CaloriesService)
         {
             _bd = bd;
             _mapper = mapper;
+            _CaloriesService = CaloriesService;
         }
 
         public async Task<List<ExerciseDto>> GetExercisesAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
@@ -36,6 +38,8 @@ namespace AppVidaSana.Services
         public async Task<InfoGeneralExerciseDto> GetInfoGeneralExercisesAsync(Guid accountID, DateOnly date,
                                                                                CancellationToken cancellationToken)
         {
+            await CreateCaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
+
             List<ExerciseDto> exercises = await GetExercisesAsync(accountID, date, cancellationToken);
 
             List<ActiveMinutesExerciseDto> activeMinutes = await GetActiveMinutesAsync(accountID, date, cancellationToken);
@@ -123,7 +127,6 @@ namespace AppVidaSana.Services
             exercise.timeSpent = values.timeSpent;
 
             ValidationValuesDB.ValidationValues(exercise);
-
             if (!Save()) { throw new UnstoredValuesException(); }
 
             var exerciseMapped = _mapper.Map<ExerciseDto>(exercise);
@@ -165,6 +168,8 @@ namespace AppVidaSana.Services
                 _bd.ActiveMinutes.Remove(previousTotal);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
+                
+                await CreateCaloriesRequiredPerDaysAsync(exerciseExisting.accountID, exerciseExisting.dateExercise, cancellationToken);
             }
 
             _bd.Exercises.Remove(exerciseExisting);
@@ -254,6 +259,27 @@ namespace AppVidaSana.Services
                 _bd.ActiveMinutes.Add(activeMinutes);
 
                 if (!Save()) { throw new UnstoredValuesException(); }
+
+                await CreateCaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
+            }
+        }
+
+        private async Task CreateCaloriesRequiredPerDaysAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        {
+            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            var kcalRequiredPerDay = await _bd.CaloriesRequiredPerDays
+                                              .AnyAsync(e => e.accountID == accountID
+                                                            && e.dateInitial <= date
+                                                            && date <= e.dateFinal, cancellationToken);
+
+            if (!kcalRequiredPerDay)
+            {
+                _CaloriesService.CreateCaloriesRequiredPerDays(userKcal!, date);
+            }
+            else
+            {
+                await _CaloriesService.UpdateCaloriesRequiredPerDaysAsync(userKcal!, date, cancellationToken);
             }
         }
     }

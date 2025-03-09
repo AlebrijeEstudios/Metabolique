@@ -18,11 +18,13 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
+        private readonly ICalories _CaloriesService;
 
-        public MedicationService(AppDbContext bd, IMapper mapper)
+        public MedicationService(AppDbContext bd, IMapper mapper, ICalories CaloriesService)
         {
             _bd = bd;
             _mapper = mapper;
+            _CaloriesService = CaloriesService;
         }
 
         public async Task<InfoMedicationDto?> AddMedicationAsync(AddMedicationUseDto values, CancellationToken cancellationToken)
@@ -88,6 +90,8 @@ namespace AppVidaSana.Services
 
         public async Task<MedicationsAndValuesGraphicDto> GetMedicationsAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)
         {
+            await CreateCaloriesRequiredPerDaysAsync(accountID, dateActual, cancellationToken);
+
             var periods = await _bd.PeriodsMedications.Where(e => e.accountID == accountID
                                                              && e.initialFrec <= dateActual
                                                              && dateActual <= e.finalFrec).ToListAsync(cancellationToken);
@@ -719,6 +723,21 @@ namespace AppVidaSana.Services
             period.timesPeriod = dayConsumed.consumptionTimes ?? "";
 
             if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private async Task CreateCaloriesRequiredPerDaysAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
+        {
+            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            var kcalRequiredPerDay = await _bd.CaloriesRequiredPerDays
+                                              .AnyAsync(e => e.accountID == accountID
+                                                            && e.dateInitial <= date
+                                                            && date <= e.dateFinal, cancellationToken);
+
+            if (!kcalRequiredPerDay)
+            {
+                _CaloriesService.CreateCaloriesRequiredPerDays(userKcal!, date);
+            }
         }
     }
 }
