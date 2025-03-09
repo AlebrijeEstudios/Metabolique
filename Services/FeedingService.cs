@@ -445,6 +445,10 @@ namespace AppVidaSana.Services
             {
                 _CaloriesService.CreateCaloriesRequiredPerDays(userKcal!, date);
             }
+            else
+            {
+                await _CaloriesService.UpdateCaloriesRequiredPerDaysAsync(userKcal!, date, cancellationToken);
+            }
         }
 
         private static InfoGeneralFeedingDto GeneratedInfoGeneralFeeding(List<UserFeeds> userFeeds, List<DailyMeals> dailyMeals,

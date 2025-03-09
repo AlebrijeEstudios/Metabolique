@@ -156,6 +156,10 @@ namespace AppVidaSana.Services.Habits
             {
                 _CaloriesService.CreateCaloriesRequiredPerDays(userKcal!, date);
             }
+            else
+            {
+                await _CaloriesService.UpdateCaloriesRequiredPerDaysAsync(userKcal!, date, cancellationToken);
+            }
         }
     }
 }
