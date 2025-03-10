@@ -83,12 +83,6 @@ namespace AppVidaSana.Data
             );
 
             modelBuilder.Entity<Roles>()
-                .HasMany(rol => rol.account)
-                .WithOne(account => account.roles)
-                .HasForeignKey(account => account.roleID)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Roles>()
                 .HasMany(rol => rol.doctor)
                 .WithOne(doctor => doctor.roles)
                 .HasForeignKey(doctor => doctor.roleID)

@@ -32,171 +32,6 @@ namespace AppVidaSana.Services
             _blobServiceClient = blobServiceClient;
         }
 
-        public async Task<List<FeedingsAdminDto>> GetFeedingsAsync(Guid accountID, int page, CancellationToken cancellationToken) 
-        {
-            var feedings = await _bd.UserFeeds
-                            .Where(e => e.accountID == accountID)
-                            .Include(f => f.dailyMeals)
-                            .Include(f => f.saucerPicture)
-                            .Skip((page - 1) * 10)
-                            .Take(10)
-                            .ToListAsync(cancellationToken);
-
-            var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
-            {
-                userFeedID = feeding.userFeedID,
-                userFeedDate = feeding.userFeedDate,
-                userFeedTime = feeding.userFeedTime,
-                dailyMeal = feeding.dailyMeals.dailyMeal, 
-                satietyLevel = feeding.satietyLevel,
-                emotionsLinked = feeding.emotionsLinked,
-                totalCalories = feeding.totalCalories,
-                saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl 
-            }).ToList();
-
-            return feedingDTOs;
-        }
-
-        public async Task<List<FeedingsAdminDto>> GetFilterFeedingsAsync(Guid accountID, int page, DateOnly dateInitial, DateOnly dateFinal, CancellationToken cancellationToken)
-        {
-            var feedings = await _bd.UserFeeds
-                            .Where(e => e.accountID == accountID &&
-                                        e.userFeedDate >= dateInitial &&
-                                        e.userFeedDate <= dateFinal
-                            )
-                            .Include(f => f.dailyMeals)
-                            .Include(f => f.saucerPicture)
-                            .Skip((page - 1) * 10)
-                            .Take(10)
-                            .ToListAsync(cancellationToken);
-
-            var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
-            {
-                userFeedID = feeding.userFeedID,
-                userFeedDate = feeding.userFeedDate,
-                userFeedTime = feeding.userFeedTime,
-                dailyMeal = feeding.dailyMeals.dailyMeal,
-                satietyLevel = feeding.satietyLevel,
-                emotionsLinked = feeding.emotionsLinked,
-                totalCalories = feeding.totalCalories,
-                saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl
-            }).ToList();
-
-            return feedingDTOs;
-        }
-
-        public async Task<byte[]> ExportAllToCsvAsync(Guid accountID, CancellationToken cancellationToken) 
-        {
-            const int pageSize = 1000; 
-            int currentPage = 0;
-            bool hasMoreData = true;
-
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
-            {
-                await streamWriter.WriteLineAsync("UserFeedID,UserFeedDate,UserFeedTime,DailyMeal,SatietyLevel,EmotionsLinked,TotalCalories,SaucerPictureUrl");
-
-                while (hasMoreData)
-                {
-                    var feedings = await _bd.UserFeeds
-                            .Where(e => e.accountID == accountID)
-                            .Include(f => f.dailyMeals)
-                            .Include(f => f.saucerPicture)
-                            .OrderBy(f => f.userFeedID) 
-                            .Skip(currentPage * pageSize)
-                            .Take(pageSize)
-                            .ToListAsync(cancellationToken);
-
-                    var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
-                    {
-                        userFeedID = feeding.userFeedID,
-                        userFeedDate = feeding.userFeedDate,
-                        userFeedTime = feeding.userFeedTime,
-                        dailyMeal = feeding.dailyMeals.dailyMeal,
-                        satietyLevel = feeding.satietyLevel,
-                        emotionsLinked = feeding.emotionsLinked,
-                        totalCalories = feeding.totalCalories,
-                        saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl
-                    }).ToList();
-
-                    if (feedingDTOs.Count == 0)
-                    {
-                        hasMoreData = false;
-                        break;
-                    }
-
-                    foreach (var feeding in feedingDTOs)
-                    {
-                        var csvLine = $"{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"},{feeding.satietyLevel},\"{feeding.emotionsLinked}\",{feeding.totalCalories},{feeding.saucerPictureUrl ?? "N/A"}";
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
-                }
-
-                await streamWriter.FlushAsync();
-
-                return memoryStream.ToArray();
-            }
-        }
-
-        public async Task<byte[]> ExportFilteredToCsvAsync(Guid accountID, DateOnly dateInitial, DateOnly dateFinal, CancellationToken cancellationToken)
-        {
-            const int pageSize = 1000;
-            int currentPage = 0;
-            bool hasMoreData = true;
-
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
-            {
-                await streamWriter.WriteLineAsync("UserFeedID,UserFeedDate,UserFeedTime,DailyMeal,SatietyLevel,EmotionsLinked,TotalCalories,SaucerPictureUrl");
-
-                while (hasMoreData)
-                {
-                    var feedings = await _bd.UserFeeds
-                            .Where(e => e.accountID == accountID &&
-                                        e.userFeedDate >= dateInitial &&
-                                        e.userFeedDate <= dateFinal)
-                            .Include(f => f.dailyMeals)
-                            .Include(f => f.saucerPicture)
-                            .OrderBy(f => f.userFeedID)
-                            .Skip(currentPage * pageSize)
-                            .Take(pageSize)
-                            .ToListAsync(cancellationToken);
-
-                    var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
-                    {
-                        userFeedID = feeding.userFeedID,
-                        userFeedDate = feeding.userFeedDate,
-                        userFeedTime = feeding.userFeedTime,
-                        dailyMeal = feeding.dailyMeals.dailyMeal,
-                        satietyLevel = feeding.satietyLevel,
-                        emotionsLinked = feeding.emotionsLinked,
-                        totalCalories = feeding.totalCalories,
-                        saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl
-                    }).ToList();
-
-                    if (feedingDTOs.Count == 0)
-                    {
-                        hasMoreData = false;
-                        break;
-                    }
-
-                    foreach (var feeding in feedingDTOs)
-                    {
-                        var csvLine = $"{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"},{feeding.satietyLevel},\"{feeding.emotionsLinked}\",{feeding.totalCalories},{feeding.saucerPictureUrl ?? "N/A"}";
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
-                }
-
-                await streamWriter.FlushAsync();
-
-                return memoryStream.ToArray();
-            }
-        }
-
-
-
         public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
         {
             var userFeed = await _bd.UserFeeds.FindAsync(new object[] { userFeedID }, cancellationToken);
@@ -220,7 +55,7 @@ namespace AppVidaSana.Services
 
         public async Task<InfoGeneralFeedingDto> GetInfoGeneralFeedingAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {   
-            await CreateCaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
+            await _CaloriesService.CaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
 
             var kcalConsumed = await GetCaloriesConsumedFeedingsAsync(accountID, date, cancellationToken);
 
@@ -430,25 +265,6 @@ namespace AppVidaSana.Services
             }
 
             return foodsConsumed;
-        }
-
-        private async Task CreateCaloriesRequiredPerDaysAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
-        {   
-            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
-
-            var kcalRequiredPerDay = await _bd.CaloriesRequiredPerDays
-                                              .AnyAsync(e => e.accountID == accountID
-                                                            && e.dateInitial <= date
-                                                            && date <= e.dateFinal, cancellationToken);
-
-            if (!kcalRequiredPerDay)
-            {
-                _CaloriesService.CreateCaloriesRequiredPerDays(userKcal!, date);
-            }
-            else
-            {
-                await _CaloriesService.UpdateCaloriesRequiredPerDaysAsync(userKcal!, date, cancellationToken);
-            }
         }
 
         private static InfoGeneralFeedingDto GeneratedInfoGeneralFeeding(List<UserFeeds> userFeeds, List<DailyMeals> dailyMeals,

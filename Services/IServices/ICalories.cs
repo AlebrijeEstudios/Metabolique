@@ -5,6 +5,8 @@ namespace AppVidaSana.Services.IServices
 {
     public interface ICalories
     {
+        Task CaloriesRequiredPerDaysAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken);
+
         UserCalories CreateUserCalories(Profiles profile);
 
         void CreateCaloriesRequiredPerDays(UserCalories userKcal, DateOnly date);

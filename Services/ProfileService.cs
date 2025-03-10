@@ -5,6 +5,7 @@ using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppVidaSana.Services
 {
@@ -48,7 +49,7 @@ namespace AppVidaSana.Services
         {
             var today = DateOnly.FromDateTime(DateTime.Now);
 
-            var profile = await _bd.Profiles.FindAsync(new object[] { values.accountID }, cancellationToken);
+            var profile = await _bd.Profiles.FirstOrDefaultAsync(e => e.accountID == values.accountID, cancellationToken);
 
             if (profile is null) { throw new UserNotFoundException(); }
 

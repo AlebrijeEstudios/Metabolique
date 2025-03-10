@@ -90,7 +90,7 @@ namespace AppVidaSana.Services
 
         public async Task<MedicationsAndValuesGraphicDto> GetMedicationsAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)
         {
-            await CreateCaloriesRequiredPerDaysAsync(accountID, dateActual, cancellationToken);
+            await _CaloriesService.CaloriesRequiredPerDaysAsync(accountID, dateActual, cancellationToken);
 
             var periods = await _bd.PeriodsMedications.Where(e => e.accountID == accountID
                                                              && e.initialFrec <= dateActual
@@ -205,11 +205,27 @@ namespace AppVidaSana.Services
 
             string[] datesExcluded = period.datesExcluded?.Split(',') ?? [];
 
+            UpdateInitialFrec(datesExcluded, period, date);
+
+            UpdateFinalFrec(datesExcluded, period, date);
+
+            var daysConsumed = await _bd.DaysConsumedOfMedications.Where(e => e.periodID == periodID).ToListAsync(cancellationToken);
+
+            if(daysConsumed.Count == 0)
+            { 
+                _bd.PeriodsMedications.Remove(period);
+            }
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private void UpdateInitialFrec(string[] datesExcluded, PeriodsMedications period, DateOnly date) 
+        {
             if (period.initialFrec == date)
             {
                 var dates = DatesInRange.GetDatesInRange(date.AddDays(1), period.finalFrec);
 
-                foreach(var newDate in dates)
+                foreach (var newDate in dates)
                 {
                     if (!datesExcluded.Contains(newDate.ToString()))
                     {
@@ -217,9 +233,14 @@ namespace AppVidaSana.Services
                         break;
                     }
                 }
-            }
 
-            if(period.finalFrec == date)
+                if (!Save()) { throw new UnstoredValuesException(); }
+            }
+        }
+
+        private void UpdateFinalFrec(string[] datesExcluded, PeriodsMedications period, DateOnly date)
+        {
+            if (period.finalFrec == date)
             {
                 var dates = DatesInRange.GetDatesInRange(period.initialFrec, date.AddDays(-1)).OrderDescending();
 
@@ -231,16 +252,9 @@ namespace AppVidaSana.Services
                         break;
                     }
                 }
+
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
-
-            var daysConsumed = await _bd.DaysConsumedOfMedications.Where(e => e.periodID == periodID).ToListAsync(cancellationToken);
-
-            if(daysConsumed.Count == 0)
-            { 
-                _bd.PeriodsMedications.Remove(period);
-            }
-
-            if (!Save()) { throw new UnstoredValuesException(); }
         }
 
         private async Task<bool> MFUExistAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)
@@ -723,25 +737,6 @@ namespace AppVidaSana.Services
             period.timesPeriod = dayConsumed.consumptionTimes ?? "";
 
             if (!Save()) { throw new UnstoredValuesException(); }
-        }
-
-        private async Task CreateCaloriesRequiredPerDaysAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
-        {
-            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
-
-            var kcalRequiredPerDay = await _bd.CaloriesRequiredPerDays
-                                              .AnyAsync(e => e.accountID == accountID
-                                                            && e.dateInitial <= date
-                                                            && date <= e.dateFinal, cancellationToken);
-
-            if (!kcalRequiredPerDay)
-            {
-                _CaloriesService.CreateCaloriesRequiredPerDays(userKcal!, date);
-            }
-            else
-            {
-                await _CaloriesService.UpdateCaloriesRequiredPerDaysAsync(userKcal!, date, cancellationToken);
-            }
         }
     }
 }

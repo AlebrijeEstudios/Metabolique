@@ -38,7 +38,7 @@ namespace AppVidaSana.Services
         public async Task<InfoGeneralExerciseDto> GetInfoGeneralExercisesAsync(Guid accountID, DateOnly date,
                                                                                CancellationToken cancellationToken)
         {
-            await CreateCaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
+            await _CaloriesService.CaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
 
             List<ExerciseDto> exercises = await GetExercisesAsync(accountID, date, cancellationToken);
 
@@ -167,9 +167,9 @@ namespace AppVidaSana.Services
             {
                 _bd.ActiveMinutes.Remove(previousTotal);
 
-                if (!Save()) { throw new UnstoredValuesException(); }
-                
-                await CreateCaloriesRequiredPerDaysAsync(exerciseExisting.accountID, exerciseExisting.dateExercise, cancellationToken);
+                if (!Save()) { throw new UnstoredValuesException(); }               
+
+                await _CaloriesService.CaloriesRequiredPerDaysAsync(exerciseExisting.accountID, exerciseExisting.dateExercise, cancellationToken);
             }
 
             _bd.Exercises.Remove(exerciseExisting);
@@ -260,26 +260,7 @@ namespace AppVidaSana.Services
 
                 if (!Save()) { throw new UnstoredValuesException(); }
 
-                await CreateCaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
-            }
-        }
-
-        private async Task CreateCaloriesRequiredPerDaysAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
-        {
-            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
-
-            var kcalRequiredPerDay = await _bd.CaloriesRequiredPerDays
-                                              .AnyAsync(e => e.accountID == accountID
-                                                            && e.dateInitial <= date
-                                                            && date <= e.dateFinal, cancellationToken);
-
-            if (!kcalRequiredPerDay)
-            {
-                _CaloriesService.CreateCaloriesRequiredPerDays(userKcal!, date);
-            }
-            else
-            {
-                await _CaloriesService.UpdateCaloriesRequiredPerDaysAsync(userKcal!, date, cancellationToken);
+                await _CaloriesService.CaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
             }
         }
     }

@@ -26,7 +26,7 @@ namespace AppVidaSana.Services.Habits
 
         public async Task<ReturnInfoHabitsDto> GetInfoGeneralHabitsAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
-            await CreateCaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
+            await _CaloriesService.CaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
 
             using var context = _contextFactory.CreateDbContext();
 
@@ -139,27 +139,6 @@ namespace AppVidaSana.Services.Habits
             }).ToList();
 
             return hoursSleep;
-        }
-
-        private async Task CreateCaloriesRequiredPerDaysAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
-        {
-            using var context = _contextFactory.CreateDbContext();
-
-            var userKcal = await context.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
-
-            var kcalRequiredPerDay = await context.CaloriesRequiredPerDays
-                                                  .AnyAsync(e => e.accountID == accountID
-                                                            && e.dateInitial <= date
-                                                            && date <= e.dateFinal, cancellationToken);
-
-            if (!kcalRequiredPerDay)
-            {
-                _CaloriesService.CreateCaloriesRequiredPerDays(userKcal!, date);
-            }
-            else
-            {
-                await _CaloriesService.UpdateCaloriesRequiredPerDaysAsync(userKcal!, date, cancellationToken);
-            }
         }
     }
 }

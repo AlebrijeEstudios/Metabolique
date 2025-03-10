@@ -11,7 +11,6 @@ using AppVidaSana.Tokens;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Threading;
 
 namespace AppVidaSana.Services
 {
@@ -35,13 +34,13 @@ namespace AppVidaSana.Services
                 throw new FailLoginException();
             }
 
-            var accessToken = CreateAccessTokenAsync(account, cancellationToken);
+            var accessToken = CreateAccessToken(account);
             var refreshToken = CreateRefreshTokenAsync(account.accountID, cancellationToken);
 
             TokensDto response = new TokensDto();
 
             response.accountID = account.accountID;
-            response.accessToken = await accessToken;
+            response.accessToken = accessToken;
             response.refreshToken = await refreshToken;
 
             return response;
@@ -103,29 +102,24 @@ namespace AppVidaSana.Services
 
             if (account is null || historial is null) { throw new UnstoredValuesException(); }
 
-            var accessToken = CreateAccessTokenAsync(account, cancellationToken);
+            var accessToken = CreateAccessToken(account);
             var refreshToken = UpdateRefreshTokenAsync(context, historial, cancellationToken);
 
             TokensDto response = new TokensDto();
 
             response.accountID = account.accountID;
-            response.accessToken = await accessToken;
+            response.accessToken = accessToken;
             response.refreshToken = await refreshToken;
 
             return response;
         }
 
-        private async Task<string> CreateAccessTokenAsync(Account account, CancellationToken cancellationToken)
+        private string CreateAccessToken(Account account)
         {
-            using var context = _contextFactory.CreateDbContext();
-
-            var role = await context.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID, cancellationToken);
-
             Claim[] claims = new Claim[]
             {
                 new Claim(ClaimTypes.Name, account.username.ToString()),
-                new Claim(ClaimTypes.Email, account.email.ToString()),
-                new Claim(ClaimTypes.Role, role!.role)
+                new Claim(ClaimTypes.Email, account.email.ToString())
             };
 
             DateTime durationToken = DateTime.UtcNow.AddHours(1);

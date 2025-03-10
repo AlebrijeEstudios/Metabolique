@@ -17,17 +17,23 @@ namespace AppVidaSana.Services
             _bd = bd;
         }
 
-        private static int GetAge(DateOnly date)
+        public async Task CaloriesRequiredPerDaysAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
-            DateTime dateActual = DateTime.Today;
-            int age = dateActual.Year - date.Year;
+            var userKcal = await _bd.UserCalories.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
 
-            if (date.Month > dateActual.Month || (date.Month == dateActual.Month && date.Day > dateActual.Day))
+            var kcalRequiredPerDay = await _bd.CaloriesRequiredPerDays
+                                              .AnyAsync(e => e.accountID == accountID
+                                                            && e.dateInitial <= date
+                                                            && date <= e.dateFinal, cancellationToken);
+
+            if (!kcalRequiredPerDay)
             {
-                age--;
+                CreateCaloriesRequiredPerDays(userKcal!, date);
             }
-
-            return age;
+            else
+            {
+                await UpdateCaloriesRequiredPerDaysAsync(userKcal!, date, cancellationToken);
+            }
         }
 
         public UserCalories CreateUserCalories(Profiles profile)
@@ -170,6 +176,19 @@ namespace AppVidaSana.Services
                 return false;
 
             }
+        }
+
+        private static int GetAge(DateOnly date)
+        {
+            DateTime dateActual = DateTime.Today;
+            int age = dateActual.Year - date.Year;
+
+            if (date.Month > dateActual.Month || (date.Month == dateActual.Month && date.Day > dateActual.Day))
+            {
+                age--;
+            }
+
+            return age;
         }
     }
 }

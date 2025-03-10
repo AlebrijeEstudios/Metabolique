@@ -20,12 +20,14 @@ using Azure.Storage.Blobs;
 using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType;
 using Newtonsoft.Json;
+using AppVidaSana.Services.IServices.IAdminWeb;
+using AppVidaSana.Services.AdminWeb;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
+var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
 
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
@@ -88,6 +90,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddScoped<IAWFeeding, AWFeedingService>();
+builder.Services.AddScoped<IAWPatients, AWPatientsService>();
 
 builder.Services.AddScoped<IUserDaySummary, UserDaySummaryService>();
 builder.Services.AddScoped<ICalories, CaloriesService>();
