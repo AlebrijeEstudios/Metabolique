@@ -84,7 +84,7 @@ namespace AppVidaSana.Services
         public async Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
             var account = await _bd.Accounts.FindAsync(new object[] { accountID }, cancellationToken);
-            var profile = await _bd.Profiles.FindAsync(new object[] { accountID }, cancellationToken);
+            var profile = await _bd.Profiles.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
 
             if (account is null || profile is null) { throw new UserNotFoundException(); }
 
