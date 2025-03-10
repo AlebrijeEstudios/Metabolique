@@ -23,11 +23,6 @@ namespace AppVidaSana.Models
         [Required(ErrorMessage = "El campo contraseña es obligatoria.")]
         public string password { get; set; } = null!;
 
-        [ForeignKey("Roles")]
-        public Guid roleID { get; set; }
-
-        public Roles? roles { get; set; }
-
         public Profiles? profile { get; set; }
 
         public UserCalories? userCalories { get; set; }

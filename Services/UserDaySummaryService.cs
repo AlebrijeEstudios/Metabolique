@@ -8,14 +8,18 @@ namespace AppVidaSana.Services
     public class UserDaySummaryService : IUserDaySummary
     {
         private readonly AppDbContext _bd;
+        private readonly ICalories _CaloriesService;
 
-        public UserDaySummaryService(AppDbContext bd)
+        public UserDaySummaryService(AppDbContext bd, ICalories CaloriesService)
         {
             _bd = bd;
+            _CaloriesService = CaloriesService;
         }
         
         public async Task<UserDaySummaryDto> GetUserDaySummaryAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
+            await _CaloriesService.CaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
+
             var userName = await GetUserNameAsync(accountID, cancellationToken);
 
             var caloriesSummary = await GetCaloriesSummaryAsync(accountID, date, cancellationToken);

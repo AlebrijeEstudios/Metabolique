@@ -4,9 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models
 {
-    [PrimaryKey(nameof(accountID))]
     public class Profiles
     {
+        [Key]
+        public Guid profileID { get; set; } = Guid.NewGuid();
+
         [ForeignKey("Account")]
         public Guid accountID { get; set; }
 

@@ -8,9 +8,9 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
 
         [JsonRequired] public DateOnly userFeedDate { get; set; }
 
-        [JsonRequired] public TimeOnly userFeedTime { get; set; }
+        [JsonRequired] public TimeOnly userFeedTime { get; set; } 
 
-        [JsonRequired] public string dailyMeal { get; set; } = null!;
+        [JsonRequired] public string dailyMeal { get; set; } = null!; 
 
         [JsonRequired] public string satietyLevel { get; set; } = null!;
 

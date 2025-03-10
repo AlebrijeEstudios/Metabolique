@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.ProducesResponseType.AdminWeb;
+using AppVidaSana.Services.IServices.IAdminWeb;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -16,9 +17,9 @@ namespace AppVidaSana.Controllers.AdminWeb
     [RequestTimeout("CustomPolicy")]
     public class AdminFeedingsController : ControllerBase
     {
-        private readonly IFeeding _FeedingService;
+        private readonly IAWFeeding _FeedingService;
 
-        public AdminFeedingsController(IFeeding FeedingService)
+        public AdminFeedingsController(IAWFeeding FeedingService)
         {
             _FeedingService = FeedingService;
         }
