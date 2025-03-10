@@ -7,6 +7,7 @@ using AppVidaSana.Services.IServices.IHabits;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using AppVidaSana.Services.IServices;
 
 namespace AppVidaSana.Services.Habits
 {
@@ -14,15 +15,19 @@ namespace AppVidaSana.Services.Habits
     {
         private readonly IDbContextFactory<AppDbContext> _contextFactory;
         private readonly IMapper _mapper;
+        private readonly ICalories _CaloriesService;
 
-        public HabitGeneralService(IDbContextFactory<AppDbContext> contextFactory, IMapper mapper)
+        public HabitGeneralService(IDbContextFactory<AppDbContext> contextFactory, IMapper mapper, ICalories CaloriesService)
         {
             _contextFactory = contextFactory;
             _mapper = mapper;
+            _CaloriesService = CaloriesService;
         }
 
         public async Task<ReturnInfoHabitsDto> GetInfoGeneralHabitsAsync(Guid accountID, DateOnly date, CancellationToken cancellationToken)
         {
+            await _CaloriesService.CaloriesRequiredPerDaysAsync(accountID, date, cancellationToken);
+
             using var context = _contextFactory.CreateDbContext();
 
             int DayOfWeek = (int)date.DayOfWeek;

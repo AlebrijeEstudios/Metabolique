@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.Exceptions;
+using AppVidaSana.Services.IServices.IAdminWeb;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -17,11 +18,11 @@ namespace AppVidaSana.Controllers.AdminWeb
     [RequestTimeout("CustomPolicy")]
     public class AdminPatientsController : ControllerBase
     {
-        private readonly IAccount _AccountService;
+        private readonly IAWPatients _PatientsService;
 
-        public AdminPatientsController(IAccount AccountService)
+        public AdminPatientsController(IAWPatients PatientsService)
         {
-            _AccountService = AccountService;
+            _PatientsService = PatientsService;
         }
 
         /// <summary>
@@ -51,7 +52,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         {
             try
             {
-                var patients = await _AccountService.GetPatientsAsync(doctorID, page, HttpContext.RequestAborted);
+                var patients = await _PatientsService.GetPatientsAsync(doctorID, page, HttpContext.RequestAborted);
 
                 PatientsResponse response = new PatientsResponse
                 {

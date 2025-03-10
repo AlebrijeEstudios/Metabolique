@@ -18,11 +18,13 @@ namespace AppVidaSana.Services
     {
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
+        private readonly ICalories _CaloriesService;
 
-        public MedicationService(AppDbContext bd, IMapper mapper)
+        public MedicationService(AppDbContext bd, IMapper mapper, ICalories CaloriesService)
         {
             _bd = bd;
             _mapper = mapper;
+            _CaloriesService = CaloriesService;
         }
 
         public async Task<InfoMedicationDto?> AddMedicationAsync(AddMedicationUseDto values, CancellationToken cancellationToken)
@@ -88,6 +90,8 @@ namespace AppVidaSana.Services
 
         public async Task<MedicationsAndValuesGraphicDto> GetMedicationsAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)
         {
+            await _CaloriesService.CaloriesRequiredPerDaysAsync(accountID, dateActual, cancellationToken);
+
             var periods = await _bd.PeriodsMedications.Where(e => e.accountID == accountID
                                                              && e.initialFrec <= dateActual
                                                              && dateActual <= e.finalFrec).ToListAsync(cancellationToken);
@@ -201,11 +205,27 @@ namespace AppVidaSana.Services
 
             string[] datesExcluded = period.datesExcluded?.Split(',') ?? [];
 
+            UpdateInitialFrec(datesExcluded, period, date);
+
+            UpdateFinalFrec(datesExcluded, period, date);
+
+            var daysConsumed = await _bd.DaysConsumedOfMedications.Where(e => e.periodID == periodID).ToListAsync(cancellationToken);
+
+            if(daysConsumed.Count == 0)
+            { 
+                _bd.PeriodsMedications.Remove(period);
+            }
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+        }
+
+        private void UpdateInitialFrec(string[] datesExcluded, PeriodsMedications period, DateOnly date) 
+        {
             if (period.initialFrec == date)
             {
                 var dates = DatesInRange.GetDatesInRange(date.AddDays(1), period.finalFrec);
 
-                foreach(var newDate in dates)
+                foreach (var newDate in dates)
                 {
                     if (!datesExcluded.Contains(newDate.ToString()))
                     {
@@ -213,9 +233,14 @@ namespace AppVidaSana.Services
                         break;
                     }
                 }
-            }
 
-            if(period.finalFrec == date)
+                if (!Save()) { throw new UnstoredValuesException(); }
+            }
+        }
+
+        private void UpdateFinalFrec(string[] datesExcluded, PeriodsMedications period, DateOnly date)
+        {
+            if (period.finalFrec == date)
             {
                 var dates = DatesInRange.GetDatesInRange(period.initialFrec, date.AddDays(-1)).OrderDescending();
 
@@ -227,16 +252,9 @@ namespace AppVidaSana.Services
                         break;
                     }
                 }
+
+                if (!Save()) { throw new UnstoredValuesException(); }
             }
-
-            var daysConsumed = await _bd.DaysConsumedOfMedications.Where(e => e.periodID == periodID).ToListAsync(cancellationToken);
-
-            if(daysConsumed.Count == 0)
-            { 
-                _bd.PeriodsMedications.Remove(period);
-            }
-
-            if (!Save()) { throw new UnstoredValuesException(); }
         }
 
         private async Task<bool> MFUExistAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)

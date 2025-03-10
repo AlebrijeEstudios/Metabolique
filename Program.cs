@@ -21,6 +21,8 @@ using Azure.Storage.Blobs;
 using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType;
 using Newtonsoft.Json;
+using AppVidaSana.Services.IServices.IAdminWeb;
+using AppVidaSana.Services.AdminWeb;
 
 Env.Load();
 
@@ -90,7 +92,11 @@ builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddScoped<IAWFeeding, AWFeedingService>();
+builder.Services.AddScoped<IAWPatients, AWPatientsService>();
+
 builder.Services.AddScoped<IUserDaySummary, UserDaySummaryService>();
+builder.Services.AddScoped<ICalories, CaloriesService>();
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
 builder.Services.AddScoped<IAuthenticationAuthorization, AuthenticationAuthorizationService>();
