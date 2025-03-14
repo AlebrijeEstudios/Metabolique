@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AppVidaSana.Models.Dtos.Feeding_Dtos;
+using Newtonsoft.Json;
 
 namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
 {
@@ -10,7 +11,9 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
 
         [JsonRequired] public TimeOnly userFeedTime { get; set; } 
 
-        [JsonRequired] public string dailyMeal { get; set; } = null!; 
+        [JsonRequired] public string dailyMeal { get; set; } = null!;
+
+        [JsonRequired] public List<FoodsConsumedDto> foodsConsumed { get; set; } = null!;
 
         [JsonRequired] public string satietyLevel { get; set; } = null!;
 
