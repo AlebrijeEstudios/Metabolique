@@ -1,5 +1,6 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,6 +31,7 @@ namespace AppVidaSana.Services.AdminWeb
                 userFeedDate = feeding.userFeedDate,
                 userFeedTime = feeding.userFeedTime,
                 dailyMeal = feeding.dailyMeals?.dailyMeal ?? "N/A",
+                foodsConsumed = [],
                 satietyLevel = feeding.satietyLevel,
                 emotionsLinked = feeding.emotionsLinked,
                 totalCalories = feeding.totalCalories,
@@ -75,7 +77,7 @@ namespace AppVidaSana.Services.AdminWeb
             using (var memoryStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memoryStream))
             {
-                await streamWriter.WriteLineAsync("UserFeedID,UserFeedDate,UserFeedTime,DailyMeal,SatietyLevel,EmotionsLinked,TotalCalories,SaucerPictureUrl");
+                await streamWriter.WriteLineAsync("UserFeedID,UserFeedDate,UserFeedTime,DailyMeal,FoodsConsumed,SatietyLevel,EmotionsLinked,TotalCalories,SaucerPictureUrl");
 
                 while (currentPage >= 0)
                 {
@@ -83,6 +85,9 @@ namespace AppVidaSana.Services.AdminWeb
                             .Where(e => e.accountID == accountID)
                             .Include(f => f.dailyMeals)
                             .Include(f => f.saucerPicture)
+                            .Include(f => f.userFeedNutritionalValues) 
+                            .ThenInclude(nv => nv.nutritionalValues) 
+                            .ThenInclude(nv => nv.foods)
                             .OrderBy(f => f.userFeedID)
                             .Skip(currentPage * pageSize)
                             .Take(pageSize)
@@ -94,6 +99,26 @@ namespace AppVidaSana.Services.AdminWeb
                         userFeedDate = feeding.userFeedDate,
                         userFeedTime = feeding.userFeedTime,
                         dailyMeal = feeding.dailyMeals?.dailyMeal ?? "N/A",
+                        foodsConsumed = feeding.userFeedNutritionalValues
+                                        .Select(nv => new FoodsConsumedDto
+                                        {
+                                            foodCode = nv.nutritionalValues.foods.foodCode,
+                                            nameFood = nv.nutritionalValues.foods.nameFood,
+                                            unit = nv.nutritionalValues.foods.unit,
+                                            nutritionalValues = new List<NutritionalValuesDto>
+                                            {
+                                                new NutritionalValuesDto
+                                                {
+                                                    nutritionalValueCode = nv.nutritionalValues.nutritionalValueID.ToString(),
+                                                    portion = nv.nutritionalValues.portion,
+                                                    kilocalories = nv.nutritionalValues.kilocalories,
+                                                    protein = nv.nutritionalValues.protein,
+                                                    carbohydrates = nv.nutritionalValues.carbohydrates,
+                                                    totalLipids = nv.nutritionalValues.totalLipids
+                                                }
+                                            }
+                                        })
+                                        .ToList(),
                         satietyLevel = feeding.satietyLevel,
                         emotionsLinked = feeding.emotionsLinked,
                         totalCalories = feeding.totalCalories,
@@ -107,7 +132,18 @@ namespace AppVidaSana.Services.AdminWeb
 
                     foreach (var feeding in feedingDTOs)
                     {
-                        var csvLine = $"{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"},{feeding.satietyLevel},\"{feeding.emotionsLinked}\",{feeding.totalCalories},{feeding.saucerPictureUrl ?? "N/A"}";
+                        var foodsConsumedDetails = feeding.foodsConsumed.Select(f =>
+                                                    $"(FoodCode: {f.foodCode}, NameFood: {f.nameFood}, Unit: {f.unit}, Portion: {f.nutritionalValues.First().portion}, " +
+                                                    $"Kcal: {f.nutritionalValues.First().kilocalories}, Protein: {f.nutritionalValues.First().protein}, " +
+                                                    $"Carbohydrates: {f.nutritionalValues.First().carbohydrates}, TotalLipids: {f.nutritionalValues.First().totalLipids})"
+                                                ).ToList();
+
+                        var foodsConsumedString = string.Join("; ", foodsConsumedDetails);
+
+                        var csvLine = $"{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"}," +
+                                      $"\"{foodsConsumedString}\"," + 
+                                      $"{feeding.satietyLevel},\"{feeding.emotionsLinked}\",{feeding.totalCalories},{feeding.saucerPictureUrl ?? "N/A"}";
+                        
                         await streamWriter.WriteLineAsync(csvLine);
                     }
                     currentPage++;

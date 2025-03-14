@@ -613,7 +613,7 @@ namespace AppVidaSana.Services
         private async Task DeleteDatesExcludedAsync(Guid periodID, string[] datesExcluded, CancellationToken cancellationToken)
         {
             var dates = await _bd.DaysConsumedOfMedications.Where(e => e.periodID == periodID
-                                                                  && datesExcluded.Select(e => DateOnly.Parse(e, CultureInfo.InvariantCulture)).Contains(e.dateConsumed)).ToListAsync(cancellationToken);
+                                                                  && datesExcluded.Contains(e.dateConsumed.ToString())).ToListAsync(cancellationToken);
 
             _bd.DaysConsumedOfMedications.RemoveRange(dates);
 

@@ -26,26 +26,23 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (role.role == "Admin")
             {
-                var accounts = await _bd.Accounts
-                                .Skip((page - 1) * 10)
-                                .Take(10)
-                                .ToListAsync(cancellationToken);
-
                 var profiles = await _bd.Profiles
+                                .Include(f => f.account)
                                 .Skip((page - 1) * 10)
                                 .Take(10)
                                 .ToListAsync(cancellationToken);
 
-                var accountProfileDTOs = accounts.Select(account => new InfoAccountDto
+                var accountProfileDTOs = profiles.Select(profile => new InfoAccountDto
                 {
-                    accountID = account.accountID,
-                    username = account.username,
-                    email = account.email,
-                    birthDate = profiles.FirstOrDefault(profile => profile.accountID == account.accountID).birthDate,
-                    sex = profiles.FirstOrDefault(profile => profile.accountID == account.accountID).sex,
-                    stature = profiles.FirstOrDefault(profile => profile.accountID == account.accountID).stature,
-                    weight = profiles.FirstOrDefault(profile => profile.accountID == account.accountID).weight,
-                    protocolToFollow = profiles.FirstOrDefault(profile => profile.accountID == account.accountID).protocolToFollow
+                    accountID = profile.accountID,
+                    username = profile.account?.username ?? "N/A",
+                    email = profile.account?.email ?? "N/A",
+                    birthDate = profile!.birthDate,
+                    sex = profile!.sex,
+                    stature = profile!.stature,
+                    weight = profile!.weight,
+                    protocolToFollow = profile!.protocolToFollow
+
                 }).ToList();
 
                 return accountProfileDTOs;
