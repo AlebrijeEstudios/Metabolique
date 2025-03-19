@@ -92,6 +92,9 @@ builder.Services.AddAutoMapper(typeof(Mapper));
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<IAWFeeding, AWFeedingService>();
+builder.Services.AddScoped<IAWExercise, AWExerciseService>();
+builder.Services.AddScoped<IAWHabits, AWHabitService>();
+builder.Services.AddScoped<IAWMedication, AWMedicationService>();
 builder.Services.AddScoped<IAWPatients, AWPatientsService>();
 builder.Services.AddScoped<IExportToZip, AWExportToZipService>();
 

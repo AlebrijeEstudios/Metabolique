@@ -88,7 +88,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [Produces("application/zip")]
         public async Task<IActionResult> ExportAllToCsvAsync()
         {
-            string dateSuffix = DateTime.UtcNow.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
             string fileName = $"All_Sections_{dateSuffix}.zip";
 
             var zipBytes = await _ExportService.GenerateAllSectionsZipAsync(HttpContext.RequestAborted);
