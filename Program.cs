@@ -27,7 +27,7 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_TEST");
+var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
 
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
