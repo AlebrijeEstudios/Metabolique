@@ -50,5 +50,43 @@ namespace AppVidaSana.Services.AdminWeb
 
             return [];
         }
+
+        public async Task<byte[]> ExportAllPatientsAsync(CancellationToken cancellationToken) 
+        {
+            const int pageSize = 1000;
+            int currentPage = 0;
+
+            using (var memoryStream = new MemoryStream())
+            using (var streamWriter = new StreamWriter(memoryStream))
+            {
+                await streamWriter.WriteLineAsync("AccountID,UserName,Email,BirthDate,Sex,Stature,Weight,ProtocolToFollow");
+
+                while (currentPage >= 0)
+                {
+                    var profiles = await _bd.Profiles
+                                .Include(f => f.account)
+                                .Skip(currentPage * pageSize)
+                                .Take(pageSize)
+                                .ToListAsync(cancellationToken);
+
+                    if (profiles.Count == 0)
+                    {
+                        break;
+                    }
+
+                    foreach (var p in profiles)
+                    {
+                        var csvLine = $"{p.accountID},{p.account.username},{p.account.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
+
+                        await streamWriter.WriteLineAsync(csvLine);
+                    }
+                    currentPage++;
+                }
+
+                await streamWriter.FlushAsync(cancellationToken);
+
+                return memoryStream.ToArray();
+            }
+        }
     }
 }

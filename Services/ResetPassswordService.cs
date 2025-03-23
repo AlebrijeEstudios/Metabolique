@@ -52,7 +52,7 @@ namespace AppVidaSana.Services
                 EmailClient emailClient = new EmailClient(Environment.GetEnvironmentVariable("EMAIL_API"));
                 await emailClient.SendAsync(
                     WaitUntil.Completed,
-                    senderAddress: "DoNotReply@0b745518-72fa-4e25-b409-445ce615627e.azurecomm.net",
+                    senderAddress: "DoNotReply@6895ce04-ff2e-4cd1-b2fa-4544b971a71e.azurecomm.net",
                     recipientAddress: email,
                     subject: "Password Reset",
                     htmlContent: $"<html><body><h2>Restablecimiento de contraseña</h2><p>Hola,</p><p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.</p><p>Por favor, haz clic en el siguiente enlace para restablecer tu contraseña:</p><p><a href=\"{resetLink}\">Click aquí para restablecer tu contraseña</a></p><p>Si no solicitaste este cambio, por favor ignora este correo.</p><p>Gracias,</p><p>Tu equipo de soporte</p></body></html>",

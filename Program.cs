@@ -28,7 +28,7 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
+var connectionString = Environment.GetEnvironmentVariable("DB_TEST");
 
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
@@ -93,7 +93,11 @@ builder.Services.AddAutoMapper(typeof(Mapper));
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<IAWFeeding, AWFeedingService>();
+builder.Services.AddScoped<IAWExercise, AWExerciseService>();
+builder.Services.AddScoped<IAWHabits, AWHabitService>();
+builder.Services.AddScoped<IAWMedication, AWMedicationService>();
 builder.Services.AddScoped<IAWPatients, AWPatientsService>();
+builder.Services.AddScoped<IExportToZip, AWExportToZipService>();
 
 builder.Services.AddScoped<IUserDaySummary, UserDaySummaryService>();
 builder.Services.AddScoped<ICalories, CaloriesService>();
