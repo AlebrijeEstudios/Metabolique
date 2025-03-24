@@ -14,6 +14,8 @@ namespace AppVidaSana.Services.IServices.IAdminWeb
 
         Task<byte[]> ExportAllFeedingsAsync(CancellationToken cancellationToken);
 
+        Task<byte[]> ExportAllFoodsConsumedPerFeedingAsync(CancellationToken cancellationToken);
+
         Task<byte[]> ExportAllCaloriesConsumedAsync(CancellationToken cancellationToken);
 
         Task<byte[]> ExportAllCaloriesRequiredPerDaysAsync(CancellationToken cancellationToken);
