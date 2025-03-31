@@ -16,7 +16,7 @@ namespace AppVidaSana.Services.AdminWeb
             _bd = bd;
         }
 
-        public async Task<List<FeedingsAdminDto>> GetFeedingsAsync(Guid accountID, int page, CancellationToken cancellationToken)
+        public async Task<List<FoodsConsumedAdminDto>> GetFeedingsAsync(Guid accountID, int page, CancellationToken cancellationToken)
         {
             var feedings = await _bd.UserFeeds
                             .Where(e => e.accountID == accountID)
@@ -26,7 +26,7 @@ namespace AppVidaSana.Services.AdminWeb
                             .Take(10)
                             .ToListAsync(cancellationToken);
 
-            var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
+            var feedingDTOs = feedings.Select(feeding => new FoodsConsumedAdminDto
             {
                 userFeedID = feeding.userFeedID,
                 userFeedDate = feeding.userFeedDate,
@@ -42,7 +42,7 @@ namespace AppVidaSana.Services.AdminWeb
             return feedingDTOs;
         }
 
-        public async Task<List<FeedingsAdminDto>> GetFilterFeedingsAsync(Guid accountID, int page, DateOnly dateInitial, DateOnly dateFinal, CancellationToken cancellationToken)
+        public async Task<List<FoodsConsumedAdminDto>> GetFilterFeedingsAsync(Guid accountID, int page, DateOnly dateInitial, DateOnly dateFinal, CancellationToken cancellationToken)
         {
             var feedings = await _bd.UserFeeds
                             .Where(e => e.accountID == accountID &&
@@ -55,12 +55,13 @@ namespace AppVidaSana.Services.AdminWeb
                             .Take(10)
                             .ToListAsync(cancellationToken);
 
-            var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
+            var feedingDTOs = feedings.Select(feeding => new FoodsConsumedAdminDto
             {
                 userFeedID = feeding.userFeedID,
                 userFeedDate = feeding.userFeedDate,
                 userFeedTime = feeding.userFeedTime,
                 dailyMeal = feeding.dailyMeals?.dailyMeal ?? "N/A",
+                foodsConsumed = [],
                 satietyLevel = feeding.satietyLevel,
                 emotionsLinked = feeding.emotionsLinked,
                 totalCalories = feeding.totalCalories,
@@ -94,7 +95,7 @@ namespace AppVidaSana.Services.AdminWeb
                             .Take(pageSize)
                             .ToListAsync(cancellationToken);
 
-                    var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
+                    var feedingDTOs = feedings.Select(feeding => new FoodsConsumedAdminDto
                     {
                         userFeedID = feeding.userFeedID,
                         userFeedDate = feeding.userFeedDate,
@@ -233,7 +234,7 @@ namespace AppVidaSana.Services.AdminWeb
                             .Take(pageSize)
                             .ToListAsync(cancellationToken);
 
-                    var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
+                    var feedingDTOs = feedings.Select(feeding => new FoodsConsumedAdminDto
                     {
                         userFeedID = feeding.userFeedID,
                         userFeedDate = feeding.userFeedDate,
@@ -299,13 +300,17 @@ namespace AppVidaSana.Services.AdminWeb
             using (var memoryStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memoryStream))
             {
-                await streamWriter.WriteLineAsync("UserFeedID,UserFeedDate,UserFeedTime,DailyMeal,TotalCalories,SatietyLevel,EmotionsLinked,SaucerPictureUrl");
+                await streamWriter.WriteLineAsync("AccountID,UserFeedID,Username,UserFeedDate,UserFeedTime,DailyMeal,TotalCarbohydrates,TotalProtein,TotalLipids,TotalCalories,SatietyLevel,EmotionsLinked,SaucerPictureUrl");
 
                 while (currentPage >= 0)
                 {
                     var feedings = await _bd.UserFeeds
+                            .Include(f => f.account)
                             .Include(f => f.dailyMeals)
                             .Include(f => f.saucerPicture)
+                            .Include(f => f.userFeedNutritionalValues)
+                            .ThenInclude(nv => nv.nutritionalValues)
+                            .ThenInclude(nv => nv.foods)
                             .OrderBy(f => f.userFeedID)
                             .Skip(currentPage * pageSize)
                             .Take(pageSize)
@@ -313,14 +318,21 @@ namespace AppVidaSana.Services.AdminWeb
 
                     var feedingDTOs = feedings.Select(feeding => new FeedingsAdminDto
                     {
-                        userFeedID = feeding.userFeedID,
+                        accountID = feeding.account.accountID,
+                        userFeedID = feeding.userFeedID, 
+                        userName = feeding.account.username,
                         userFeedDate = feeding.userFeedDate,
                         userFeedTime = feeding.userFeedTime,
                         dailyMeal = feeding.dailyMeals?.dailyMeal ?? "N/A",
-                        foodsConsumed = [],
+                        totalCarbohydrates = feeding.userFeedNutritionalValues
+                                             .Sum(nv => nv.nutritionalValues.carbohydrates * nv.MealFrequency),
+                        totalProtein = feeding.userFeedNutritionalValues
+                                             .Sum(nv => nv.nutritionalValues.protein * nv.MealFrequency),
+                        totalLipids = feeding.userFeedNutritionalValues
+                                             .Sum(nv => nv.nutritionalValues.totalLipids * nv.MealFrequency),
+                        totalCalories = feeding.totalCalories,
                         satietyLevel = feeding.satietyLevel,
                         emotionsLinked = feeding.emotionsLinked,
-                        totalCalories = feeding.totalCalories,
                         saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl
                     }).ToList();
 
@@ -331,8 +343,8 @@ namespace AppVidaSana.Services.AdminWeb
 
                     foreach (var feeding in feedingDTOs)
                     {
-                        var csvLine = $"{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"}," +
-                                        $"{feeding.totalCalories},{feeding.satietyLevel},\"{feeding.emotionsLinked}\",{feeding.saucerPictureUrl ?? "N/A"}";
+                        var csvLine = $"{feeding.accountID},{feeding.userFeedID},{feeding.userName},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"}," +
+                                      $"{feeding.totalCarbohydrates},{feeding.totalProtein},{feeding.totalLipids},{feeding.totalCalories},{feeding.satietyLevel},\"{feeding.emotionsLinked}\",{feeding.saucerPictureUrl ?? "N/A"}";
 
                         await streamWriter.WriteLineAsync(csvLine);
                     }

@@ -132,7 +132,8 @@ namespace AppVidaSana.Services
                 sex = values.sex,
                 stature = values.stature,
                 weight = values.weight,
-                protocolToFollow = values.protocolToFollow
+                protocolToFollow = values.protocolToFollow,
+                uiemID = values.uiemID
             };
 
             return profile;
