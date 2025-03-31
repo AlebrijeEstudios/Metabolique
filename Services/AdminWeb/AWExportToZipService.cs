@@ -47,10 +47,11 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var sectionFeeding = new Dictionary<string, byte[]>
                 {
-                    { $"All_Feedings_{dateSuffix}.csv", await _feedingService.ExportAllFeedingsAsync(cancellationToken) },
-                    { $"All_CaloriesConsumedPerPatient_{dateSuffix}.csv", await _feedingService.ExportAllCaloriesConsumedAsync(cancellationToken) },
+                    { $"All_InfoFeedings_{dateSuffix}.csv", await _feedingService.ExportAllFeedingsAsync(cancellationToken) },
+                    { $"All_FoodsConsumedPerFeedingPerPatient_{dateSuffix}.csv", await _feedingService.ExportAllFoodsConsumedPerFeedingAsync(cancellationToken) },
+                    { $"All_TotalCaloriesConsumedPerPatientPerDay_{dateSuffix}.csv", await _feedingService.ExportAllCaloriesConsumedAsync(cancellationToken) },
                     { $"All_CaloriesRequiredPerDaysPerPatient_{dateSuffix}.csv", await _feedingService.ExportAllCaloriesRequiredPerDaysAsync(cancellationToken)},
-                    { $"All_UserCalories_{dateSuffix}.csv", await _feedingService.ExportAllUserCaloriesAsync(cancellationToken)},
+                    { $"All_CaloriesRequiredPerPatient_{dateSuffix}.csv", await _feedingService.ExportAllUserCaloriesAsync(cancellationToken)},
                     { $"All_MFUsFeeding_{dateSuffix}.csv", await _feedingService.ExportAllMFUsFeedingAsync(cancellationToken) }
                 };
 

@@ -31,7 +31,8 @@ namespace AppVidaSana.Services
                 sex = values.sex,
                 stature = values.stature,
                 weight = values.weight,
-                protocolToFollow = values.protocolToFollow
+                protocolToFollow = values.protocolToFollow,
+                uiemID = values.uiemID
             };
 
             ValidationValuesDB.ValidationValues(profile);
@@ -58,6 +59,7 @@ namespace AppVidaSana.Services
             profile.stature = values.stature;
             profile.weight = values.weight;
             profile.protocolToFollow = values.protocolToFollow;
+            profile.uiemID = values.uiemID;
 
             ValidationValuesDB.ValidationValues(profile);
 

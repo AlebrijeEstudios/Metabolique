@@ -7,6 +7,6 @@ namespace AppVidaSana.ProducesResponseType.AdminWeb
     {
         public string message { get; set; } = "Ok.";
 
-        public List<FeedingsAdminDto> feedings { get; set; } = null!;
+        public List<FoodsConsumedAdminDto> feedings { get; set; } = null!;
     }
 }

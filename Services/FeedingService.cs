@@ -250,6 +250,7 @@ namespace AppVidaSana.Services
                     var newNv = new NutritionalValuesDto
                     {
                         portion = nv.portion,
+                        netWeight = nv.netWeight,
                         kilocalories = nv.kilocalories,
                         protein = nv.protein,
                         carbohydrates = nv.carbohydrates,
@@ -659,7 +660,8 @@ namespace AppVidaSana.Services
                                 .GroupBy(nutrValue => new
                                 {
                                     nutrValue.portion,
-                                    nutrValue.kilocalories,
+                                    nutrValue.netWeight,
+                                    nutrValue.kilocalories,                
                                     nutrValue.protein,
                                     nutrValue.carbohydrates,
                                     nutrValue.totalLipids
@@ -669,6 +671,7 @@ namespace AppVidaSana.Services
                                 {
                                     foodID = existingFoods[food.foodCode],
                                     portion = nutrValue.portion,
+                                    netWeight = nutrValue?.netWeight,
                                     kilocalories = nutrValue.kilocalories,
                                     protein = nutrValue.protein,
                                     carbohydrates = nutrValue.carbohydrates,
@@ -684,6 +687,7 @@ namespace AppVidaSana.Services
                                     .Where(nv => allNutrValues.Any(anv =>
                                         anv.foodID == nv.foodID &&
                                         anv.portion == nv.portion &&
+                                        anv.netWeight == nv.netWeight &&
                                         Math.Abs(anv.kilocalories - nv.kilocalories) < tolerance &&
                                         Math.Abs(anv.protein - nv.protein) < tolerance &&
                                         Math.Abs(anv.carbohydrates - nv.carbohydrates) < tolerance &&
@@ -694,6 +698,7 @@ namespace AppVidaSana.Services
                                 .Where(nv => !existingNutrValues.Any(anv =>
                                     anv.foodID == nv.foodID &&
                                     anv.portion == nv.portion &&
+                                    anv.netWeight == nv.netWeight &&
                                     Math.Abs(anv.kilocalories - nv.kilocalories) < tolerance &&
                                     Math.Abs(anv.protein - nv.protein) < tolerance &&
                                     Math.Abs(anv.carbohydrates - nv.carbohydrates) < tolerance &&
