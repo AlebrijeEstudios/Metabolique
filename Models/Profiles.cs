@@ -12,7 +12,7 @@ namespace AppVidaSana.Models
         [ForeignKey("Account")]
         public Guid accountID { get; set; }
 
-        public Guid? uiemID { get; set; }
+        public string? uiemID { get; set; }
 
         [Required(ErrorMessage = "El campo fecha de nacimiento es obligatoria.")]
         public DateOnly birthDate { get; set; }
