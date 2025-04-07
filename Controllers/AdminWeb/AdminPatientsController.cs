@@ -19,10 +19,12 @@ namespace AppVidaSana.Controllers.AdminWeb
     public class AdminPatientsController : ControllerBase
     {
         private readonly IAWPatients _PatientsService;
+        private readonly IExportToZip _ExportService;
 
-        public AdminPatientsController(IAWPatients PatientsService)
+        public AdminPatientsController(IAWPatients PatientsService, IExportToZip exportService)
         {
             _PatientsService = PatientsService;
+            _ExportService = exportService;
         }
 
         /// <summary>
@@ -70,6 +72,27 @@ namespace AppVidaSana.Controllers.AdminWeb
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
+        }
+
+        /// <summary>
+        /// This driver exports in csv all records.
+        /// </summary>
+        /// <response code="200">Returns information succesfully.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("export-all")]
+        [Produces("application/zip")]
+        public async Task<IActionResult> ExportAllToCsvAsync()
+        {
+            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string fileName = $"All_Sections_{dateSuffix}.zip";
+
+            var zipBytes = await _ExportService.GenerateAllSectionsZipAsync(HttpContext.RequestAborted);
+            return File(zipBytes, "application/zip", fileName);
         }
     }
 }

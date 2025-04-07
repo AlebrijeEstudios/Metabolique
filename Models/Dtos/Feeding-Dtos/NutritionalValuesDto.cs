@@ -8,6 +8,8 @@ namespace AppVidaSana.Models.Dtos.Feeding_Dtos
 
         [JsonRequired] public string portion { get; set; } = null!;
 
+        public float? netWeight { get; set; }
+
         [JsonRequired] public double kilocalories { get; set; }
 
         [JsonRequired] public double protein { get; set; }

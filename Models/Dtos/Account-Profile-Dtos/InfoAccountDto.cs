@@ -20,5 +20,6 @@ namespace AppVidaSana.Models.Dtos.Account_Profile_Dtos
 
         [JsonRequired] public string protocolToFollow { get; set; } = null!;
 
+        public Guid? uiemID { get; set; }
     }
 }

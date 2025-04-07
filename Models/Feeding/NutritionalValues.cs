@@ -14,6 +14,8 @@ namespace AppVidaSana.Models.Feeding
         [Required(ErrorMessage = "El campo porcion es obligatorio")]
         public string portion { get; set; } = null!;
 
+        public float? netWeight { get; set; }
+
         [Required(ErrorMessage = "El campo kilocalorias es obligatorio")]
         public double kilocalories { get; set; }
 

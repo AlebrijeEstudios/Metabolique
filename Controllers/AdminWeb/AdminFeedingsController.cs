@@ -114,7 +114,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [Produces("text/csv")]
         public async Task<IActionResult> ExportAllToCsvAsync([FromQuery] Guid accountID)
         {
-            var csvData = await _FeedingService.ExportAllToCsvAsync(accountID, HttpContext.RequestAborted);
+            var csvData = await _FeedingService.ExportFeedingsAsync(accountID, HttpContext.RequestAborted);
             return File(csvData, "text/csv", "AllFeedings.csv");
         }
 
@@ -132,7 +132,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [Produces("text/csv")]
         public async Task<IActionResult> ExportFilteredToCsvAsync([FromQuery] Guid accountID, [FromQuery] DateOnly dateInitial, [FromQuery] DateOnly dateFinal)
         {
-            var csvData = await _FeedingService.ExportFilteredToCsvAsync(accountID, dateInitial, dateFinal, HttpContext.RequestAborted);
+            var csvData = await _FeedingService.ExportFilteredFeedingsAsync(accountID, dateInitial, dateFinal, HttpContext.RequestAborted);
             return File(csvData, "text/csv", "FilteredFeedings.csv");
         }
     }
