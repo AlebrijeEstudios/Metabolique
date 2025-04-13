@@ -3,7 +3,6 @@ using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 
 namespace AppVidaSana.Services.AdminWeb
 {
@@ -219,7 +218,7 @@ namespace AppVidaSana.Services.AdminWeb
             using (var memoryStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memoryStream))
             {
-                await streamWriter.WriteLineAsync("UserFeedID,UserFeedDate,UserFeedTime,DailyMeal,FoodCode,NameFood,Unit,Portion,Carbohydrates,Protein,TotalLipids,Kcal");
+                await streamWriter.WriteLineAsync("AccountID,UserFeedID,UserFeedDate,UserFeedTime,DailyMeal,FoodCode,NameFood,Unit,Portion,Carbohydrates,Protein,TotalLipids,Kcal,NetWeight");
 
                 while (currentPage >= 0)
                 {
@@ -229,6 +228,7 @@ namespace AppVidaSana.Services.AdminWeb
                             .Include(f => f.userFeedNutritionalValues)
                             .ThenInclude(nv => nv.nutritionalValues)
                             .ThenInclude(nv => nv.foods)
+                            .Where(f => f.dailyMeals.dailyMeal == "Desayuno")
                             .OrderBy(f => f.userFeedID)
                             .Skip(currentPage * pageSize)
                             .Take(pageSize)
@@ -236,6 +236,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                     var feedingDTOs = feedings.Select(feeding => new FoodsConsumedAdminDto
                     {
+                        accountID = feeding.accountID,
                         userFeedID = feeding.userFeedID,
                         userFeedDate = feeding.userFeedDate,
                         userFeedTime = feeding.userFeedTime,
@@ -254,7 +255,8 @@ namespace AppVidaSana.Services.AdminWeb
                                                     kilocalories = nv.nutritionalValues.kilocalories,
                                                     protein = nv.nutritionalValues.protein,
                                                     carbohydrates = nv.nutritionalValues.carbohydrates,
-                                                    totalLipids = nv.nutritionalValues.totalLipids
+                                                    totalLipids = nv.nutritionalValues.totalLipids,
+                                                    netWeight = nv.nutritionalValues.netWeight
                                                 }, nv.MealFrequency
                                             ).ToList()
                                         })
@@ -276,8 +278,8 @@ namespace AppVidaSana.Services.AdminWeb
                         {
                             foreach(var nV in fC.nutritionalValues) 
                             { 
-                                var csvLine = $"{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"}," +
-                                          $"{fC.foodCode},\"{fC.nameFood}\",{fC.unit},' {nV.portion}',{nV.carbohydrates},{nV.protein},{nV.totalLipids},{nV.kilocalories}";
+                                var csvLine = $"{feeding.accountID},{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"}," +
+                                          $"{fC.foodCode},\"{fC.nameFood}\",{fC.unit},' {nV.portion}',{Math.Round(nV.carbohydrates, 2)},{Math.Round(nV.protein, 2)},{Math.Round(nV.totalLipids, 2)},{Math.Round(nV.kilocalories, 2)},{nV.netWeight}";
 
                                 await streamWriter.WriteLineAsync(csvLine);
                             }
@@ -300,7 +302,7 @@ namespace AppVidaSana.Services.AdminWeb
             using (var memoryStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memoryStream))
             {
-                await streamWriter.WriteLineAsync("AccountID,UserFeedID,Username,UserFeedDate,UserFeedTime,DailyMeal,TotalCarbohydrates,TotalProtein,TotalLipids,TotalCalories,SatietyLevel,EmotionsLinked,SaucerPictureUrl");
+                await streamWriter.WriteLineAsync("AccountID,UserFeedID,Username,UserFeedDate,UserFeedTime,DailyMeal,TotalCarbohydrates,TotalProtein,TotalLipids,TotalCalories,TotalNetWeight,SatietyLevel,EmotionsLinked,SaucerPictureUrl");
 
                 while (currentPage >= 0)
                 {
@@ -311,6 +313,7 @@ namespace AppVidaSana.Services.AdminWeb
                             .Include(f => f.userFeedNutritionalValues)
                             .ThenInclude(nv => nv.nutritionalValues)
                             .ThenInclude(nv => nv.foods)
+                            .Where(f => f.dailyMeals.dailyMeal == "Desayuno")
                             .OrderBy(f => f.userFeedID)
                             .Skip(currentPage * pageSize)
                             .Take(pageSize)
@@ -331,6 +334,8 @@ namespace AppVidaSana.Services.AdminWeb
                         totalLipids = feeding.userFeedNutritionalValues
                                              .Sum(nv => nv.nutritionalValues.totalLipids * nv.MealFrequency),
                         totalCalories = feeding.totalCalories,
+                        totalNetWeight = (double) feeding.userFeedNutritionalValues
+                                                    .Sum(nv => nv.nutritionalValues.netWeight * nv.MealFrequency),
                         satietyLevel = feeding.satietyLevel,
                         emotionsLinked = feeding.emotionsLinked,
                         saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl
@@ -344,7 +349,7 @@ namespace AppVidaSana.Services.AdminWeb
                     foreach (var feeding in feedingDTOs)
                     {
                         var csvLine = $"{feeding.accountID},{feeding.userFeedID},{feeding.userName},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"}," +
-                                      $"{feeding.totalCarbohydrates},{feeding.totalProtein},{feeding.totalLipids},{feeding.totalCalories},{feeding.satietyLevel},\"{feeding.emotionsLinked}\",{feeding.saucerPictureUrl ?? "N/A"}";
+                                      $"{Math.Round(feeding.totalCarbohydrates, 2)},{Math.Round(feeding.totalProtein, 2)},{Math.Round(feeding.totalLipids, 2)},{Math.Round(feeding.totalCalories, 2)},{Math.Round(feeding.totalNetWeight, 2)},{feeding.satietyLevel},\"{feeding.emotionsLinked}\",{feeding.saucerPictureUrl ?? "N/A"}";
 
                         await streamWriter.WriteLineAsync(csvLine);
                     }

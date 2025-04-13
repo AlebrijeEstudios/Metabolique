@@ -59,7 +59,7 @@ namespace AppVidaSana.Services.AdminWeb
             using (var memoryStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memoryStream))
             {
-                await streamWriter.WriteLineAsync("AccountID,UserName,Email,BirthDate,Sex,Stature,Weight,ProtocolToFollow");
+                await streamWriter.WriteLineAsync("AccountID,UiemID,UserName,Email,BirthDate,Sex,Stature,Weight,ProtocolToFollow");
 
                 while (currentPage >= 0)
                 {
@@ -76,7 +76,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                     foreach (var p in profiles)
                     {
-                        var csvLine = $"{p.accountID},{p.account.username},{p.account.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
+                        var csvLine = $"{p.accountID},{p.uiemID ?? "N/A"},{p.account.username},{p.account.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
 
                         await streamWriter.WriteLineAsync(csvLine);
                     }

@@ -5,6 +5,8 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
 {
     public class FoodsConsumedAdminDto
     {
+        [JsonRequired] public Guid accountID { get; set; }
+
         [JsonRequired] public Guid userFeedID { get; set; }
 
         [JsonRequired] public DateOnly userFeedDate { get; set; }

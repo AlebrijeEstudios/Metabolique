@@ -24,6 +24,8 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
 
         [JsonRequired] public double totalCalories { get; set; }
 
+        [JsonRequired] public double totalNetWeight { get; set; }
+
         [JsonRequired] public string satietyLevel { get; set; } = null!;
 
         [JsonRequired] public string emotionsLinked { get; set; } = null!;
