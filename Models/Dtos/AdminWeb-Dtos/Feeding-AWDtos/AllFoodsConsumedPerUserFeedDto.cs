@@ -1,9 +1,9 @@
 ﻿using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using Newtonsoft.Json;
 
-namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
+namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
 {
-    public class FoodsConsumedAdminDto
+    public class AllFoodsConsumedPerUserFeedDto
     {
         [JsonRequired] public Guid accountID { get; set; }
 
@@ -16,13 +16,5 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
         [JsonRequired] public string dailyMeal { get; set; } = null!;
 
         [JsonRequired] public List<FoodsConsumedDto> foodsConsumed { get; set; } = null!;
-
-        [JsonRequired] public string satietyLevel { get; set; } = null!;
-
-        [JsonRequired] public string emotionsLinked { get; set; } = null!;
-
-        [JsonRequired] public double totalCalories { get; set; }
-
-        public string? saucerPictureUrl { get; set; }
     }
 }

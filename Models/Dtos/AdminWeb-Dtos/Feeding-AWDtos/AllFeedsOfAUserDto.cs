@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
+namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
 {
-    public class FeedingsAdminDto
+    public class AllFeedsOfAUserDto
     {
         [JsonRequired] public Guid accountID { get; set; }
 

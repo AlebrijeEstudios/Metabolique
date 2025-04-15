@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
-using AppVidaSana.Models.Dtos.Feeding_Dtos;
+﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
 
 namespace AppVidaSana.ProducesResponseType.AdminWeb
 {
@@ -7,6 +6,6 @@ namespace AppVidaSana.ProducesResponseType.AdminWeb
     {
         public string message { get; set; } = "Ok.";
 
-        public List<FoodsConsumedAdminDto> feedings { get; set; } = null!;
+        public List<AllFeedsOfAUserDto> feedings { get; set; } = null!;
     }
 }

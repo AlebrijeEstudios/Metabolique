@@ -71,16 +71,19 @@ namespace AppVidaSana.Services.AdminWeb
 
                     if (profiles.Count == 0)
                     {
-                        break;
+                        currentPage = -1;
                     }
+                    else 
+                    { 
+                        foreach (var p in profiles)
+                        {
+                            var csvLine = $"{p.accountID},{p.uiemID ?? "N/A"},{p.account!.username},{p.account!.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
 
-                    foreach (var p in profiles)
-                    {
-                        var csvLine = $"{p.accountID},{p.uiemID ?? "N/A"},{p.account.username},{p.account.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
+                            await streamWriter.WriteLineAsync(csvLine);
+                        }
 
-                        await streamWriter.WriteLineAsync(csvLine);
+                        currentPage++;
                     }
-                    currentPage++;
                 }
 
                 await streamWriter.FlushAsync(cancellationToken);
