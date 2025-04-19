@@ -1,6 +1,6 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
-using AppVidaSana.Models.Dtos.Feeding_Dtos;
+using AppVidaSana.Models.Feeding;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,24 +15,15 @@ namespace AppVidaSana.Services.AdminWeb
             _bd = bd;
         }
 
-        public async Task<List<AllFeedsOfAUserDto>> GetAllFeedsOfAUserAsync(Guid accountID, int page, CancellationToken cancellationToken)
+        public async Task<List<AllFeedsOfAUserDto>> GetAllFeedsOfAUserAsync(UserFeedFilterDto filter, int page, CancellationToken cancellationToken)
         {
-            var feedings = await _bd.UserFeeds
-                            .Where(e => e.accountID == accountID)
-                            .Include(f => f.dailyMeals)
-                            .Include(f => f.saucerPicture)
-                            .Include(f => f.userFeedNutritionalValues)
-                            .ThenInclude(nv => nv.nutritionalValues)
-                            .ThenInclude(nv => nv!.foods)
-                            .OrderBy(f => f.userFeedID)
-                            .Skip((page - 1) * 10)
-                            .Take(10)
-                            .ToListAsync(cancellationToken);
+            var feedings = await GetQueryFeedings(filter, page, cancellationToken);
 
-            var feedingDTOs = feedings.Select(feeding => new AllFeedsOfAUserDto
+            var allFeedsOfAUser = feedings.Select(feeding => new AllFeedsOfAUserDto
             {
-                accountID = accountID,
+                accountID = feeding.account!.accountID,
                 userFeedID = feeding.userFeedID,
+                userName = feeding.account!.username,
                 userFeedDate = feeding.userFeedDate,
                 userFeedTime = feeding.userFeedTime,
                 dailyMeal = feeding.dailyMeals?.dailyMeal ?? "N/A",
@@ -50,8 +41,41 @@ namespace AppVidaSana.Services.AdminWeb
                 saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl ?? "N/A"
             }).ToList();
 
-            return feedingDTOs;
-        } 
+            return allFeedsOfAUser;
+        }
+
+        public async Task<List<AllFoodsConsumedPerUserFeedDto>> GetAllFoodsConsumedPerUserFeedAsync(UserFeedFilterDto filter, int page, CancellationToken cancellationToken) 
+        {
+            var feedings = await GetQueryFeedings(filter, page, cancellationToken);
+
+            var foodsConsumedPerUserFeeds = feedings
+                .SelectMany(feeding => feeding.userFeedNutritionalValues
+                    .SelectMany(nv => Enumerable.Range(0, nv.MealFrequency).Select(_ => new AllFoodsConsumedPerUserFeedDto
+                        {
+                            accountID = feeding.accountID,
+                            userFeedID = feeding.userFeedID,
+                            userFeedDate = feeding.userFeedDate,
+                            userFeedTime = feeding.userFeedTime,
+                            dailyMeal = feeding.dailyMeals?.dailyMeal ?? "N/A",
+
+                            foodCode = nv.nutritionalValues?.foods?.foodCode ?? "",
+                            nameFood = nv.nutritionalValues?.foods?.nameFood ?? "",
+                            unit = nv.nutritionalValues?.foods?.unit ?? "",
+
+                            nutritionalValueCode = nv.nutritionalValues?.nutritionalValueID.ToString() ?? "",
+                            portion = nv.nutritionalValues?.portion ?? "",
+                            kilocalories = nv.nutritionalValues?.kilocalories ?? 0,
+                            protein = nv.nutritionalValues?.protein ?? 0,
+                            carbohydrates = nv.nutritionalValues?.carbohydrates ?? 0,
+                            totalLipids = nv.nutritionalValues?.totalLipids ?? 0,
+                            netWeight = nv.nutritionalValues?.netWeight ?? 0
+                        }))
+                    )
+                    .ToList();
+
+
+            return foodsConsumedPerUserFeeds;
+        }
 
         public async Task<byte[]> ExportAllFoodsConsumedPerFeedingAsync(CancellationToken cancellationToken) 
         {
@@ -71,39 +95,34 @@ namespace AppVidaSana.Services.AdminWeb
                             .Include(f => f.userFeedNutritionalValues)
                             .ThenInclude(nv => nv.nutritionalValues)
                             .ThenInclude(nv => nv!.foods)
-                            .OrderBy(f => f.userFeedID)
                             .Skip(currentPage * pageSize)
                             .Take(pageSize)
                             .ToListAsync(cancellationToken);
 
-                    var feedingDTOs = feedings.Select(feeding => new AllFoodsConsumedPerUserFeedDto
-                    {
-                        accountID = feeding.accountID,
-                        userFeedID = feeding.userFeedID,
-                        userFeedDate = feeding.userFeedDate,
-                        userFeedTime = feeding.userFeedTime,
-                        dailyMeal = feeding.dailyMeals?.dailyMeal ?? "N/A",
-                        foodsConsumed = feeding.userFeedNutritionalValues
-                                        .Select(nv => new FoodsConsumedDto
-                                        {
-                                            foodCode = nv.nutritionalValues?.foods?.foodCode ?? "",
-                                            nameFood = nv.nutritionalValues?.foods?.nameFood ?? "",
-                                            unit = nv.nutritionalValues?.foods?.unit ?? "",
-                                            nutritionalValues = Enumerable.Repeat(
-                                                new NutritionalValuesDto
-                                                {
-                                                    nutritionalValueCode = nv.nutritionalValues?.nutritionalValueID.ToString() ?? "",
-                                                    portion = nv.nutritionalValues?.portion ?? "",
-                                                    kilocalories = nv.nutritionalValues?.kilocalories ?? 0,
-                                                    protein = nv.nutritionalValues?.protein ?? 0,
-                                                    carbohydrates = nv.nutritionalValues?.carbohydrates ?? 0,
-                                                    totalLipids = nv.nutritionalValues?.totalLipids ?? 0,
-                                                    netWeight = nv.nutritionalValues?.netWeight ?? 0
-                                                }, nv.MealFrequency
-                                            ).ToList()
-                                        })
-                                        .ToList(),
-                    }).ToList();
+                    var feedingDTOs = feedings
+                        .SelectMany(feeding => feeding.userFeedNutritionalValues
+                            .SelectMany(nv => Enumerable.Range(0, nv.MealFrequency).Select(_ => new AllFoodsConsumedPerUserFeedDto
+                            {
+                                accountID = feeding.accountID,
+                                userFeedID = feeding.userFeedID,
+                                userFeedDate = feeding.userFeedDate,
+                                userFeedTime = feeding.userFeedTime,
+                                dailyMeal = feeding.dailyMeals?.dailyMeal ?? "N/A",
+
+                                foodCode = nv.nutritionalValues?.foods?.foodCode ?? "",
+                                nameFood = nv.nutritionalValues?.foods?.nameFood ?? "",
+                                unit = nv.nutritionalValues?.foods?.unit ?? "",
+
+                                nutritionalValueCode = nv.nutritionalValues?.nutritionalValueID.ToString() ?? "",
+                                portion = nv.nutritionalValues?.portion ?? "",
+                                kilocalories = nv.nutritionalValues?.kilocalories ?? 0,
+                                protein = nv.nutritionalValues?.protein ?? 0,
+                                carbohydrates = nv.nutritionalValues?.carbohydrates ?? 0,
+                                totalLipids = nv.nutritionalValues?.totalLipids ?? 0,
+                                netWeight = nv.nutritionalValues?.netWeight ?? 0
+                            }))
+                            )
+                            .ToList();
 
                     if (feedingDTOs.Count == 0)
                     {
@@ -113,16 +132,10 @@ namespace AppVidaSana.Services.AdminWeb
                     { 
                         foreach (var feeding in feedingDTOs)
                         {
-                            foreach (var fC in feeding.foodsConsumed) 
-                            {
-                                foreach(var nV in fC.nutritionalValues) 
-                                { 
-                                    var csvLine = $"{feeding.accountID},{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"}," +
-                                                $"{fC.foodCode},\"{fC.nameFood}\",{fC.unit},' {nV.portion}',{Math.Round(nV.carbohydrates, 2)},{Math.Round(nV.protein, 2)},{Math.Round(nV.totalLipids, 2)},{Math.Round(nV.kilocalories, 2)},{nV.netWeight}";
+                            var csvLine = $"{feeding.accountID},{feeding.userFeedID},{feeding.userFeedDate},{feeding.userFeedTime},{feeding.dailyMeal ?? "N/A"}," +
+                                        $"{feeding.foodCode},\"{feeding.nameFood}\",{feeding.unit},' {feeding.portion}',{Math.Round(feeding.carbohydrates, 2)},{Math.Round(feeding.protein, 2)},{Math.Round(feeding.totalLipids, 2)},{Math.Round(feeding.kilocalories, 2)},{feeding.netWeight}";
 
-                                    await streamWriter.WriteLineAsync(csvLine);
-                                }
-                            }
+                            await streamWriter.WriteLineAsync(csvLine);
                         }
                         currentPage++;
                     }
@@ -153,6 +166,7 @@ namespace AppVidaSana.Services.AdminWeb
                             .Include(f => f.userFeedNutritionalValues)
                             .ThenInclude(nv => nv.nutritionalValues)
                             .ThenInclude(nv => nv!.foods)
+                            .Where(f => f.dailyMeals.dailyMeal == "Desayuno")
                             .OrderBy(f => f.userFeedID)
                             .Skip(currentPage * pageSize)
                             .Take(pageSize)
@@ -365,6 +379,60 @@ namespace AppVidaSana.Services.AdminWeb
 
                 return memoryStream.ToArray();
             }
+        }
+
+        private async Task<List<UserFeeds>> GetQueryFeedings(UserFeedFilterDto filter, int page, CancellationToken cancellationToken) {
+
+            var query = _bd.UserFeeds
+                        .Include(f => f.account)
+                        .Include(f => f.dailyMeals)
+                        .Include(f => f.saucerPicture)
+                        .Include(f => f.userFeedNutritionalValues)
+                            .ThenInclude(nv => nv.nutritionalValues)
+                                .ThenInclude(nv => nv!.foods)
+                        .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
+
+            if (!string.IsNullOrWhiteSpace(filter.startDate.ToString()))
+                query = query.Where(f => f.userFeedDate >= filter.startDate);
+
+            if (!string.IsNullOrWhiteSpace(filter.endDate.ToString()))
+                query = query.Where(f => f.userFeedDate <= filter.endDate);
+
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
+
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
+
+            if (!string.IsNullOrWhiteSpace(filter.sex))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
+
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+
+            if (!string.IsNullOrWhiteSpace(filter.dailyMeal))
+                query = query.Where(f => f.dailyMeals!.dailyMeal.Contains(filter.dailyMeal ?? ""));
+
+            var feedings = await query
+                            .Skip((page - 1) * 10)
+                            .Take(10)
+                            .ToListAsync(cancellationToken);
+
+            return feedings;
         }
     }
 }

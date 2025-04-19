@@ -5,7 +5,9 @@ namespace AppVidaSana.Services.IServices.IAdminWeb
 {
     public interface IAWFeeding
     {
-        Task<List<AllFeedsOfAUserDto>> GetAllFeedsOfAUserAsync(Guid accountID, int page, CancellationToken cancellationToken);
+        Task<List<AllFeedsOfAUserDto>> GetAllFeedsOfAUserAsync(UserFeedFilterDto filter, int page, CancellationToken cancellationToken);
+
+        Task<List<AllFoodsConsumedPerUserFeedDto>> GetAllFoodsConsumedPerUserFeedAsync(UserFeedFilterDto filter, int page, CancellationToken cancellationToken);
 
         Task<byte[]> ExportAllFeedingsAsync(CancellationToken cancellationToken);
 

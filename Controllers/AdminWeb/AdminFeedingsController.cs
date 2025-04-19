@@ -1,12 +1,12 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.Services.IServices.IAdminWeb;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -50,9 +50,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> GetFeedingsAsync([FromQuery] Guid accountID, [FromQuery] int page)
+        public async Task<IActionResult> GetFeedingsAsync([FromQuery] UserFeedFilterDto filter, [FromQuery] int page)
         {
-            var feedings = await _FeedingService.GetAllFeedsOfAUserAsync(accountID, page, HttpContext.RequestAborted);
+            var feedings = await _FeedingService.GetAllFeedsOfAUserAsync(filter, page, HttpContext.RequestAborted);
 
             GetFeedingsResponse response = new GetFeedingsResponse
             {
@@ -60,6 +60,45 @@ namespace AppVidaSana.Controllers.AdminWeb
             };
 
             return StatusCode(StatusCodes.Status200OK, new { message = response.message, feedings = response.feedings });
+        }
+
+
+        /// <summary>
+        /// This controller returns all food consumed by the user.
+        /// </summary>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The userFeedDate property must have the following structure:   
+        ///     {
+        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        /// 
+        ///     The userFeedTime property must have the following structure:
+        ///     {
+        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="200">Returns information from the food consumed by the user.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetFoodsResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("foods")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetFoodsConsumedPerUserFeedAsync([FromQuery] UserFeedFilterDto filter, [FromQuery] int page)
+        {
+            var foods = await _FeedingService.GetAllFoodsConsumedPerUserFeedAsync(filter, page, HttpContext.RequestAborted);
+
+            GetFoodsResponse response = new GetFoodsResponse
+            {
+                foods = foods
+            };
+
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, foods = response.foods });
         }
     }
 }

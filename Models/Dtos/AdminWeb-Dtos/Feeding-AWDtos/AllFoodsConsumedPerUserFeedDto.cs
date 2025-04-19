@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Feeding_Dtos;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
 {
@@ -15,6 +14,25 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
 
         [JsonRequired] public string dailyMeal { get; set; } = null!;
 
-        [JsonRequired] public List<FoodsConsumedDto> foodsConsumed { get; set; } = null!;
+
+        [JsonRequired] public string foodCode { get; set; } = null!;
+
+        [JsonRequired] public string nameFood { get; set; } = null!;
+
+        [JsonRequired] public string unit { get; set; } = null!;
+
+        [JsonRequired] public string nutritionalValueCode { get; set; } = null!;
+
+        [JsonRequired] public string portion { get; set; } = null!;
+
+        [JsonRequired] public double kilocalories { get; set; }
+
+        [JsonRequired] public double protein { get; set; }
+
+        [JsonRequired] public double carbohydrates { get; set; }
+
+        [JsonRequired] public double totalLipids { get; set; }
+
+        [JsonRequired] public float netWeight { get; set; }
     }
 }
