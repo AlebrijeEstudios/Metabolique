@@ -1,4 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 
 namespace AppVidaSana.ProducesResponseType.AdminWeb
 {
@@ -6,6 +6,6 @@ namespace AppVidaSana.ProducesResponseType.AdminWeb
     {
         public string message { get; set; } = "Ok.";
 
-        public List<InfoAccountDto> patients { get; set; } = null!;
+        public List<AllPatientsDto> patients { get; set; } = null!;
     }
 }

@@ -1,16 +1,14 @@
 ﻿namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
 {
-    public class FilterDto
+    public class PatientFilterDto
     {
-        public Guid? accountID { get; set; }
+        public Guid? doctorID { get; set; }
 
-        public string? username { get; set; }
+        public Guid? accountID { get; set; }
 
         public string? uiemID { get; set; }
 
-        public DateOnly? startDate { get; set; }
-
-        public DateOnly? endDate { get; set; }
+        public string? username { get; set; }
 
         public int? month { get; set; }
 
