@@ -2,10 +2,10 @@
 
 namespace AppVidaSana.ProducesResponseType.AdminWeb
 {
-    public class GetFeedingsResponse
+    public class GetFoodsResponse
     {
         public string message { get; set; } = "Ok.";
 
-        public List<AllFeedsOfAUserDto> feedings { get; set; } = null!;
+        public List<AllFoodsConsumedPerUserFeedDto> foods { get; set; } = null!;
     }
 }

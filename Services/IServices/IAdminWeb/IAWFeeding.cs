@@ -1,16 +1,13 @@
 ﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
 
 namespace AppVidaSana.Services.IServices.IAdminWeb
 {
     public interface IAWFeeding
     {
-        Task<List<FoodsConsumedAdminDto>> GetFeedingsAsync(Guid accountID, int page, CancellationToken cancellationToken);
+        Task<List<AllFeedsOfAUserDto>> GetAllFeedsOfAUserAsync(UserFeedFilterDto filter, int page, CancellationToken cancellationToken);
 
-        Task<List<FoodsConsumedAdminDto>> GetFilterFeedingsAsync(Guid accountID, int page, DateOnly dateInitial, DateOnly dateFinal, CancellationToken cancellationToken);
-
-        Task<byte[]> ExportFeedingsAsync(Guid accountID, CancellationToken cancellationToken);
-
-        Task<byte[]> ExportFilteredFeedingsAsync(Guid accountID, DateOnly dateInitial, DateOnly dateFinal, CancellationToken cancellationToken);
+        Task<List<AllFoodsConsumedPerUserFeedDto>> GetAllFoodsConsumedPerUserFeedAsync(UserFeedFilterDto filter, int page, CancellationToken cancellationToken);
 
         Task<byte[]> ExportAllFeedingsAsync(CancellationToken cancellationToken);
 

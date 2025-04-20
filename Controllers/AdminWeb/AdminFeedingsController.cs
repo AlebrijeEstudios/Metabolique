@@ -1,12 +1,12 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.Services.IServices.IAdminWeb;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -50,9 +50,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ApiKeyAuthorizationFilter]
         [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> GetFeedingsAsync([FromQuery] Guid accountID, [FromQuery] int page)
+        public async Task<IActionResult> GetFeedingsAsync([FromQuery] UserFeedFilterDto filter, [FromQuery] int page)
         {
-            var feedings = await _FeedingService.GetFeedingsAsync(accountID, page, HttpContext.RequestAborted);
+            var feedings = await _FeedingService.GetAllFeedsOfAUserAsync(filter, page, HttpContext.RequestAborted);
 
             GetFeedingsResponse response = new GetFeedingsResponse
             {
@@ -62,8 +62,9 @@ namespace AppVidaSana.Controllers.AdminWeb
             return StatusCode(StatusCodes.Status200OK, new { message = response.message, feedings = response.feedings });
         }
 
+
         /// <summary>
-        /// This driver returns all date-based filtered information about a user's feed.
+        /// This controller returns all food consumed by the user.
         /// </summary>
         /// <remarks>
         /// Sample Request:
@@ -79,61 +80,25 @@ namespace AppVidaSana.Controllers.AdminWeb
         ///     }
         ///     
         /// </remarks>
-        /// <response code="200">Returns information from the user's feed.</response>
+        /// <response code="200">Returns information from the food consumed by the user.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetFeedingsResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetFoodsResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
-        [HttpGet("filter")]
+        [HttpGet("foods")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetFilterFeedingsAsync([FromQuery] Guid accountID, [FromQuery] DateOnly dateInitial, [FromQuery] DateOnly dateFinal, [FromQuery] int page)
+        public async Task<IActionResult> GetFoodsConsumedPerUserFeedAsync([FromQuery] UserFeedFilterDto filter, [FromQuery] int page)
         {
-            var feedings = await _FeedingService.GetFilterFeedingsAsync(accountID, page, dateInitial, dateFinal, HttpContext.RequestAborted);
+            var foods = await _FeedingService.GetAllFoodsConsumedPerUserFeedAsync(filter, page, HttpContext.RequestAborted);
 
-            GetFeedingsResponse response = new GetFeedingsResponse
+            GetFoodsResponse response = new GetFoodsResponse
             {
-                feedings = feedings
+                foods = foods
             };
 
-            return StatusCode(StatusCodes.Status200OK, new { message = response.message, feedings = response.feedings });
-        }
-
-        /// <summary>
-        /// This driver exports in csv all the feed records of a user.
-        /// </summary>
-        /// <response code="200">Returns information from the user's feed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-all-feedings")]
-        [Produces("text/csv")]
-        public async Task<IActionResult> ExportAllToCsvAsync([FromQuery] Guid accountID)
-        {
-            var csvData = await _FeedingService.ExportFeedingsAsync(accountID, HttpContext.RequestAborted);
-            return File(csvData, "text/csv", "AllFeedings.csv");
-        }
-
-        /// <summary>
-        /// This driver exports in csv only the records filtered by a user's feed dates.
-        /// </summary>
-        /// <response code="200">Successfully returns the user's feed information in a csv file.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-filter-feedings")]
-        [Produces("text/csv")]
-        public async Task<IActionResult> ExportFilteredToCsvAsync([FromQuery] Guid accountID, [FromQuery] DateOnly dateInitial, [FromQuery] DateOnly dateFinal)
-        {
-            var csvData = await _FeedingService.ExportFilteredFeedingsAsync(accountID, dateInitial, dateFinal, HttpContext.RequestAborted);
-            return File(csvData, "text/csv", "FilteredFeedings.csv");
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, foods = response.foods });
         }
     }
 }

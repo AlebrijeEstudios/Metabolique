@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
+namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
 {
-    public class FeedingsAdminDto
+    public class AllFeedsOfAUserDto
     {
         [JsonRequired] public Guid accountID { get; set; }
 
@@ -23,6 +23,8 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
         [JsonRequired] public double totalLipids { get; set; }
 
         [JsonRequired] public double totalCalories { get; set; }
+
+        [JsonRequired] public double totalNetWeight { get; set; }
 
         [JsonRequired] public string satietyLevel { get; set; } = null!;
 

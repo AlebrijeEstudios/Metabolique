@@ -1,4 +1,5 @@
-﻿using AppVidaSana.Services.IServices;
+﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
+using AppVidaSana.Services.IServices;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using System.IO.Compression;
 
@@ -42,7 +43,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var sectionPatients = new Dictionary<string, byte[]>
                 {
-                    { $"All_Patients_{dateSuffix}.csv", await  _patientsService.ExportAllPatientsAsync(cancellationToken) }
+                    { $"All_Patients_{dateSuffix}.csv", await  _patientsService.ExportPatientsAsync(null, cancellationToken) }
                 };
 
                 var sectionFeeding = new Dictionary<string, byte[]>
@@ -88,7 +89,37 @@ namespace AppVidaSana.Services.AdminWeb
 
             return mainMemoryStream.ToArray();
         }
-    
+
+        public async Task<byte[]> GenerateOnlyPatientsZipAsync(PatientFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        {
+            using var mainMemoryStream = new MemoryStream();
+
+            using (var mainZip = new ZipArchive(mainMemoryStream, ZipArchiveMode.Create, true))
+            {
+                string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+                string csvFileName = "";
+
+                byte[] csvBytes = await _patientsService.ExportPatientsAsync(filter, cancellationToken);
+
+                if (typeExport == "with_filter")
+                {
+                    csvFileName = $"Patients_With_Filters_{dateSuffix}.csv";
+                }
+
+                if (typeExport == "all")
+                {
+                    csvFileName = $"All_Patients_{dateSuffix}.csv";
+                }
+
+                var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
+                using var entryStream = entry.Open();
+                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+            }
+
+            return mainMemoryStream.ToArray();
+        }
+
+
         private async Task<byte[]> CreateSectionZip(string folderName, Dictionary<string, byte[]> sectionFiles)
         {
             using var memoryStream = new MemoryStream();
@@ -106,6 +137,5 @@ namespace AppVidaSana.Services.AdminWeb
 
             return memoryStream.ToArray();
         }
-    
     }
 }
