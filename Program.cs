@@ -44,7 +44,7 @@ builder.Services.AddCors(opt =>
 {
     opt.AddPolicy(name: myrulesCORS, builder =>
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition"); ;
     });
 });
 
@@ -90,6 +90,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IAWFeeding, AWFeedingService>();
 builder.Services.AddScoped<IAWExercise, AWExerciseService>();
