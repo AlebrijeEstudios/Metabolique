@@ -62,7 +62,7 @@ namespace AppVidaSana.Controllers.AdminWeb
                     patients = patients
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, account = response.patients });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, patients = response.patients });
             }
             catch (UnstoredValuesException ex)
             {

@@ -5,30 +5,28 @@ using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AppVidaSana.Services.AdminWeb
 {
     public class AWPatientsService :IAWPatients
     {
         private readonly AppDbContext _bd;
-        public AWPatientsService(AppDbContext bd)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public AWPatientsService(AppDbContext bd, IHttpContextAccessor httpContextAccessor)
         {
             _bd = bd;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<AllPatientsDto>> GetPatientsAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken)
         {
-            if(filter.doctorID == null) { throw new UnstoredValuesException(); }
-
-            var infoDoctor = await _bd.Doctors.FindAsync(new object[] { filter.doctorID }, cancellationToken);
-
-            if (infoDoctor is null) { throw new UnstoredValuesException(); }
-
-            var role = await _bd.Roles.FindAsync(new object[] { infoDoctor.roleID }, cancellationToken);
+            var role = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
 
             if (role is null) { throw new UnstoredValuesException(); }
 
-            if (role.role == "Admin")
+            if (role == "Admin")
             {
                 var profiles = await GetQueryPatientsAsync(filter, page, false, 0, cancellationToken);
 
@@ -93,11 +91,16 @@ namespace AppVidaSana.Services.AdminWeb
             List<Profiles> patients = new List<Profiles>();
 
             var query = _bd.Profiles
-                            .Include(f => f.account)
-                        .AsQueryable();
+                           .Include(f => f.account)
+                           .AsQueryable();
 
-            if (filter != null) 
+            if (filter != null)
             {
+                query = query.Where(p => _bd.PacientDoctor
+                                        .Where(pd => pd.doctorID == filter.doctorID)
+                                        .Select(pd => pd.accountID)
+                                        .Contains(p.account!.accountID));
+
                 if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                     query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
