@@ -48,12 +48,12 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var sectionFeeding = new Dictionary<string, byte[]>
                 {
-                    { $"All_InfoFeedings_{dateSuffix}.csv", await _feedingService.ExportAllFeedingsAsync(cancellationToken) },
-                    { $"All_FoodsConsumedPerFeedingPerPatient_{dateSuffix}.csv", await _feedingService.ExportAllFoodsConsumedPerFeedingAsync(cancellationToken) },
-                    { $"All_TotalCaloriesConsumedPerPatientPerDay_{dateSuffix}.csv", await _feedingService.ExportAllCaloriesConsumedAsync(cancellationToken) },
-                    { $"All_CaloriesRequiredPerDaysPerPatient_{dateSuffix}.csv", await _feedingService.ExportAllCaloriesRequiredPerDaysAsync(cancellationToken)},
-                    { $"All_CaloriesRequiredPerPatient_{dateSuffix}.csv", await _feedingService.ExportAllUserCaloriesAsync(cancellationToken)},
-                    { $"All_MFUsFeeding_{dateSuffix}.csv", await _feedingService.ExportAllMFUsFeedingAsync(cancellationToken) }
+                    { $"All_InfoFeedings_{dateSuffix}.csv", await _feedingService.ExportAllFeedingsAsync(null, cancellationToken) },
+                    { $"All_FoodsConsumedPerFeedingPerPatient_{dateSuffix}.csv", await _feedingService.ExportAllFoodsConsumedPerFeedingAsync(null, cancellationToken) },
+                    { $"All_TotalCaloriesConsumedPerPatientPerDay_{dateSuffix}.csv", await _feedingService.ExportAllCaloriesConsumedAsync(null, cancellationToken) },
+                    { $"All_CaloriesRequiredPerDaysPerPatient_{dateSuffix}.csv", await _feedingService.ExportAllCaloriesRequiredPerDaysAsync(null, cancellationToken)},
+                    { $"All_CaloriesRequiredPerPatient_{dateSuffix}.csv", await _feedingService.ExportAllUserCaloriesAsync(null, cancellationToken)},
+                    { $"All_MFUsFeeding_{dateSuffix}.csv", await _feedingService.ExportAllMFUsFeedingAsync(null, cancellationToken) }
                 };
 
                 var sectionMedication = new Dictionary<string, byte[]>
@@ -61,8 +61,8 @@ namespace AppVidaSana.Services.AdminWeb
                     { $"All_PeriodsMedications_{dateSuffix}.csv", await _medicationService.ExportAllPeriodsMedicationsAsync(cancellationToken) },
                     { $"All_DaysConsumedOfMedications_{dateSuffix}.csv", await _medicationService.ExportAllDaysConsumedOfMedAsync(cancellationToken) },
                     { $"All_ConsumptionTimes_{dateSuffix}.csv", await _medicationService.ExportAllConsumptionTimesAsync(cancellationToken)},
-                    { $"All_SideEffects_{dateSuffix}.csv", await _medicationService.ExportAllSideEffectsAsync(cancellationToken)},
-                    { $"All_MFUsMedication_{dateSuffix}.csv", await _medicationService.ExportAllMFUsMedicationAsync(cancellationToken) }
+                    { $"All_SideEffects_{dateSuffix}.csv", await _medicationService.ExportAllSideEffectsAsync(null, cancellationToken)},
+                    { $"All_MFUsMedication_{dateSuffix}.csv", await _medicationService.ExportAllMFUsMedicationAsync(null, cancellationToken) }
                 };
 
                 var sectionExercise = new Dictionary<string, byte[]>

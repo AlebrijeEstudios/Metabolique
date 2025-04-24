@@ -25,7 +25,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyPatientsAsync([FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
         {
             var client = new HttpClient();
-            var api = Environment.GetEnvironmentVariable("API_AZURE");
+            var api = Environment.GetEnvironmentVariable("API_LOCAL");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
             var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
