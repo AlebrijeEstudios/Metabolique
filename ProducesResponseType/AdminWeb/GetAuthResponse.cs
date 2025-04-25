@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.ProducesResponseType.AdminWeb
 {
-    public class AuthAdminResponse
+    public class GetAuthResponse
     {
         public string message { get; set; } = "Ok.";
 

@@ -18,7 +18,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyLoginAsync([FromBody] LoginAdminDto login)
         {
             var client = new HttpClient();
-            var api = Environment.GetEnvironmentVariable("API_AZURE");
+            var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
             var response = await client.PostAsJsonAsync($"https://{api}/api/admin/auth", login);

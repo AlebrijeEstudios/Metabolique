@@ -1,4 +1,5 @@
 ﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 
 namespace AppVidaSana.Services.IServices.IAdminWeb
 {

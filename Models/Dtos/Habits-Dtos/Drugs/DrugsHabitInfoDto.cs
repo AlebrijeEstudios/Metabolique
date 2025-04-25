@@ -8,6 +8,6 @@ namespace AppVidaSana.Models.Dtos.Habits_Dtos.Drugs
 
         public int? cigarettesSmoked { get; set; }
 
-        public string? predominantEmotionalState { get; set; } = null!; 
+        public string? predominantEmotionalState { get; set; }
     }
 }

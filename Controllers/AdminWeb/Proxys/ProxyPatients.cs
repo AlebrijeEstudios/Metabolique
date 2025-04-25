@@ -1,4 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
+﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
@@ -25,7 +25,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyPatientsAsync([FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
         {
             var client = new HttpClient();
-            var api = Environment.GetEnvironmentVariable("API_LOCAL");
+            var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
             var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
