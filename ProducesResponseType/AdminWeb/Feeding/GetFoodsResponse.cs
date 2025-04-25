@@ -1,6 +1,6 @@
 ﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
 
-namespace AppVidaSana.ProducesResponseType.AdminWeb
+namespace AppVidaSana.ProducesResponseType.AdminWeb.Feeding
 {
     public class GetFoodsResponse
     {

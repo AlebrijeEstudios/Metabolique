@@ -8,7 +8,7 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
 
         [JsonRequired] public Guid userFeedID { get; set; }
 
-        [JsonRequired] public string userName { get; set; } = null!;
+        [JsonRequired] public string username { get; set; } = null!;
 
         [JsonRequired] public DateOnly userFeedDate { get; set; }
 

@@ -1,4 +1,4 @@
-﻿namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
+﻿namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos
 {
     public class PatientFilterDto
     {

@@ -2,7 +2,7 @@
 
 namespace AppVidaSana.ProducesResponseType.AdminWeb
 {
-    public class PatientsResponse
+    public class GetPatientsResponse
     {
         public string message { get; set; } = "Ok.";
 

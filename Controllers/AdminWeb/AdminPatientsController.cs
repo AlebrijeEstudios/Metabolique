@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http.Timeouts;
 using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Services.IServices.IAdminWeb;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -44,7 +44,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PatientsResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetPatientsResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
@@ -57,7 +57,7 @@ namespace AppVidaSana.Controllers.AdminWeb
             {
                 var patients = await _PatientsService.GetPatientsAsync(filter, page, HttpContext.RequestAborted);
 
-                PatientsResponse response = new PatientsResponse
+                GetPatientsResponse response = new GetPatientsResponse
                 {
                     patients = patients
                 };
@@ -97,7 +97,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// This driver exports in csv all records.
+        /// This driver exports in csv records.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
