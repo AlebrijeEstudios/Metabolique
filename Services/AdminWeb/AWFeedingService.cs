@@ -772,7 +772,6 @@ namespace AppVidaSana.Services.AdminWeb
         private async Task<List<FoodResults>> GetQueryMFUsFeedingAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
             List<FoodResults> mfu = new List<FoodResults>();
-            var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
 
             var query = _bd.ResultsFood
                         .Include(rf => rf.MFUsFood)                       
@@ -783,32 +782,34 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (filter != null) 
             {
+                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
+
                 query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter.doctorID)
+                                          .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.MFUsFood!.account!.accountID));
 
-                if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                if (!string.IsNullOrWhiteSpace(filter!.accountID.ToString()))
                     query = query.Where(f => f.MFUsFood!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-                if (!string.IsNullOrWhiteSpace(filter.username))
+                if (!string.IsNullOrWhiteSpace(filter!.username))
                     query = query.Where(f => f.MFUsFood!.account!.username.Contains(filter.username ?? ""));
 
-                if (!string.IsNullOrWhiteSpace(filter.uiemID))
+                if (!string.IsNullOrWhiteSpace(filter!.uiemID))
                     query = query.Where(f => _bd.Profiles
                                     .Any(p => p.accountID == f.MFUsFood!.account!.accountID && p.uiemID == filter.uiemID));
 
-                if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
+                if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
                     query = query.Where(f => f.MFUsFood!.months!.month.Contains(monthStr));
 
-                if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
+                if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
                     query = query.Where(f => f.MFUsFood!.months!.year == filter.year);
 
-                if (!string.IsNullOrWhiteSpace(filter.sex))
+                if (!string.IsNullOrWhiteSpace(filter!.sex))
                     query = query.Where(f => _bd.Profiles
                                     .Any(p => p.accountID == f.MFUsFood!.account!.accountID && p.sex == filter.sex));
 
-                if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
+                if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
                     query = query.Where(f => _bd.Profiles
                                     .Any(p => p.accountID == f.MFUsFood!.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
             }
