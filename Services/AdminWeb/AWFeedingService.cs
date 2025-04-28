@@ -39,15 +39,15 @@ namespace AppVidaSana.Services.AdminWeb
                     userFeedDate = feeding.userFeedDate,
                     userFeedTime = feeding.userFeedTime,
                     dailyMeal = feeding.dailyMeals?.dailyMeal ?? "N/A",
-                    totalCarbohydrates = feeding.userFeedNutritionalValues
-                                                 .Sum(nv => nv.nutritionalValues?.carbohydrates ?? 0 * nv.MealFrequency),
-                    totalProtein = feeding.userFeedNutritionalValues
-                                                 .Sum(nv => nv.nutritionalValues?.protein ?? 0 * nv.MealFrequency),
-                    totalLipids = feeding.userFeedNutritionalValues
-                                                 .Sum(nv => nv.nutritionalValues?.totalLipids ?? 0 * nv.MealFrequency),
-                    totalCalories = feeding.totalCalories,
-                    totalNetWeight = (double)feeding.userFeedNutritionalValues
-                                                 .Sum(nv => nv.nutritionalValues?.netWeight ?? 0 * nv.MealFrequency),
+                    totalCarbohydrates = Math.Round(feeding.userFeedNutritionalValues
+                                                 .Sum(nv => nv.nutritionalValues?.carbohydrates ?? 0 * nv.MealFrequency), 2),
+                    totalProtein = Math.Round(feeding.userFeedNutritionalValues
+                                                 .Sum(nv => nv.nutritionalValues?.protein ?? 0 * nv.MealFrequency), 2),
+                    totalLipids = Math.Round(feeding.userFeedNutritionalValues
+                                                 .Sum(nv => nv.nutritionalValues?.totalLipids ?? 0 * nv.MealFrequency), 2),
+                    totalCalories = Math.Round(feeding.totalCalories, 2),
+                    totalNetWeight = Math.Round((double) feeding.userFeedNutritionalValues
+                                                 .Sum(nv => nv.nutritionalValues?.netWeight ?? 0 * nv.MealFrequency), 2),
                     satietyLevel = feeding.satietyLevel,
                     emotionsLinked = feeding.emotionsLinked,
                     saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl ?? "N/A"
@@ -83,11 +83,11 @@ namespace AppVidaSana.Services.AdminWeb
 
                             nutritionalValueCode = nv.nutritionalValues?.nutritionalValueID.ToString() ?? "",
                             portion = nv.nutritionalValues?.portion ?? "",
-                            kilocalories = nv.nutritionalValues?.kilocalories ?? 0,
-                            protein = nv.nutritionalValues?.protein ?? 0,
-                            carbohydrates = nv.nutritionalValues?.carbohydrates ?? 0,
-                            totalLipids = nv.nutritionalValues?.totalLipids ?? 0,
-                            netWeight = nv.nutritionalValues?.netWeight ?? 0
+                            kilocalories = Math.Round(nv.nutritionalValues?.kilocalories ?? 0, 2),
+                            protein = Math.Round(nv.nutritionalValues?.protein ?? 0, 2),
+                            carbohydrates = Math.Round(nv.nutritionalValues?.carbohydrates ?? 0, 2),
+                            totalLipids = Math.Round(nv.nutritionalValues?.totalLipids ?? 0, 2),
+                            netWeight = (double) Math.Round(nv.nutritionalValues?.netWeight ?? 0, 2)
                         }))
                         )
                         .ToList();
@@ -112,7 +112,7 @@ namespace AppVidaSana.Services.AdminWeb
                     accountID = kcal.accountID,
                     username = kcal.account?.username ?? "N/A",
                     date = kcal.dateCaloriesConsumed,
-                    totalKcal = kcal.totalCaloriesConsumed
+                    totalKcal = Math.Round(kcal.totalCaloriesConsumed, 2)
                 }).ToList();
 
                 return allKcalConsumedPerUser;
@@ -136,7 +136,7 @@ namespace AppVidaSana.Services.AdminWeb
                     username = kcal.account?.username ?? "N/A",
                     dateInitial = kcal.dateInitial,
                     dateFinal = kcal.dateFinal,
-                    kcalNeeded = kcal.caloriesNeeded
+                    kcalNeeded = Math.Round(kcal.caloriesNeeded, 2)
                 }).ToList();
 
                 return allKcalRequiredPerDay;
@@ -158,7 +158,7 @@ namespace AppVidaSana.Services.AdminWeb
                     userCaloriesID = kcal.userCaloriesID,
                     accountID = kcal.accountID,
                     username = kcal.account?.username ?? "N/A",
-                    kcalNeeded = kcal.caloriesNeeded
+                    kcalNeeded = Math.Round(kcal.caloriesNeeded, 2)
                 }).ToList();
 
                 return allKcalRequiredPerUser;
@@ -230,7 +230,7 @@ namespace AppVidaSana.Services.AdminWeb
                         totalLipids = feeding.userFeedNutritionalValues
                                              .Sum(nv => nv.nutritionalValues?.totalLipids ?? 0 * nv.MealFrequency),
                         totalCalories = feeding.totalCalories,
-                        totalNetWeight = (double)feeding.userFeedNutritionalValues
+                        totalNetWeight = (double) feeding.userFeedNutritionalValues
                                                     .Sum(nv => nv.nutritionalValues?.netWeight ?? 0 * nv.MealFrequency),
                         satietyLevel = feeding.satietyLevel,
                         emotionsLinked = feeding.emotionsLinked,
