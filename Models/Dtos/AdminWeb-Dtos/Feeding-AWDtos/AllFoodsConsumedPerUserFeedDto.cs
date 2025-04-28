@@ -33,6 +33,6 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
 
         [JsonRequired] public double totalLipids { get; set; }
 
-        [JsonRequired] public float netWeight { get; set; }
+        [JsonRequired] public double netWeight { get; set; }
     }
 }
