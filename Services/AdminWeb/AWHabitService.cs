@@ -515,8 +515,6 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (filter != null)
             {
-                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
-
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)
@@ -532,8 +530,11 @@ namespace AppVidaSana.Services.AdminWeb
                     query = query.Where(f => _bd.Profiles
                                     .Any(p => p.accountID == f.MFUsHabits!.account!.accountID && p.uiemID == filter.uiemID));
 
-                if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
+                if (!string.IsNullOrWhiteSpace(filter!.month.ToString())) 
+                {
+                    var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
                     query = query.Where(f => f.MFUsHabits!.months!.month.Contains(monthStr));
+                }
 
                 if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
                     query = query.Where(f => f.MFUsHabits!.months!.year == filter.year);
