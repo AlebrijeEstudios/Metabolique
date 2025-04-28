@@ -31,7 +31,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="401">Returns a message that you were unable to log in.</response>  
         /// <response code="500">Returns a message indicating internal server errors.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthAdminResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetAuthResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
@@ -44,7 +44,7 @@ namespace AppVidaSana.Controllers.AdminWeb
             {
                 var token = await _AuthService.LoginAdminAsync(login, HttpContext.RequestAborted);
 
-                AuthAdminResponse response = new AuthAdminResponse
+                GetAuthResponse response = new GetAuthResponse
                 {
                     auth = token
                 };

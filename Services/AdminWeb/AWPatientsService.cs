@@ -1,47 +1,45 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.Models;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AppVidaSana.Services.AdminWeb
 {
     public class AWPatientsService :IAWPatients
     {
         private readonly AppDbContext _bd;
-        public AWPatientsService(AppDbContext bd)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public AWPatientsService(AppDbContext bd, IHttpContextAccessor httpContextAccessor)
         {
             _bd = bd;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<List<InfoAccountDto>> GetPatientsAsync(Guid doctorID, int page, CancellationToken cancellationToken)
+        public async Task<List<AllPatientsDto>> GetPatientsAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken)
         {
-            var infoDoctor = await _bd.Doctors.FindAsync(new object[] { doctorID }, cancellationToken);
-
-            if (infoDoctor is null) { throw new UnstoredValuesException(); }
-
-            var role = await _bd.Roles.FindAsync(new object[] { infoDoctor.roleID }, cancellationToken);
+            var role = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
 
             if (role is null) { throw new UnstoredValuesException(); }
 
-            if (role.role == "Admin")
+            if (role == "Admin")
             {
-                var profiles = await _bd.Profiles
-                                .Include(f => f.account)
-                                .Skip((page - 1) * 10)
-                                .Take(10)
-                                .ToListAsync(cancellationToken);
+                var profiles = await GetQueryPatientsAsync(filter, page, false, 0, cancellationToken);
 
-                var accountProfileDTOs = profiles.Select(profile => new InfoAccountDto
+                var accountProfileDTOs = profiles.Select(profile => new AllPatientsDto
                 {
                     accountID = profile.accountID,
+                    uiemID = profile.uiemID,
                     username = profile.account?.username ?? "N/A",
                     email = profile.account?.email ?? "N/A",
-                    birthDate = profile!.birthDate,
-                    sex = profile!.sex,
-                    stature = profile!.stature,
-                    weight = profile!.weight,
-                    protocolToFollow = profile!.protocolToFollow
+                    birthDate = profile.birthDate,
+                    sex = profile.sex,
+                    stature = profile.stature,
+                    weight = profile.weight,
+                    protocolToFollow = profile.protocolToFollow
 
                 }).ToList();
 
@@ -51,42 +49,100 @@ namespace AppVidaSana.Services.AdminWeb
             return [];
         }
 
-        public async Task<byte[]> ExportAllPatientsAsync(CancellationToken cancellationToken) 
+        public async Task<byte[]> ExportPatientsAsync(PatientFilterDto? filter, CancellationToken cancellationToken) 
         {
-            const int pageSize = 1000;
             int currentPage = 0;
 
             using (var memoryStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memoryStream))
             {
-                await streamWriter.WriteLineAsync("AccountID,UserName,Email,BirthDate,Sex,Stature,Weight,ProtocolToFollow");
+                await streamWriter.WriteLineAsync("AccountID,UiemID,UserName,Email,BirthDate,Sex,Stature,Weight,ProtocolToFollow");
 
                 while (currentPage >= 0)
                 {
-                    var profiles = await _bd.Profiles
-                                .Include(f => f.account)
-                                .Skip(currentPage * pageSize)
-                                .Take(pageSize)
-                                .ToListAsync(cancellationToken);
+                    var profiles = await GetQueryPatientsAsync(filter, 0, true, currentPage, cancellationToken);
 
                     if (profiles.Count == 0)
                     {
-                        break;
+                        currentPage = -1;
                     }
+                    else 
+                    { 
+                        foreach (var p in profiles)
+                        {
+                            var csvLine = $"{p.accountID},{p.uiemID ?? "N/A"},{p.account!.username},{p.account!.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
 
-                    foreach (var p in profiles)
-                    {
-                        var csvLine = $"{p.accountID},{p.account.username},{p.account.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
+                            await streamWriter.WriteLineAsync(csvLine);
+                        }
 
-                        await streamWriter.WriteLineAsync(csvLine);
+                        currentPage++;
                     }
-                    currentPage++;
                 }
 
                 await streamWriter.FlushAsync(cancellationToken);
 
                 return memoryStream.ToArray();
             }
+        }
+
+        private async Task<List<Profiles>> GetQueryPatientsAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        {
+            List<Profiles> patients = new List<Profiles>();
+
+            var query = _bd.Profiles
+                           .Include(f => f.account)
+                           .AsQueryable();
+
+            if (filter != null)
+            {
+                query = query.Where(p => _bd.PacientDoctor
+                                        .Where(pd => pd.doctorID == filter.doctorID)
+                                        .Select(pd => pd.accountID)
+                                        .Contains(p.account!.accountID));
+
+                if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                    query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
+
+                if (!string.IsNullOrWhiteSpace(filter.username))
+                    query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
+
+                if (!string.IsNullOrWhiteSpace(filter.uiemID))
+                    query = query.Where(f => _bd.Profiles
+                                    .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
+
+                if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
+                    query = query.Where(f => _bd.Profiles
+                                    .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
+
+                if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
+                    query = query.Where(f => _bd.Profiles
+                                    .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
+
+                if (!string.IsNullOrWhiteSpace(filter.sex))
+                    query = query.Where(f => _bd.Profiles
+                                    .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
+
+                if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
+                    query = query.Where(f => _bd.Profiles
+                                    .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+
+            }
+
+            if (!export)
+            {
+                patients = await query
+                            .Skip((page - 1) * 10)
+                            .Take(10)
+                            .ToListAsync(cancellationToken);
+            }
+            else { 
+                patients = await query
+                            .Skip(currentPage * 1000)
+                            .Take(1000)
+                            .ToListAsync(cancellationToken);
+            }
+
+            return patients;
         }
     }
 }
