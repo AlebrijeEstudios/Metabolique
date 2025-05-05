@@ -125,6 +125,7 @@ namespace AppVidaSana.Services
                                                                    && e.dateInitial <= date
                                                                    && date <= e.dateFinal, cancellationToken);
 
+
             int daysForExercise = await _bd.ActiveMinutes.Where(e => e.accountID == userKcal.accountID
                                                                 && kcalRequiredPerDay!.dateInitial <= e.dateExercise
                                                                 && e.dateExercise <= kcalRequiredPerDay!.dateFinal)
