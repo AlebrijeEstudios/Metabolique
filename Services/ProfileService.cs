@@ -67,7 +67,7 @@ namespace AppVidaSana.Services
 
             var userKcal = await _CaloriesService.UpdateUserCaloriesAsync(profile, cancellationToken);
 
-            await _CaloriesService.UpdateCaloriesRequiredPerDaysAsync(userKcal, today, cancellationToken);
+            await _CaloriesService.CaloriesRequiredPerDaysAsync(values.accountID, today, cancellationToken);
 
             return "Su cuenta se actualiz&oacute; con &eacute;xito.";
         }
