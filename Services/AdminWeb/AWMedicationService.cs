@@ -1,6 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
+using AppVidaSana.Models.Dtos.Medication_Dtos;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Months_Dates;
@@ -19,6 +20,20 @@ namespace AppVidaSana.Services.AdminWeb
         {
             _bd = bd;
             _httpContextAccessor = httpContextAccessor;
+        }
+
+        public async Task<List<InfoMedicationDto>> GetAllInfoMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken)
+        {
+            var role = UserRole();
+
+            if (role == "Admin")
+            {
+                var meds = await GetQueryInfoMedicationsAsync(filter, page, cancellationToken);
+
+                return meds;
+            }
+
+            return [];
         }
 
         public async Task<List<AllPeriodsMedicationsPerUserDto>> GetAllPeriodMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken) 
@@ -217,6 +232,112 @@ namespace AppVidaSana.Services.AdminWeb
             if (role is null) { throw new UnstoredValuesException(); }
 
             return role;
+        }
+
+        private async Task<List<InfoMedicationDto>> GetQueryInfoMedicationsAsync(PeriodMedicationsFilterDto? filter, int page, CancellationToken cancellationToken)
+        {
+            List<InfoMedicationDto> meds = new List<InfoMedicationDto>();
+
+            var query = _bd.Times
+                        .Include(t => t.daysConsumedOfMedications)
+                            .ThenInclude(dc => dc!.periodMedication)
+                                .ThenInclude(p => p!.medication)
+                        .Include(t => t.daysConsumedOfMedications)
+                            .ThenInclude(dc => dc!.periodMedication)
+                                .ThenInclude(p => p!.account)
+                        .AsQueryable();
+
+            if (filter != null)
+            {
+                query = query.Where(p => _bd.PacientDoctor
+                                          .Where(pd => pd.doctorID == filter.doctorID)
+                                          .Select(pd => pd.accountID)
+                                          .Contains(p.daysConsumedOfMedications!.periodMedication!.account!.accountID));
+
+                if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                    query = query.Where(f => f.daysConsumedOfMedications!.periodMedication!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
+
+                if (!string.IsNullOrWhiteSpace(filter.username))
+                    query = query.Where(f => f.daysConsumedOfMedications!.periodMedication!.account!.username.Contains(filter.username ?? ""));
+
+                if (!string.IsNullOrWhiteSpace(filter.uiemID))
+                    query = query.Where(f => _bd.Profiles
+                                    .Any(p => p.accountID == f.daysConsumedOfMedications!.periodMedication!.account!.accountID && p.uiemID == filter.uiemID));
+
+                if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
+                    query = query.Where(f => _bd.Profiles
+                                 .Any(p => p.accountID == f.daysConsumedOfMedications!.periodMedication!.account!.accountID && p.birthDate.Month == filter.month));
+
+                if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
+                    query = query.Where(f => _bd.Profiles
+                                 .Any(p => p.accountID == f.daysConsumedOfMedications!.periodMedication!.account!.accountID && p.birthDate.Year == filter.year));
+
+                if (!string.IsNullOrWhiteSpace(filter.sex))
+                    query = query.Where(f => _bd.Profiles
+                                    .Any(p => p.accountID == f.daysConsumedOfMedications!.periodMedication!.account!.accountID && p.sex == filter.sex));
+
+                if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
+                    query = query.Where(f => _bd.Profiles
+                                    .Any(p => p.accountID == f.daysConsumedOfMedications!.periodMedication!.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+
+                if (!string.IsNullOrWhiteSpace(filter.nameMedication))
+                    query = query.Where(f => f.daysConsumedOfMedications!.periodMedication!.medication!.nameMedication == filter.nameMedication);
+
+                if (filter.startDate != null && filter.endDate != null)
+                {
+                    query = query.Where(f =>
+                        f.daysConsumedOfMedications!.dateConsumed <= filter.endDate &&
+                        f.daysConsumedOfMedications!.dateConsumed >= filter.startDate
+                    );
+                }
+                else if (filter.startDate != null)
+                {
+                    query = query.Where(f =>
+                        f.daysConsumedOfMedications!.dateConsumed >= filter.startDate
+                    );
+                }
+                else if (filter.endDate != null)
+                {
+                    query = query.Where(f =>
+                        f.daysConsumedOfMedications!.dateConsumed <= filter.endDate
+                    );
+                }
+
+                if (filter.status != null)
+                    query = query.Where(f => f.medicationStatus == filter.status);
+            }
+
+            meds = await query
+                    .Where(t => t.daysConsumedOfMedications != null)
+                    .GroupBy(t => new
+                    {
+                        t.daysConsumedOfMedications!.periodMedication!.periodID,
+                        t.daysConsumedOfMedications!.dateConsumed
+                    })
+                    .Skip((page - 1) * 10)
+                    .Take(10)
+                    .Select(g => new InfoMedicationDto
+                    {
+                        periodID = g.Key.periodID,
+                        medicationID = g.First().daysConsumedOfMedications!.periodMedication!.medicationID,
+                        accountID = g.First().daysConsumedOfMedications!.periodMedication!.accountID,
+                        nameMedication = g.First().daysConsumedOfMedications!.periodMedication!.medication!.nameMedication,
+                        dose = g.First().daysConsumedOfMedications!.periodMedication!.dose,
+                        initialFrec = g.First().daysConsumedOfMedications!.periodMedication!.initialFrec,
+                        finalFrec = g.First().daysConsumedOfMedications!.periodMedication!.finalFrec,
+                        times = g.Select(t => new TimeListDto
+                        {
+                            timeID = t.timeID,
+                            periodID = g.Key.periodID,
+                            dateMedication = g.Key.dateConsumed, 
+                            time = t.time,
+                            medicationStatus = t.medicationStatus
+                        }).ToList()
+                    })
+                    .ToListAsync(cancellationToken);
+
+
+            return meds;
         }
 
         private async Task<List<Times>> GetQueryPeriodMedicationsAsync(PeriodMedicationsFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 

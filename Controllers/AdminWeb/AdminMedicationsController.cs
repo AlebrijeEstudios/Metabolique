@@ -49,6 +49,58 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetInfoMedResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("info-medications")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetInfoMedicationsPerUserAsync([FromQuery] PeriodMedicationsFilterDto filter, [FromQuery] int page)
+        {
+            try
+            {
+                var meds = await _MedicationService.GetAllInfoMedicationsPerUserAsync(filter, page, HttpContext.RequestAborted);
+
+                GetInfoMedResponse response = new GetInfoMedResponse
+                {
+                    meds = meds
+                };
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, meds = response.meds});
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+        }
+
+        /// <summary>
+        /// PENDIENTE
+        /// </summary>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The userFeedDate property must have the following structure:   
+        ///     {
+        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        /// 
+        ///     The userFeedTime property must have the following structure:
+        ///     {
+        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="200"></response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetPeriodMedResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.JsonPatch;
+using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -23,7 +25,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("drink")]
-        public async Task<IActionResult> ProxyHabitsDrinkAsync([FromQuery] string? typeExport, [FromQuery] HabitDrinkFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitDrinkAsync([FromQuery] string? typeExport, [FromQuery] HabitDrinkFilterDto filter, [FromQuery] int page)
         {
             var client = new HttpClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
@@ -97,8 +99,42 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
         }
 
+        [HttpPatch("drink/edit")]
+        public async Task<IActionResult> ProxyEditHabitDrinkAsync([FromQuery] Guid drinkHabitID, [FromBody] JsonPatchDocument values)
+        {
+            var client = new HttpClient();
+            var api = Environment.GetEnvironmentVariable("SERVER");
+            client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+            }
+
+            var url = $"https://{api}/api/habits-drink?drinkHabitID={drinkHabitID}";
+            Console.WriteLine($"URL: {url}");
+
+            var response = await client.PatchAsJsonAsync(url, values);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode, new
+                {
+                    error = "Error al llamar a la API remota",
+                    status = response.StatusCode,
+                    content = responseBody
+                });
+            }
+
+            return Content(responseBody, "application/json");
+        }
+
         [HttpGet("drugs")]
-        public async Task<IActionResult> ProxyHabitsDrugsAsync([FromQuery] string? typeExport, [FromQuery] HabitDrugFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitDrugsAsync([FromQuery] string? typeExport, [FromQuery] HabitDrugFilterDto filter, [FromQuery] int page)
         {
             var client = new HttpClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
@@ -175,8 +211,42 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
         }
 
+        [HttpPatch("drugs/edit")]
+        public async Task<IActionResult> ProxyEditHabitDrugsAsync([FromQuery] Guid drugsHabitID, [FromBody] JsonPatchDocument values)
+        {
+            var client = new HttpClient();
+            var api = Environment.GetEnvironmentVariable("SERVER");
+            client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+            }
+
+            var url = $"https://{api}/api/habits-drugs?drugsHabitID={drugsHabitID}";
+            Console.WriteLine($"URL: {url}");
+
+            var response = await client.PatchAsJsonAsync(url, values);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode, new
+                {
+                    error = "Error al llamar a la API remota",
+                    status = response.StatusCode,
+                    content = responseBody
+                });
+            }
+
+            return Content(responseBody, "application/json");
+        }
+
         [HttpGet("sleep")]
-        public async Task<IActionResult> ProxyHabitsSleepAsync([FromQuery] string? typeExport, [FromQuery] HabitSleepFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitSleepAsync([FromQuery] string? typeExport, [FromQuery] HabitSleepFilterDto filter, [FromQuery] int page)
         {
             var client = new HttpClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
@@ -254,6 +324,40 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
         }
 
+        [HttpPatch("sleep/edit")]
+        public async Task<IActionResult> ProxyEditHabitSleepAsync([FromQuery] Guid sleepHabitID, [FromBody] JsonPatchDocument values)
+        {
+            var client = new HttpClient();
+            var api = Environment.GetEnvironmentVariable("SERVER");
+            client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+            }
+
+            var url = $"https://{api}/api/habits-sleep?sleepHabitID={sleepHabitID}";
+            Console.WriteLine($"URL: {url}");
+
+            var response = await client.PatchAsJsonAsync(url, values);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode, new
+                {
+                    error = "Error al llamar a la API remota",
+                    status = response.StatusCode,
+                    content = responseBody
+                });
+            }
+
+            return Content(responseBody, "application/json");
+        }
+
         [HttpGet("mfu-habit")]
         public async Task<IActionResult> ProxyMFUsHabitsAsync([FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
         {
@@ -325,6 +429,40 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 return Content(content, "application/json");
 
             }
+        }
+
+        [HttpPut("mfu-habit/edit")]
+        public async Task<IActionResult> ProxyEditMFUsHabitsAsync([FromBody] UpdateResponsesHabitsDto values)
+        {
+            var client = new HttpClient();
+            var api = Environment.GetEnvironmentVariable("SERVER");
+            client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+
+            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+            }
+
+            var url = $"https://{api}/api/monthly-habits-monitoring";
+            Console.WriteLine($"URL: {url}");
+
+            var response = await client.PutAsJsonAsync(url, values);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode, new
+                {
+                    error = "Error al llamar a la API remota",
+                    status = response.StatusCode,
+                    content = responseBody
+                });
+            }
+
+            return Content(responseBody, "application/json");
         }
     }
 }
