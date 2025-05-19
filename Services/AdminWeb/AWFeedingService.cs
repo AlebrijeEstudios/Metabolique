@@ -8,6 +8,7 @@ using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using AppVidaSana.Models.Dtos.Feeding_Dtos;
 
 namespace AppVidaSana.Services.AdminWeb
 {
@@ -50,7 +51,28 @@ namespace AppVidaSana.Services.AdminWeb
                                                  .Sum(nv => nv.nutritionalValues?.netWeight ?? 0 * nv.MealFrequency), 2),
                     satietyLevel = feeding.satietyLevel,
                     emotionsLinked = feeding.emotionsLinked,
-                    saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl ?? "N/A"
+                    saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl ?? "N/A",
+                    foodsConsumed = feeding.userFeedNutritionalValues
+                                    .GroupBy(nv => nv.nutritionalValues!.foods!.foodCode)
+                                    .Select(group => new FoodsConsumedDto
+                                    {
+                                        foodCode = group.Key,
+                                        nameFood = group.First().nutritionalValues!.foods!.nameFood ?? "",
+                                        unit = group.First().nutritionalValues!.foods!.unit,
+                                        nutritionalValues = group
+                                            .SelectMany(nv => Enumerable.Range(0, nv.MealFrequency).Select(_ => new NutritionalValuesDto
+                                            {
+                                                nutritionalValueCode = nv.nutritionalValues!.nutritionalValueID.ToString(),
+                                                portion = nv.nutritionalValues.portion ?? "",
+                                                kilocalories = Math.Round(nv.nutritionalValues.kilocalories, 2),
+                                                protein = Math.Round(nv.nutritionalValues.protein, 2),
+                                                carbohydrates = Math.Round(nv.nutritionalValues.carbohydrates, 2),
+                                                totalLipids = Math.Round(nv.nutritionalValues.totalLipids, 2),
+                                                netWeight = (float?)Math.Round(nv.nutritionalValues.netWeight ?? 0, 2)
+                                            }))
+                                            .ToList()
+                                    })
+                                    .ToList()
                 }).ToList();
 
                 return allFeedsOfAUser;
