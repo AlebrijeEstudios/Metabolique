@@ -1,9 +1,13 @@
 ﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
+using AppVidaSana.Models.Dtos.Medication_Dtos;
 
 namespace AppVidaSana.Services.IServices.IAdminWeb
 {
     public interface IAWMedication
     {
+        Task<List<InfoMedicationDto>> GetAllInfoMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken);
+
+
         Task<List<AllPeriodsMedicationsPerUserDto>> GetAllPeriodMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken);
 
         Task<List<AllSideEffectsPerUserDto>> GetAllSideEffectsAsync(SideEffectsFilterDto filter, int page, CancellationToken cancellationToken);

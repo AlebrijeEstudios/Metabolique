@@ -22,6 +22,8 @@
 
         public string? intensityExercise { get; set; }
 
-        public DateOnly? dateExercise { get; set; }
+        public DateOnly? startDate { get; set; }
+
+        public DateOnly? endDate { get; set; }
     }
 }

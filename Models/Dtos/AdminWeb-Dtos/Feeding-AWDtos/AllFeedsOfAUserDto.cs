@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AppVidaSana.Models.Dtos.Feeding_Dtos;
+using Newtonsoft.Json;
 
 namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
 {
@@ -31,5 +32,7 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
         [JsonRequired] public string emotionsLinked { get; set; } = null!;
 
         public string? saucerPictureUrl { get; set; }
+
+        [JsonRequired] public List<FoodsConsumedDto> foodsConsumed { get; set; } = null!;
     }
 }
