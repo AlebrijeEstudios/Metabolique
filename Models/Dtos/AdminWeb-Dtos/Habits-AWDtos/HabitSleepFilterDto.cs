@@ -18,7 +18,9 @@
 
         public string? protocolToFollow { get; set; }
 
-        public DateOnly? dateHabit { get; set; }
+        public DateOnly? startDate { get; set; }
+
+        public DateOnly? endDate { get; set; }
 
         public string? perceptionRelax { get; set; }
     }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using System.Net.Http.Headers;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
@@ -70,8 +71,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             if (!string.IsNullOrEmpty(filter.intensityExercise))
                 queryParams.Add($"intensityExercise={filter.intensityExercise}");
 
-            if (filter.dateExercise != null)
-                queryParams.Add($"date={filter.dateExercise}");
+            if (filter.startDate != null)
+                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+
+            if (filter.endDate != null)
+                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             var queryString = "";
             var response = new HttpResponseMessage();
@@ -98,6 +102,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryString = string.Join("&", queryParams);
 
                 response = await client.GetAsync($"https://{api}/api/admin/exercises?{queryString}");
+
+                Console.WriteLine($"URL: {$"https://{api}/api/admin/exercises?{queryString}"}");
 
                 var content = await response.Content.ReadAsStringAsync();
                 return Content(content, "application/json");
@@ -305,8 +311,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             if (!string.IsNullOrEmpty(filter.protocolToFollow))
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
-            if (filter.dateExercise != null)
-                queryParams.Add($"date={filter.dateExercise}");
+            if (filter.startDate != null)
+                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+
+            if (filter.endDate != null)
+                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             var queryString = "";
             var response = new HttpResponseMessage();

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.JsonPatch;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
+using System.Globalization;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -64,8 +65,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             if (!string.IsNullOrEmpty(filter.protocolToFollow))
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
-            if (filter.dateHabit != null)
-                queryParams.Add($"date={filter.dateHabit}");
+            if (filter.startDate != null)
+                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+
+            if (filter.endDate != null)
+                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             var queryString = "";
             var response = new HttpResponseMessage();
@@ -173,8 +177,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             if (!string.IsNullOrEmpty(filter.protocolToFollow))
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
-            if (filter.dateHabit != null)
-                queryParams.Add($"date={filter.dateHabit}");
+            if (filter.startDate != null)
+                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+
+            if (filter.endDate != null)
+                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             if (!string.IsNullOrEmpty(filter.predominatEmotionalState))
                 queryParams.Add($"predominatEmotionalState={filter.predominatEmotionalState}");
@@ -285,8 +292,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             if (!string.IsNullOrEmpty(filter.protocolToFollow))
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
-            if (filter.dateHabit != null)
-                queryParams.Add($"date={filter.dateHabit}");
+            if (filter.startDate != null)
+                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+
+            if (filter.endDate != null)
+                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             if (!string.IsNullOrEmpty(filter.perceptionRelax))
                 queryParams.Add($"perceptionRelax={filter.perceptionRelax}");

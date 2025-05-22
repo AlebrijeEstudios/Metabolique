@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using System.Net.Http.Headers;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
@@ -68,10 +69,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"dailyMeal={filter.dailyMeal}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate}");
+                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate}");
+                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             var queryString = "";
             var response = new HttpResponseMessage();
@@ -203,10 +204,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"dailyMeal={filter.dailyMeal}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate}");
+                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate}");
+                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             var queryString = "";
             var response = new HttpResponseMessage();
@@ -381,10 +382,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate}");
+                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate}");
+                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             var queryString = "";
             var response = new HttpResponseMessage();
@@ -453,10 +454,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate}");
+                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate}");
+                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
 
             var queryString = "";
             var response = new HttpResponseMessage();
