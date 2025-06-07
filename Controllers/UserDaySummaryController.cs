@@ -11,6 +11,8 @@ namespace AppVidaSana.Controllers
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - UserDaySummary")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/summary")]
     [RequestTimeout("CustomPolicy")]
     public class UserDaySummaryController : ControllerBase

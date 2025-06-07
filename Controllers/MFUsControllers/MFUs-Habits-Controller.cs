@@ -14,6 +14,8 @@ namespace AppVidaSana.Controllers.MFUsControllers
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - MFUsHabit")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/monthly-habits-monitoring")]
     public class MFUsHabitsController : ControllerBase
     {

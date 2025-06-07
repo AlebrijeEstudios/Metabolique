@@ -14,6 +14,8 @@ namespace AppVidaSana.Controllers
 {
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - Auth")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/auth")]
     [RequestTimeout("CustomPolicy")]
     public class AuthenticationAuthorizationController : ControllerBase

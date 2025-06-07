@@ -22,12 +22,14 @@ using AppVidaSana.ProducesResponseType;
 using Newtonsoft.Json;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using AppVidaSana.Services.AdminWeb;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.Extensions.Options;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
@@ -155,12 +157,56 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
+    c.SwaggerDoc("app", new OpenApiInfo
     {
-        Title = "Metabolique_API",
+        Title = "Metabolique API",
         Version = "v1",
         Description = "An ASP.NET Core web API to manage medical tracking elements of a user's medical record."
     });
+
+    c.SwaggerDoc("admin", new OpenApiInfo 
+    { 
+        Title = "Metabolique Admin Web APIs", 
+        Version = "v1",
+        Description = "An ASP.NET Core web API for Metabolique web administrator."
+    });
+
+    c.SwaggerDoc("proxy", new OpenApiInfo 
+    { 
+        Title = "Metabolique Proxys Admin Web APIs", 
+        Version = "v1",
+        Description = "Proxies for Metabolique web administrator."
+    });
+
+    c.DocInclusionPredicate((docName, apiDesc) =>
+    {
+        if (string.IsNullOrEmpty(apiDesc.GroupName))
+            return false;
+
+        return string.Equals(apiDesc.GroupName, docName, StringComparison.OrdinalIgnoreCase);
+    });
+
+
+    c.TagActionsBy(api =>
+    {
+        try
+        {
+            var tags = api.ActionDescriptor.EndpointMetadata
+                .OfType<TagsAttribute>()
+                .SelectMany(t => t.Tags)
+                .ToList();
+
+            if (tags.Any())
+                return tags;
+
+            return new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] };
+        }
+        catch
+        {
+            return new[] { api.ActionDescriptor.RouteValues["controller"] };
+        }
+    });
+
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -206,7 +252,9 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "DeveloperTest V1");
+    c.SwaggerEndpoint("/swagger/app/swagger.json", "Metabolique API");
+    c.SwaggerEndpoint("/swagger/admin/swagger.json", "Metabolique Admin Web APIs");
+    c.SwaggerEndpoint("/swagger/proxy/swagger.json", "Metabolique Proxys Admin Web APIs");
 });
 
 app.Use(async (context, next) =>

@@ -15,6 +15,8 @@ namespace AppVidaSana.Controllers
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - Feedings")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/feeding")]
     [RequestSizeLimit(8388608)]
     [RequestFormLimits(MultipartBodyLengthLimit = 8388608)]

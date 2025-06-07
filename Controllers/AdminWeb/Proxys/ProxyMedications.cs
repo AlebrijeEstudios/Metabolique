@@ -5,14 +5,19 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 using System.Globalization;
 using System.Net.Http.Headers;
+using System.Text;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
     [Authorize(Roles = "Admin")]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Proxy - Medications")]
+    [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/medications")]
     [RequestTimeout("CustomPolicy")]
     public class ProxyMedications : ControllerBase
@@ -123,9 +128,34 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/medication";
-            Console.WriteLine($"URL: {url}");
+            var dtoToSend = new
+            {
+                periodID = values.periodID,
+                updateDate = values.updateDate.ToString("yyyy-MM-dd"),
+                nameMedication = values.nameMedication,
+                dose = values.dose,
+                initialFrec = values.initialFrec.ToString("yyyy-MM-dd"),
+                finalFrec = values.finalFrec.ToString("yyyy-MM-dd"),
+                newTimes = values.newTimes,
+                times = values.times.Select(t => new
+                {
+                    timeID = t.timeID,
+                    periodID = t.periodID,
+                    dateMedication = t.dateMedication.ToString("yyyy-MM-dd"),
+                    time = t.time.ToString("HH:mm"),
+                    medicationStatus = t.medicationStatus
+                }).ToList()
+            };
 
-            var response = await client.PutAsJsonAsync(url, values);
+            var json = JsonConvert.SerializeObject(dtoToSend, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PutAsync(url, content);
 
             var responseBody = await response.Content.ReadAsStringAsync();
 

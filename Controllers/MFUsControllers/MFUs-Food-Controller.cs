@@ -14,6 +14,8 @@ namespace AppVidaSana.Controllers.MFUsControllers
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - MFUsFeeding")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/monthly-food-monitoring")]
     [RequestTimeout("CustomPolicy")]
     public class MFUsFoodController : ControllerBase

@@ -13,6 +13,8 @@ namespace AppVidaSana.Controllers
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - SideEffects")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/medication")]
     public class SideEffectsController : ControllerBase
     {

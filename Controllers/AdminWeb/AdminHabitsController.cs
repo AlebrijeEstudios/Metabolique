@@ -16,6 +16,8 @@ namespace AppVidaSana.Controllers.AdminWeb
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Admin - Habits")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/habits")]
     [RequestTimeout("CustomPolicy")]
     public class AdminHabitsController : ControllerBase

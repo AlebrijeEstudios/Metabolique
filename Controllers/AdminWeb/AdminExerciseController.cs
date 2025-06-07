@@ -16,6 +16,8 @@ namespace AppVidaSana.Controllers.AdminWeb
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Admin - Exercises")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/exercises")]
     [RequestTimeout("CustomPolicy")]
     public class AdminExerciseController : ControllerBase

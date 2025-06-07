@@ -16,6 +16,8 @@ namespace AppVidaSana.Controllers.AdminWeb
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Admin -Feedings")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/feedings")]
     [RequestTimeout("CustomPolicy")]
     public class AdminFeedingsController : ControllerBase

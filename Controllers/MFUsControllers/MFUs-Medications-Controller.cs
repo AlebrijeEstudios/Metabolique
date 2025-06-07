@@ -14,6 +14,8 @@ namespace AppVidaSana.Controllers.MFUsControllers
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - MFUsMedication")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/monthly-medications-monitoring")]
     public class MFUsMedicationsController : ControllerBase
     {

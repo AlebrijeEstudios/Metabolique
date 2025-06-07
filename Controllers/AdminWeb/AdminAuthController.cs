@@ -13,6 +13,8 @@ namespace AppVidaSana.Controllers.AdminWeb
 {
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Admin - Auth")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/auth")]
     [RequestTimeout("CustomPolicy")]
     public class AdminAuthController : ControllerBase

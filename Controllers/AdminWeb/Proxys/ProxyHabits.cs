@@ -8,12 +8,17 @@ using System.Net.Http.Headers;
 using Microsoft.AspNetCore.JsonPatch;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Habits_Dtos;
 using System.Globalization;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
     [Authorize(Roles = "Admin")]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Proxy - Habits")]
+    [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/habits")]
     [RequestTimeout("CustomPolicy")]
     public class ProxyHabits : ControllerBase
@@ -118,9 +123,16 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/habits-drink?drinkHabitID={drinkHabitID}";
-            Console.WriteLine($"URL: {url}");
 
-            var response = await client.PatchAsJsonAsync(url, values);
+            var json = JsonConvert.SerializeObject(values, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PatchAsync(url, content);
 
             var responseBody = await response.Content.ReadAsStringAsync();
 
@@ -233,9 +245,16 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/habits-drugs?drugsHabitID={drugsHabitID}";
-            Console.WriteLine($"URL: {url}");
 
-            var response = await client.PatchAsJsonAsync(url, values);
+            var json = JsonConvert.SerializeObject(values, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PatchAsync(url, content);
 
             var responseBody = await response.Content.ReadAsStringAsync();
 
@@ -349,9 +368,16 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/habits-sleep?sleepHabitID={sleepHabitID}";
-            Console.WriteLine($"URL: {url}");
 
-            var response = await client.PatchAsJsonAsync(url, values);
+            var json = JsonConvert.SerializeObject(values, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PatchAsync(url, content);
 
             var responseBody = await response.Content.ReadAsStringAsync();
 

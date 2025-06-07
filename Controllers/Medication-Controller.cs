@@ -14,6 +14,8 @@ namespace AppVidaSana.Controllers
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - Medications")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/medication")]
     public class MedicationController : ControllerBase
     {

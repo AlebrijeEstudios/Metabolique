@@ -11,6 +11,8 @@ namespace AppVidaSana.Controllers.Habits
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - HabitsInfoGeneral")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/habits")]
     public class HabitsInfoGeneralController : ControllerBase
     {

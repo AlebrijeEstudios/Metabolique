@@ -8,11 +8,12 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Proxy - Auth")]
+    [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin")]
     [RequestTimeout("CustomPolicy")]
     public class ProxyAuth : ControllerBase
     {
-
         [AllowAnonymous]
         [HttpPost("auth")]
         public async Task<IActionResult> ProxyLoginAsync([FromBody] LoginAdminDto login)

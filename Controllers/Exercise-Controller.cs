@@ -15,6 +15,8 @@ namespace AppVidaSana.Controllers
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - Exercises")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/exercises")]
     [RequestTimeout("CustomPolicy")]
     public class ExerciseController : ControllerBase

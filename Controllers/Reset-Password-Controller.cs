@@ -15,6 +15,8 @@ namespace AppVidaSana.Controllers
 {
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - Forgot_Password")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/forgot-password")]
     [RequestTimeout("CustomPolicy")]
     public class ResetPasswordController : Controller

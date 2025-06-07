@@ -15,6 +15,8 @@ namespace AppVidaSana.Controllers.AdminWeb
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Admin - Medications")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/medications")]
     [RequestTimeout("CustomPolicy")]
     public class AdminMedicationsController : ControllerBase
