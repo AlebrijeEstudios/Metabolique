@@ -1,10 +1,8 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace AppVidaSana.Services.AdminWeb
 {
@@ -21,32 +19,27 @@ namespace AppVidaSana.Services.AdminWeb
 
         public async Task<List<AllPatientsDto>> GetPatientsAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken)
         {
-            var role = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
+            /*var role = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (role is null) { throw new UnstoredValuesException(); }
+            if (role is null) { throw new UnstoredValuesException(); }*/
 
-            if (role == "Admin")
+            var profiles = await GetQueryPatientsAsync(filter, page, false, 0, cancellationToken);
+                
+            var accountProfileDTOs = profiles.Select(profile => new AllPatientsDto
             {
-                var profiles = await GetQueryPatientsAsync(filter, page, false, 0, cancellationToken);
+                accountID = profile.accountID,
+                uiemID = profile.uiemID,
+                username = profile.account?.username ?? "N/A",
+                email = profile.account?.email ?? "N/A",
+                birthDate = profile.birthDate,
+                sex = profile.sex,
+                stature = profile.stature,
+                weight = profile.weight,
+                protocolToFollow = profile.protocolToFollow
 
-                var accountProfileDTOs = profiles.Select(profile => new AllPatientsDto
-                {
-                    accountID = profile.accountID,
-                    uiemID = profile.uiemID,
-                    username = profile.account?.username ?? "N/A",
-                    email = profile.account?.email ?? "N/A",
-                    birthDate = profile.birthDate,
-                    sex = profile.sex,
-                    stature = profile.stature,
-                    weight = profile.weight,
-                    protocolToFollow = profile.protocolToFollow
+            }).ToList();
 
-                }).ToList();
-
-                return accountProfileDTOs;
-            }
-
-            return [];
+            return accountProfileDTOs;
         }
 
         public async Task<byte[]> ExportPatientsAsync(PatientFilterDto? filter, CancellationToken cancellationToken) 
@@ -95,7 +88,8 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (filter != null)
             {
-                query = query.Where(p => _bd.PacientDoctor
+                if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                    query = query.Where(p => _bd.PacientDoctor
                                         .Where(pd => pd.doctorID == filter.doctorID)
                                         .Select(pd => pd.accountID)
                                         .Contains(p.account!.accountID));

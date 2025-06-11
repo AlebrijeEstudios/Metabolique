@@ -1,0 +1,70 @@
+﻿using AppVidaSana.Data;
+using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.KeyToken;
+using AppVidaSana.Models;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.Services.IServices.IAdminWeb;
+using AppVidaSana.Tokens;
+using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+
+namespace AppVidaSana.Services.AdminWeb
+{
+    public class AWAuthService : IAWAuth
+    {
+        private readonly IDbContextFactory<AppDbContext> _contextFactory;
+
+        public AWAuthService(IDbContextFactory<AppDbContext> contextFactory)
+        {
+            _contextFactory = contextFactory;
+        }
+
+        public async Task<TokenAdminDto> LoginAdminAsync(LoginAdminDto login, CancellationToken cancellationToken)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var account = await context.Doctors.FirstOrDefaultAsync(u => u.username == login.username, cancellationToken);
+
+            if (account is null || !BCrypt.Net.BCrypt.Verify(login.password, account.password))
+            {
+                throw new FailLoginException();
+            }
+
+            var accessToken = CreateAccessTokenAdminAsync(account, cancellationToken);
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(accessToken.Result);
+
+            var role = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+            TokenAdminDto response = new TokenAdminDto();
+
+            response.doctorID = account.doctorID;
+            response.accessToken = await accessToken;
+            response.role = role!;
+
+            return response;
+        }
+
+        private async Task<string> CreateAccessTokenAdminAsync(Doctors account, CancellationToken cancellationToken)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var role = await context.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID, cancellationToken);
+
+            Claim[] claims = new Claim[]
+            {
+                new Claim(ClaimTypes.Name, account.username.ToString()),
+                new Claim(ClaimTypes.Email, account.email.ToString()),
+                new Claim(ClaimTypes.Role, role!.role)
+            };
+
+            DateTime durationToken = DateTime.UtcNow.AddDays(7);
+
+            var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
+
+            return accessToken;
+        }
+    }
+}

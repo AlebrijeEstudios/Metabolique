@@ -32,7 +32,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// PENDIENTE
+        /// This driver obtains water drinking habits records by patient.
         /// </summary>
         /// <remarks>
         /// Sample Request:
@@ -84,7 +84,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// PENDIENTE
+        /// This driver obtains drug habit records by patient.
         /// </summary>
         /// <remarks>
         /// Sample Request:
@@ -136,7 +136,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// PENDIENTE
+        /// This driver obtains the sleep habits records per patient.
         /// </summary>
         /// <remarks>
         /// Sample Request:
@@ -188,7 +188,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// PENDIENTE
+        /// This driver obtains the monthly habit tracking records per patient.
         /// </summary>
         /// <remarks>
         /// Sample Request:
@@ -240,7 +240,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// This driver exports in csv records.
+        /// This driver exports the water drinking habits records per patient in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
@@ -273,7 +273,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// This driver exports in csv records.
+        /// This driver exports the drug habit records per patient in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
@@ -306,7 +306,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// This driver exports in csv records.
+        /// This driver exports the sleep habits records per patient in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
@@ -339,7 +339,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// This driver exports in csv records.
+        /// This driver exports the patients' monthly habit tracking records in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 

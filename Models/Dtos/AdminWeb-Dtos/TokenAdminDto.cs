@@ -7,5 +7,7 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos
         [JsonRequired] public Guid doctorID { get; set; }
 
         [JsonRequired] public string accessToken { get; set; } = null!;
+
+        [JsonRequired] public string role { get; set; } = null!;
     }
 }

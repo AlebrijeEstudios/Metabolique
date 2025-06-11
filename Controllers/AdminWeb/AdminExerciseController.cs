@@ -32,7 +32,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// PENDIENTE
+        /// Patients' physical activity records are obtained.
         /// </summary>
         /// <remarks>
         /// Sample Request:
@@ -84,6 +84,124 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
+        /// Monthly follow-ups of patients' physical activity are obtained.
+        /// </summary>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The userFeedDate property must have the following structure:   
+        ///     {
+        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        /// 
+        ///     The userFeedTime property must have the following structure:
+        ///     {
+        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="200"></response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsExerciseResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("mfu-exercise")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetMFUsExerciseAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        {
+            try
+            {
+                var mfu = await _ExerciseService.GetMFUsExerciseAsync(filter, page, HttpContext.RequestAborted);
+
+                GetMFUsExerciseResponse response = new GetMFUsExerciseResponse
+                {
+                    mfu = mfu
+                };
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfu = response.mfu });
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+        }
+
+        /// <summary>
+        /// This controller exports patients' physical activity records in a csv file.
+        /// </summary>
+        /// <response code="200">Returns information succesfully.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("export-exercises")]
+        [Produces("application/zip")]
+        public async Task<IActionResult> ExportOnlyExercisesToCsvAsync([FromQuery] string typeExport, [FromQuery] ExerciseFilterDto filter)
+        {
+            string fileName = "";
+            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            byte[] zipBytes = [];
+
+            if (typeExport == "with_filter")
+            {
+                fileName = $"Exercises_With_Filters_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyExercisesZipAsync(filter, typeExport, HttpContext.RequestAborted);
+            }
+
+            if (typeExport == "all")
+            {
+                fileName = $"All_Exercises_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyExercisesZipAsync(null, typeExport, HttpContext.RequestAborted);
+            }
+
+            return File(zipBytes, "application/zip", fileName);
+        }
+
+        /// <summary>
+        /// This driver exports patients' monthly physical activity tracking records in a csv file.
+        /// </summary>
+        /// <response code="200">Returns information succesfully.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("export-mfu-exercise")]
+        [Produces("application/zip")]
+        public async Task<IActionResult> ExportOnlyMFUsExerciseToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
+        {
+            string fileName = "";
+            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            byte[] zipBytes = [];
+
+            if (typeExport == "with_filter")
+            {
+                fileName = $"MFUsExercise_With_Filters_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyMFUsExerciseZipAsync(filter, typeExport, HttpContext.RequestAborted);
+            }
+
+            if (typeExport == "all")
+            {
+                fileName = $"All_MFUsExercise_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyMFUsExerciseZipAsync(null, typeExport, HttpContext.RequestAborted);
+            }
+
+            return File(zipBytes, "application/zip", fileName);
+        }
+
+        /*/// <summary>
         /// PENDIENTE
         /// </summary>
         /// <remarks>
@@ -136,91 +254,6 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// PENDIENTE
-        /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsExerciseResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("mfu-exercise")]
-        [Produces("application/json")]
-        public async Task<IActionResult> GetMFUsExerciseAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
-        {
-            try
-            {
-                var mfu = await _ExerciseService.GetMFUsExerciseAsync(filter, page, HttpContext.RequestAborted);
-
-                GetMFUsExerciseResponse response = new GetMFUsExerciseResponse
-                {
-                    mfu = mfu
-                };
-
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfu = response.mfu });
-            }
-            catch (UnstoredValuesException ex)
-            {
-                ExceptionMessage response = new ExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
-            }
-        }
-
-        /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-exercises")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyExercisesToCsvAsync([FromQuery] string typeExport, [FromQuery] ExerciseFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"Exercises_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyExercisesZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_Exercises_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyExercisesZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
-        }
-
-        /// <summary>
         /// This driver exports in csv records.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
@@ -251,39 +284,6 @@ namespace AppVidaSana.Controllers.AdminWeb
             }
 
             return File(zipBytes, "application/zip", fileName);
-        }
-
-        /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-mfu-exercise")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyMFUsExerciseToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"MFUsExercise_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyMFUsExerciseZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_MFUsExercise_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyMFUsExerciseZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
-        }
+        }*/
     }
 }

@@ -137,6 +137,243 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
+        /// The required calories per patient are obtained.
+        /// </summary>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The userFeedDate property must have the following structure:   
+        ///     {
+        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        /// 
+        ///     The userFeedTime property must have the following structure:
+        ///     {
+        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="200"></response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetUserCaloriesResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("calories-needed-per-user")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetUserCaloriesAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        {
+            try
+            {
+                var userCal = await _FeedingService.GetAllUserCaloriesAsync(filter, page, HttpContext.RequestAborted);
+
+                GetUserCaloriesResponse response = new GetUserCaloriesResponse
+                {
+                    userCal = userCal
+                };
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, calNeeded = response.userCal });
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+
+        }
+
+        /// <summary>
+        /// The monthly dietary follow-ups of the patients are obtained.
+        /// </summary>
+        /// <remarks>
+        /// Sample Request:
+        /// 
+        ///     The userFeedDate property must have the following structure:   
+        ///     {
+        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
+        ///     }
+        /// 
+        ///     The userFeedTime property must have the following structure:
+        ///     {
+        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
+        ///     }
+        ///     
+        /// </remarks>
+        /// <response code="200"></response>
+        /// <response code="400">Returns a message that the requested action could not be performed.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsFeedingResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("mfu-feeding")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetMFUsFeedingAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        {
+            try
+            {
+                var mfu = await _FeedingService.GetMFUsFeedingAsync(filter, page, HttpContext.RequestAborted);
+
+                GetMFUsFeedingResponse response = new GetMFUsFeedingResponse
+                {
+                    mfu = mfu
+                };
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfu = response.mfu});
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+        }
+
+        /// <summary>
+        /// This driver exports patient feeding records in a csv file.
+        /// </summary>
+        /// <response code="200">Returns information succesfully.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("export-feedings")]
+        [Produces("application/zip")]
+        public async Task<IActionResult> ExportOnlyFeedsOfAUserToCsvAsync([FromQuery] string typeExport, [FromQuery] UserFeedFilterDto filter)
+        {
+            string fileName = "";
+            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            byte[] zipBytes = [];
+
+            if (typeExport == "with_filter")
+            {
+                fileName = $"InfoFeedings_With_Filters_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyFeedingsZipAsync(filter, typeExport, HttpContext.RequestAborted);
+            }
+
+            if (typeExport == "all")
+            {
+                fileName = $"All_InfoFeedings_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyFeedingsZipAsync(null, typeExport, HttpContext.RequestAborted);
+            }
+
+            return File(zipBytes, "application/zip", fileName);
+        }
+
+        /// <summary>
+        /// This driver exports the food consumed per feeding record in a csv file.
+        /// </summary>
+        /// <response code="200">Returns information succesfully.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("export-foods")]
+        [Produces("application/zip")]
+        public async Task<IActionResult> ExportOnlyFoodsConsumedPerFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] UserFeedFilterDto filter)
+        {
+            string fileName = "";
+            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            byte[] zipBytes = [];
+
+            if (typeExport == "with_filter")
+            {
+                fileName = $"FoodsConsumedPerFeedingPerPatient_With_Filters_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyFoodsConsumedPerFeedingZipAsync(filter, typeExport, HttpContext.RequestAborted);
+            }
+
+            if (typeExport == "all")
+            {
+                fileName = $"All_FoodsConsumedPerFeedingPerPatient_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyFoodsConsumedPerFeedingZipAsync(null, typeExport, HttpContext.RequestAborted);
+            }
+
+            return File(zipBytes, "application/zip", fileName);
+        }
+
+        /// <summary>
+        /// This driver exports the calories needed per patient in a csv file.
+        /// </summary>
+        /// <response code="200">Returns information succesfully.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("export-calories-needed-per-user")]
+        [Produces("application/zip")]
+        public async Task<IActionResult> ExportOnlyUserCaloriesToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
+        {
+            string fileName = "";
+            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            byte[] zipBytes = [];
+
+            if (typeExport == "with_filter")
+            {
+                fileName = $"CaloriesRequiredPerPatient_With_Filters_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyUserCaloriesZipAsync(filter, typeExport, HttpContext.RequestAborted);
+            }
+
+            if (typeExport == "all")
+            {
+                fileName = $"All_CaloriesRequiredPerPatient_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyUserCaloriesZipAsync(null, typeExport, HttpContext.RequestAborted);
+            }
+
+            return File(zipBytes, "application/zip", fileName);
+        }
+
+        /// <summary>
+        /// This driver exports the monthly patient feeding tracking records in a csv file.
+        /// </summary>
+        /// <response code="200">Returns information succesfully.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [HttpGet("export-mfu-feeding")]
+        [Produces("application/zip")]
+        public async Task<IActionResult> ExportOnlyMFUsFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
+        {
+            string fileName = "";
+            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            byte[] zipBytes = [];
+
+            if (typeExport == "with_filter")
+            {
+                fileName = $"MFUsFeeding_With_Filters_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyMFUsFeedingZipAsync(filter, typeExport, HttpContext.RequestAborted);
+            }
+
+            if (typeExport == "all")
+            {
+                fileName = $"All_MFUsFeeding_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyMFUsFeedingZipAsync(null, typeExport, HttpContext.RequestAborted);
+            }
+
+            return File(zipBytes, "application/zip", fileName);
+        }
+
+        /* /// <summary>
         /// PENDIENTE
         /// </summary>
         /// <remarks>
@@ -241,179 +478,8 @@ namespace AppVidaSana.Controllers.AdminWeb
             }
 
         }
-
-        /// <summary>
-        /// PENDIENTE
-        /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetUserCaloriesResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("calories-needed-per-user")]
-        [Produces("application/json")]
-        public async Task<IActionResult> GetUserCaloriesAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
-        {
-            try
-            {
-                var userCal = await _FeedingService.GetAllUserCaloriesAsync(filter, page, HttpContext.RequestAborted);
-
-                GetUserCaloriesResponse response = new GetUserCaloriesResponse
-                {
-                    userCal = userCal
-                };
-
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, calNeeded = response.userCal });
-            }
-            catch (UnstoredValuesException ex)
-            {
-                ExceptionMessage response = new ExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
-            }
-
-        }
-
-        /// <summary>
-        /// PENDIENTE
-        /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsFeedingResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("mfu-feeding")]
-        [Produces("application/json")]
-        public async Task<IActionResult> GetMFUsFeedingAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
-        {
-            try
-            {
-                var mfu = await _FeedingService.GetMFUsFeedingAsync(filter, page, HttpContext.RequestAborted);
-
-                GetMFUsFeedingResponse response = new GetMFUsFeedingResponse
-                {
-                    mfu = mfu
-                };
-
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, mfu = response.mfu});
-            }
-            catch (UnstoredValuesException ex)
-            {
-                ExceptionMessage response = new ExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
-            }
-        }
-
-        /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-feedings")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyFeedsOfAUserToCsvAsync([FromQuery] string typeExport, [FromQuery] UserFeedFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"InfoFeedings_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyFeedingsZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_InfoFeedings_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyFeedingsZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
-        }
-
-        /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-foods")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyFoodsConsumedPerFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] UserFeedFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"FoodsConsumedPerFeedingPerPatient_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyFoodsConsumedPerFeedingZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_FoodsConsumedPerFeedingPerPatient_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyFoodsConsumedPerFeedingZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
-        }
-
-        /// <summary>
+        
+         /// <summary>
         /// This driver exports in csv records.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
@@ -477,72 +543,6 @@ namespace AppVidaSana.Controllers.AdminWeb
             }
 
             return File(zipBytes, "application/zip", fileName);
-        }
-
-        /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-calories-needed-per-user")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyUserCaloriesToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"CaloriesRequiredPerPatient_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyUserCaloriesZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_CaloriesRequiredPerPatient_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyUserCaloriesZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
-        }
-
-        /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-mfu-feeding")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyMFUsFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"MFUsFeeding_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyMFUsFeedingZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_MFUsFeeding_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyMFUsFeedingZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
-        }
+        }*/
     }
 }
