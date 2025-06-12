@@ -22,14 +22,12 @@ using AppVidaSana.ProducesResponseType;
 using Newtonsoft.Json;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using AppVidaSana.Services.AdminWeb;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.Extensions.Options;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
+var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
 
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
@@ -95,6 +93,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddScoped<IAWDoctors, AWDoctorService>();
 builder.Services.AddScoped<IAWFeeding, AWFeedingService>();
 builder.Services.AddScoped<IAWExercise, AWExerciseService>();
 builder.Services.AddScoped<IAWHabits, AWHabitService>();
