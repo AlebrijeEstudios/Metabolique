@@ -42,7 +42,7 @@ namespace AppVidaSana.Services.AdminWeb
 
             response.doctorID = account.doctorID;
             response.accessToken = await accessToken;
-            response.role = role!;
+            response.role = role;
 
             return response;
         }

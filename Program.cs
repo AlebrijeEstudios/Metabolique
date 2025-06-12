@@ -93,6 +93,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddScoped<IAWAuth, AWAuthService>();
 builder.Services.AddScoped<IAWDoctors, AWDoctorService>();
 builder.Services.AddScoped<IAWFeeding, AWFeedingService>();
 builder.Services.AddScoped<IAWExercise, AWExerciseService>();

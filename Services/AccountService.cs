@@ -53,7 +53,7 @@ namespace AppVidaSana.Services
 
             if (role is null) { throw new NoRoleAssignmentException(); }
 
-            var doctor = await _bd.Doctors.FirstOrDefaultAsync(e => e.username == "Mario Pablo Gonzalez", cancellationToken);
+            var doctor = await _bd.Doctors.FirstOrDefaultAsync(e => e.username == "admin@metabolique.com", cancellationToken);
 
             Account account = new Account
             {
