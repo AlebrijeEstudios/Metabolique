@@ -15,6 +15,8 @@ namespace AppVidaSana.Controllers.Habits
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - HabitsSleep")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/habits-sleep")]
     public class HabitSleepController : ControllerBase
     {

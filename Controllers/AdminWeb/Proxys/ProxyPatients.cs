@@ -11,6 +11,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [Authorize(Roles = "Admin")]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Proxy - Patients")]
+    [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/patients")]
     [RequestTimeout("CustomPolicy")]
     public class ProxyPatients : ControllerBase
@@ -108,7 +110,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/accounts";
-            Console.WriteLine($"URL: {url}");
 
             var response = await client.PutAsJsonAsync(url, values);
 

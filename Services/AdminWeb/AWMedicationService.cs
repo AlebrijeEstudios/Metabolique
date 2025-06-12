@@ -36,35 +36,6 @@ namespace AppVidaSana.Services.AdminWeb
             return [];
         }
 
-        public async Task<List<AllPeriodsMedicationsPerUserDto>> GetAllPeriodMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken) 
-        {
-            var role = UserRole();
-
-            if (role == "Admin") 
-            {
-                var pMed = await GetQueryPeriodMedicationsAsync(filter, page, false, 0, cancellationToken);
-
-                var allPeriodMedicationPerUser = pMed.Select(pM => new AllPeriodsMedicationsPerUserDto 
-                {
-                    periodID = pM.daysConsumedOfMedications!.periodMedication!.periodID,
-                    accountID = pM.daysConsumedOfMedications!.periodMedication!.account!.accountID,
-                    username = pM.daysConsumedOfMedications!.periodMedication!.account!.username,
-                    medication = pM.daysConsumedOfMedications!.periodMedication!.medication!.nameMedication,
-                    initialDate = pM.daysConsumedOfMedications!.periodMedication!.initialFrec,
-                    finalDate = pM.daysConsumedOfMedications!.periodMedication!.finalFrec,
-                    daysEliminated = pM.daysConsumedOfMedications!.periodMedication!.datesExcluded ?? "N/A",
-                    dose = pM.daysConsumedOfMedications!.periodMedication!.dose,
-                    dateConsumed = pM.daysConsumedOfMedications!.dateConsumed,
-                    timeConsumed = pM.time,
-                    statusConsumed = pM.medicationStatus
-                }).ToList();
-
-                return allPeriodMedicationPerUser;
-            }
-
-            return [];
-        }
-
         public async Task<List<AllSideEffectsPerUserDto>> GetAllSideEffectsAsync(SideEffectsFilterDto filter, int page, CancellationToken cancellationToken) 
         {
             var role = UserRole();
@@ -546,8 +517,38 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
+        
+        /*Otra forma de visualizar los regitros de los periodos de los medicamentos por usuario*/
+        /*public async Task<List<AllPeriodsMedicationsPerUserDto>> GetAllPeriodMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken)
+        {
+            var role = UserRole();
 
-        public async Task<byte[]> ExportAllPeriodsMedicationsAsync(CancellationToken cancellationToken)
+            if (role == "Admin")
+            {
+                var pMed = await GetQueryPeriodMedicationsAsync(filter, page, false, 0, cancellationToken);
+
+                var allPeriodMedicationPerUser = pMed.Select(pM => new AllPeriodsMedicationsPerUserDto
+                {
+                    periodID = pM.daysConsumedOfMedications!.periodMedication!.periodID,
+                    accountID = pM.daysConsumedOfMedications!.periodMedication!.account!.accountID,
+                    username = pM.daysConsumedOfMedications!.periodMedication!.account!.username,
+                    medication = pM.daysConsumedOfMedications!.periodMedication!.medication!.nameMedication,
+                    initialDate = pM.daysConsumedOfMedications!.periodMedication!.initialFrec,
+                    finalDate = pM.daysConsumedOfMedications!.periodMedication!.finalFrec,
+                    daysEliminated = pM.daysConsumedOfMedications!.periodMedication!.datesExcluded ?? "N/A",
+                    dose = pM.daysConsumedOfMedications!.periodMedication!.dose,
+                    dateConsumed = pM.daysConsumedOfMedications!.dateConsumed,
+                    timeConsumed = pM.time,
+                    statusConsumed = pM.medicationStatus
+                }).ToList();
+
+                return allPeriodMedicationPerUser;
+            }
+
+            return [];
+        }*/
+        /*Metodos usados para exportar todo sin usar admin web*/
+        /*public async Task<byte[]> ExportAllPeriodsMedicationsAsync(CancellationToken cancellationToken)
         {
             const int pageSize = 1000;
             int currentPage = 0;
@@ -658,7 +659,6 @@ namespace AppVidaSana.Services.AdminWeb
 
                 return memoryStream.ToArray();
             }
-        }
-
+        }*/
     }
 }

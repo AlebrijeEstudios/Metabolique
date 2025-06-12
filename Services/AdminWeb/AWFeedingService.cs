@@ -120,53 +120,6 @@ namespace AppVidaSana.Services.AdminWeb
             return [];
         }
 
-        public async Task<List<AllCaloriesConsumedPerUserDto>> GetAllCaloriesConsumedPerUserAsync(CaloriesConsumedFilterDto filter, int page, CancellationToken cancellationToken) 
-        {
-            var role = UserRole();
-
-            if (role == "Admin") 
-            { 
-                var kcalConsumed = await GetQueryKcalConsumedAsync(filter, page, false, 0, cancellationToken);
-
-                var allKcalConsumedPerUser = kcalConsumed.Select(kcal => new AllCaloriesConsumedPerUserDto
-                {
-                    caloriesConsumedID = kcal.caloriesConsumedID,
-                    accountID = kcal.accountID,
-                    username = kcal.account?.username ?? "N/A",
-                    date = kcal.dateCaloriesConsumed,
-                    totalKcal = Math.Round(kcal.totalCaloriesConsumed, 2)
-                }).ToList();
-
-                return allKcalConsumedPerUser;
-            }
-
-            return [];
-        }
-
-        public async Task<List<AllCaloriesRequiredPerDaysDto>> GetAllCaloriesRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto filter, int page, CancellationToken cancellationToken) 
-        {
-            var role = UserRole();
-
-            if (role == "Admin") 
-            {
-                var kcalReq = await GetQueryKcalRequiredPerDaysAsync(filter, page, false, 0, cancellationToken);
-
-                var allKcalRequiredPerDay = kcalReq.Select(kcal => new AllCaloriesRequiredPerDaysDto
-                {
-                    caloriesPerDayID = kcal.caloriesPerDayID,
-                    accountID = kcal.accountID,
-                    username = kcal.account?.username ?? "N/A",
-                    dateInitial = kcal.dateInitial,
-                    dateFinal = kcal.dateFinal,
-                    kcalNeeded = Math.Round(kcal.caloriesNeeded, 2)
-                }).ToList();
-
-                return allKcalRequiredPerDay;
-            }
-
-            return [];
-        }
-
         public async Task<List<AllUserCaloriesDto>> GetAllUserCaloriesAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken) 
         {
             var role = UserRole();
@@ -334,78 +287,6 @@ namespace AppVidaSana.Services.AdminWeb
 
                             await streamWriter.WriteLineAsync(csvLine);
                         }
-                        currentPage++;
-                    }
-                }
-
-                await streamWriter.FlushAsync(cancellationToken);
-
-                return memoryStream.ToArray();
-            }
-        }
-
-        public async Task<byte[]> ExportAllCaloriesConsumedAsync(CaloriesConsumedFilterDto? filter, CancellationToken cancellationToken) 
-        {
-            int currentPage = 0;
-
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
-            {
-                await streamWriter.WriteLineAsync("CaloriesConsumedID,AccountID,Username,Date,Total");
-
-                while (currentPage >= 0)
-                {
-                    var calConsumed = await GetQueryKcalConsumedAsync(filter, 0, true, currentPage, cancellationToken);
-
-                    if (calConsumed.Count == 0)
-                    {
-                        currentPage = -1;
-                    }
-                    else 
-                    { 
-                        foreach (var cal in calConsumed)
-                        {
-                            var csvLine = $"{cal.caloriesConsumedID},{cal.accountID},{cal.account?.username ?? "N/A"},{cal.dateCaloriesConsumed},{cal.totalCaloriesConsumed}";
-
-                            await streamWriter.WriteLineAsync(csvLine);
-                        }
-
-                        currentPage++;
-                    }
-                }
-
-                await streamWriter.FlushAsync(cancellationToken);
-
-                return memoryStream.ToArray();
-            }
-        }
-
-        public async Task<byte[]> ExportAllCaloriesRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto? filter, CancellationToken cancellationToken)
-        {
-            int currentPage = 0;
-
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
-            {
-                await streamWriter.WriteLineAsync("CaloriesPerDayID,AccountID,Username,DateInitial,DateFinal,CaloriesNeeded");
-
-                while (currentPage >= 0)
-                {
-                    var calReq = await GetQueryKcalRequiredPerDaysAsync(filter, 0, true, currentPage, cancellationToken);
-
-                    if (calReq.Count == 0)
-                    {
-                        currentPage = -1;
-                    }
-                    else 
-                    { 
-                        foreach (var cal in calReq)
-                        {
-                            var csvLine = $"{cal.caloriesPerDayID},{cal.accountID},{cal.account?.username ?? "N/A"},{cal.dateInitial},{cal.dateFinal},{cal.caloriesNeeded}";
-
-                            await streamWriter.WriteLineAsync(csvLine);
-                        }
-
                         currentPage++;
                     }
                 }
@@ -597,166 +478,6 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<CaloriesConsumed>> GetQueryKcalConsumedAsync(CaloriesConsumedFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
-        {
-            List<CaloriesConsumed> kcalConsumed = new List<CaloriesConsumed>();
-
-            var query = _bd.CaloriesConsumed
-                            .Include(f => f.account)
-                            .AsQueryable();
-
-            if (filter != null) 
-            {
-                query = FilterKcalConsumed(query, filter);
-            }
-
-            if (!export)
-            {
-                kcalConsumed = await query
-                            .Skip((page - 1) * 10)
-                            .Take(10)
-                            .ToListAsync(cancellationToken);
-            }
-            else
-            {
-                kcalConsumed = await query
-                            .Skip(currentPage * 1000)
-                            .Take(1000)
-                            .ToListAsync(cancellationToken);
-            }
-
-            return kcalConsumed;
-        }
-
-        private IQueryable<CaloriesConsumed> FilterKcalConsumed(IQueryable<CaloriesConsumed> query, CaloriesConsumedFilterDto filter)
-        {
-            query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter.doctorID)
-                                          .Select(pd => pd.accountID)
-                                          .Contains(p.account!.accountID));
-
-            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
-                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
-
-            if (!string.IsNullOrWhiteSpace(filter.username))
-                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
-
-            if (!string.IsNullOrWhiteSpace(filter.uiemID))
-                query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
-
-            if (filter.startDate != null && filter.endDate != null)
-            {
-                query = query.Where(f =>
-                    f.dateCaloriesConsumed <= filter.endDate &&
-                    f.dateCaloriesConsumed >= filter.startDate
-                );
-            }
-            else if (filter.startDate != null)
-            {
-                query = query.Where(f =>
-                    f.dateCaloriesConsumed >= filter.startDate
-                );
-            }
-            else if (filter.endDate != null)
-            {
-                query = query.Where(f =>
-                    f.dateCaloriesConsumed <= filter.endDate
-                );
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter.sex))
-                query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
-
-            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
-                query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
-
-            return query;
-        }
-
-
-        private async Task<List<CaloriesRequiredPerDay>> GetQueryKcalRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
-        {
-            List<CaloriesRequiredPerDay> kcalReqPerDays = new List<CaloriesRequiredPerDay>();
-
-            var query = _bd.CaloriesRequiredPerDays
-                            .Include(f => f.account)
-                            .AsQueryable();
-
-            if (filter != null) 
-            {
-                query = FilterKcalRequiredPerDays(query, filter);
-            }
-
-            if (!export)
-            {
-                kcalReqPerDays = await query
-                                .Skip((page - 1) * 10)
-                                .Take(10)
-                                .ToListAsync(cancellationToken);
-            }
-            else
-            {
-                kcalReqPerDays = await query
-                                .Skip(currentPage * 1000)
-                                .Take(1000)
-                                .ToListAsync(cancellationToken);
-            }
-
-            return kcalReqPerDays;
-        }
-
-        private IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDays(IQueryable<CaloriesRequiredPerDay> query, CaloriesRequiredPerDaysFilterDto filter)
-        {
-            query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter.doctorID)
-                                          .Select(pd => pd.accountID)
-                                          .Contains(p.account!.accountID));
-
-            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
-                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
-
-            if (!string.IsNullOrWhiteSpace(filter.username))
-                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
-
-            if (!string.IsNullOrWhiteSpace(filter.uiemID))
-                query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
-
-            if (filter.startDate != null && filter.endDate != null)
-            {
-                query = query.Where(f =>
-                    f.dateInitial <= filter.endDate &&
-                    f.dateFinal >= filter.startDate
-                );
-            }
-            else if (filter.startDate != null)
-            {
-                query = query.Where(f =>
-                    f.dateFinal >= filter.startDate
-                );
-            }
-            else if (filter.endDate != null)
-            {
-                query = query.Where(f =>
-                    f.dateInitial <= filter.endDate
-                );
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter.sex))
-                query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
-
-            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
-                query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
-
-            return query;
-        }
-
-
         private async Task<List<UserCalories>> GetQueryUserCaloriesAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
             List<UserCalories> kcalNeeded = new List<UserCalories>();
@@ -896,5 +617,283 @@ namespace AppVidaSana.Services.AdminWeb
 
             return query;
         }
+
+
+        /*public async Task<List<AllCaloriesConsumedPerUserDto>> GetAllCaloriesConsumedPerUserAsync(CaloriesConsumedFilterDto filter, int page, CancellationToken cancellationToken)
+        {
+            var role = UserRole();
+
+            if (role == "Admin")
+            {
+                var kcalConsumed = await GetQueryKcalConsumedAsync(filter, page, false, 0, cancellationToken);
+
+                var allKcalConsumedPerUser = kcalConsumed.Select(kcal => new AllCaloriesConsumedPerUserDto
+                {
+                    caloriesConsumedID = kcal.caloriesConsumedID,
+                    accountID = kcal.accountID,
+                    username = kcal.account?.username ?? "N/A",
+                    date = kcal.dateCaloriesConsumed,
+                    totalKcal = Math.Round(kcal.totalCaloriesConsumed, 2)
+                }).ToList();
+
+                return allKcalConsumedPerUser;
+            }
+
+            return [];
+        }
+
+        public async Task<List<AllCaloriesRequiredPerDaysDto>> GetAllCaloriesRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto filter, int page, CancellationToken cancellationToken)
+        {
+            var role = UserRole();
+
+            if (role == "Admin")
+            {
+                var kcalReq = await GetQueryKcalRequiredPerDaysAsync(filter, page, false, 0, cancellationToken);
+
+                var allKcalRequiredPerDay = kcalReq.Select(kcal => new AllCaloriesRequiredPerDaysDto
+                {
+                    caloriesPerDayID = kcal.caloriesPerDayID,
+                    accountID = kcal.accountID,
+                    username = kcal.account?.username ?? "N/A",
+                    dateInitial = kcal.dateInitial,
+                    dateFinal = kcal.dateFinal,
+                    kcalNeeded = Math.Round(kcal.caloriesNeeded, 2)
+                }).ToList();
+
+                return allKcalRequiredPerDay;
+            }
+
+            return [];
+        }
+
+        public async Task<byte[]> ExportAllCaloriesConsumedAsync(CaloriesConsumedFilterDto? filter, CancellationToken cancellationToken)
+        {
+            int currentPage = 0;
+
+            using (var memoryStream = new MemoryStream())
+            using (var streamWriter = new StreamWriter(memoryStream))
+            {
+                await streamWriter.WriteLineAsync("CaloriesConsumedID,AccountID,Username,Date,Total");
+
+                while (currentPage >= 0)
+                {
+                    var calConsumed = await GetQueryKcalConsumedAsync(filter, 0, true, currentPage, cancellationToken);
+
+                    if (calConsumed.Count == 0)
+                    {
+                        currentPage = -1;
+                    }
+                    else
+                    {
+                        foreach (var cal in calConsumed)
+                        {
+                            var csvLine = $"{cal.caloriesConsumedID},{cal.accountID},{cal.account?.username ?? "N/A"},{cal.dateCaloriesConsumed},{cal.totalCaloriesConsumed}";
+
+                            await streamWriter.WriteLineAsync(csvLine);
+                        }
+
+                        currentPage++;
+                    }
+                }
+
+                await streamWriter.FlushAsync(cancellationToken);
+
+                return memoryStream.ToArray();
+            }
+        }
+
+        public async Task<byte[]> ExportAllCaloriesRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto? filter, CancellationToken cancellationToken)
+        {
+            int currentPage = 0;
+
+            using (var memoryStream = new MemoryStream())
+            using (var streamWriter = new StreamWriter(memoryStream))
+            {
+                await streamWriter.WriteLineAsync("CaloriesPerDayID,AccountID,Username,DateInitial,DateFinal,CaloriesNeeded");
+
+                while (currentPage >= 0)
+                {
+                    var calReq = await GetQueryKcalRequiredPerDaysAsync(filter, 0, true, currentPage, cancellationToken);
+
+                    if (calReq.Count == 0)
+                    {
+                        currentPage = -1;
+                    }
+                    else
+                    {
+                        foreach (var cal in calReq)
+                        {
+                            var csvLine = $"{cal.caloriesPerDayID},{cal.accountID},{cal.account?.username ?? "N/A"},{cal.dateInitial},{cal.dateFinal},{cal.caloriesNeeded}";
+
+                            await streamWriter.WriteLineAsync(csvLine);
+                        }
+
+                        currentPage++;
+                    }
+                }
+
+                await streamWriter.FlushAsync(cancellationToken);
+
+                return memoryStream.ToArray();
+            }
+        }
+
+        private async Task<List<CaloriesConsumed>> GetQueryKcalConsumedAsync(CaloriesConsumedFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        {
+            List<CaloriesConsumed> kcalConsumed = new List<CaloriesConsumed>();
+
+            var query = _bd.CaloriesConsumed
+                            .Include(f => f.account)
+                            .AsQueryable();
+
+            if (filter != null)
+            {
+                query = FilterKcalConsumed(query, filter);
+            }
+
+            if (!export)
+            {
+                kcalConsumed = await query
+                            .Skip((page - 1) * 10)
+                            .Take(10)
+                            .ToListAsync(cancellationToken);
+            }
+            else
+            {
+                kcalConsumed = await query
+                            .Skip(currentPage * 1000)
+                            .Take(1000)
+                            .ToListAsync(cancellationToken);
+            }
+
+            return kcalConsumed;
+        }
+
+        private IQueryable<CaloriesConsumed> FilterKcalConsumed(IQueryable<CaloriesConsumed> query, CaloriesConsumedFilterDto filter)
+        {
+            query = query.Where(p => _bd.PacientDoctor
+                                          .Where(pd => pd.doctorID == filter.doctorID)
+                                          .Select(pd => pd.accountID)
+                                          .Contains(p.account!.accountID));
+
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
+
+            if (filter.startDate != null && filter.endDate != null)
+            {
+                query = query.Where(f =>
+                    f.dateCaloriesConsumed <= filter.endDate &&
+                    f.dateCaloriesConsumed >= filter.startDate
+                );
+            }
+            else if (filter.startDate != null)
+            {
+                query = query.Where(f =>
+                    f.dateCaloriesConsumed >= filter.startDate
+                );
+            }
+            else if (filter.endDate != null)
+            {
+                query = query.Where(f =>
+                    f.dateCaloriesConsumed <= filter.endDate
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.sex))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
+
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+
+            return query;
+        }
+
+        private async Task<List<CaloriesRequiredPerDay>> GetQueryKcalRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        {
+            List<CaloriesRequiredPerDay> kcalReqPerDays = new List<CaloriesRequiredPerDay>();
+
+            var query = _bd.CaloriesRequiredPerDays
+                            .Include(f => f.account)
+                            .AsQueryable();
+
+            if (filter != null)
+            {
+                query = FilterKcalRequiredPerDays(query, filter);
+            }
+
+            if (!export)
+            {
+                kcalReqPerDays = await query
+                                .Skip((page - 1) * 10)
+                                .Take(10)
+                                .ToListAsync(cancellationToken);
+            }
+            else
+            {
+                kcalReqPerDays = await query
+                                .Skip(currentPage * 1000)
+                                .Take(1000)
+                                .ToListAsync(cancellationToken);
+            }
+
+            return kcalReqPerDays;
+        }
+
+        private IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDays(IQueryable<CaloriesRequiredPerDay> query, CaloriesRequiredPerDaysFilterDto filter)
+        {
+            query = query.Where(p => _bd.PacientDoctor
+                                          .Where(pd => pd.doctorID == filter.doctorID)
+                                          .Select(pd => pd.accountID)
+                                          .Contains(p.account!.accountID));
+
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
+
+            if (filter.startDate != null && filter.endDate != null)
+            {
+                query = query.Where(f =>
+                    f.dateInitial <= filter.endDate &&
+                    f.dateFinal >= filter.startDate
+                );
+            }
+            else if (filter.startDate != null)
+            {
+                query = query.Where(f =>
+                    f.dateFinal >= filter.startDate
+                );
+            }
+            else if (filter.endDate != null)
+            {
+                query = query.Where(f =>
+                    f.dateInitial <= filter.endDate
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.sex))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
+
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+
+            return query;
+        }*/
     }
 }

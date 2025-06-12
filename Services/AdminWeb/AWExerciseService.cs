@@ -47,29 +47,6 @@ namespace AppVidaSana.Services.AdminWeb
             return [];
         }
 
-        public async Task<List<AllActiveMinutesPerExerciseDto>> GetAllActiveMinutesPerExerciseAsync(ActiveMinutesFilterDto filter, int page, CancellationToken cancellationToken) 
-        {
-            var role = UserRole();
-
-            if (role == "Admin") 
-            {
-                var actM = await GetQueryActiveMinutesAsync(filter, page, false, 0, cancellationToken);
-
-                var allActMinPerExercise = actM.Select(aM => new AllActiveMinutesPerExerciseDto
-                {
-                    timeSpentID = aM.timeSpentID,
-                    accountID = aM.accountID,
-                    username = aM.account!.username,
-                    dateExercise = aM.dateExercise,
-                    totalTimeSpent = aM.totalTimeSpent
-                }).ToList();
-
-                return allActMinPerExercise;
-            }
-
-            return [];
-        }
-
         public async Task<List<AllMFUsExercisePerUserDto>> GetMFUsExerciseAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken)
         {
             var role = UserRole();
@@ -128,39 +105,6 @@ namespace AppVidaSana.Services.AdminWeb
                     foreach (var e in exercises)
                     {
                         var csvLine = $"{e.exerciseID},{e.accountID},{e.account!.username},{e.dateExercise},{e.typeExercise},{e.intensityExercise},{e.timeSpent}";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
-                }
-
-                await streamWriter.FlushAsync(cancellationToken);
-
-                return memoryStream.ToArray();
-            }
-        }
-
-        public async Task<byte[]> ExportAllActivesMinutesAsync(ActiveMinutesFilterDto? filter, CancellationToken cancellationToken)
-        {
-            int currentPage = 0;
-
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
-            {
-                await streamWriter.WriteLineAsync("TimeSpentID,AccountID,Username,DateExercise,TotalMinutes");
-
-                while (currentPage >= 0)
-                {
-                    var actMin = await GetQueryActiveMinutesAsync(filter, 0, true, currentPage, cancellationToken);
-
-                    if (actMin.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var a in actMin)
-                    {
-                        var csvLine = $"{a.timeSpentID},{a.accountID},{a.account!.username},{a.dateExercise},{a.totalTimeSpent}";
 
                         await streamWriter.WriteLineAsync(csvLine);
                     }
@@ -314,7 +258,135 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<ActiveMinutes>> GetQueryActiveMinutesAsync(ActiveMinutesFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
+        private async Task<List<ExerciseResults>> GetQueryMFUsExerciseAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        {
+            List<ExerciseResults> mfu = new List<ExerciseResults>();
+
+            var query = _bd.ResultsExercise
+                        .Include(rf => rf.MFUsExercise)
+                            .ThenInclude(mf => mf!.account)
+                        .Include(rf => rf.MFUsExercise)
+                            .ThenInclude(mf => mf!.months)
+                        .AsQueryable();
+
+            if (filter != null)
+            {
+                query = FilterMFUsExercise(query, filter);
+            }
+
+            if (!export)
+            {
+                mfu = await query
+                            .Skip((page - 1) * 10)
+                            .Take(10)
+                            .ToListAsync(cancellationToken);
+            }
+            else
+            {
+                mfu = await query
+                            .Skip(currentPage * 1000)
+                            .Take(1000)
+                            .ToListAsync(cancellationToken);
+            }
+
+            return mfu;
+        }
+
+        private IQueryable<ExerciseResults> FilterMFUsExercise(IQueryable<ExerciseResults> query, PatientFilterDto filter)
+        {
+            query = query.Where(p => _bd.PacientDoctor
+                                          .Where(pd => pd.doctorID == filter!.doctorID)
+                                          .Select(pd => pd.accountID)
+                                          .Contains(p.MFUsExercise!.account!.accountID));
+
+            if (!string.IsNullOrWhiteSpace(filter!.accountID.ToString()))
+                query = query.Where(f => f.MFUsExercise!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter!.username))
+                query = query.Where(f => f.MFUsExercise!.account!.username.Contains(filter.username ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter!.uiemID))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.uiemID == filter.uiemID));
+
+            if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
+            {
+                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
+                query = query.Where(f => f.MFUsExercise!.months!.month.Contains(monthStr));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
+                query = query.Where(f => f.MFUsExercise!.months!.year == filter.year);
+
+            if (!string.IsNullOrWhiteSpace(filter!.sex))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.sex == filter.sex));
+
+            if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+
+            return query;
+        }
+
+
+        /*public async Task<List<AllActiveMinutesPerExerciseDto>> GetAllActiveMinutesPerExerciseAsync(ActiveMinutesFilterDto filter, int page, CancellationToken cancellationToken)
+        {
+            var role = UserRole();
+
+            if (role == "Admin")
+            {
+                var actM = await GetQueryActiveMinutesAsync(filter, page, false, 0, cancellationToken);
+
+                var allActMinPerExercise = actM.Select(aM => new AllActiveMinutesPerExerciseDto
+                {
+                    timeSpentID = aM.timeSpentID,
+                    accountID = aM.accountID,
+                    username = aM.account!.username,
+                    dateExercise = aM.dateExercise,
+                    totalTimeSpent = aM.totalTimeSpent
+                }).ToList();
+
+                return allActMinPerExercise;
+            }
+
+            return [];
+        }
+
+        public async Task<byte[]> ExportAllActivesMinutesAsync(ActiveMinutesFilterDto? filter, CancellationToken cancellationToken)
+        {
+            int currentPage = 0;
+
+            using (var memoryStream = new MemoryStream())
+            using (var streamWriter = new StreamWriter(memoryStream))
+            {
+                await streamWriter.WriteLineAsync("TimeSpentID,AccountID,Username,DateExercise,TotalMinutes");
+
+                while (currentPage >= 0)
+                {
+                    var actMin = await GetQueryActiveMinutesAsync(filter, 0, true, currentPage, cancellationToken);
+
+                    if (actMin.Count == 0)
+                    {
+                        break;
+                    }
+
+                    foreach (var a in actMin)
+                    {
+                        var csvLine = $"{a.timeSpentID},{a.accountID},{a.account!.username},{a.dateExercise},{a.totalTimeSpent}";
+
+                        await streamWriter.WriteLineAsync(csvLine);
+                    }
+                    currentPage++;
+                }
+
+                await streamWriter.FlushAsync(cancellationToken);
+
+                return memoryStream.ToArray();
+            }
+        }
+
+        private async Task<List<ActiveMinutes>> GetQueryActiveMinutesAsync(ActiveMinutesFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<ActiveMinutes> actM = new List<ActiveMinutes>();
 
@@ -399,78 +471,6 @@ namespace AppVidaSana.Services.AdminWeb
             }
 
             return query;
-        }
-
-
-        private async Task<List<ExerciseResults>> GetQueryMFUsExerciseAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
-        {
-            List<ExerciseResults> mfu = new List<ExerciseResults>();
-
-            var query = _bd.ResultsExercise
-                        .Include(rf => rf.MFUsExercise)
-                            .ThenInclude(mf => mf!.account)
-                        .Include(rf => rf.MFUsExercise)
-                            .ThenInclude(mf => mf!.months)
-                        .AsQueryable();
-
-            if (filter != null)
-            {
-                query = FilterMFUsExercise(query, filter);
-            }
-
-            if (!export)
-            {
-                mfu = await query
-                            .Skip((page - 1) * 10)
-                            .Take(10)
-                            .ToListAsync(cancellationToken);
-            }
-            else
-            {
-                mfu = await query
-                            .Skip(currentPage * 1000)
-                            .Take(1000)
-                            .ToListAsync(cancellationToken);
-            }
-
-            return mfu;
-        }
-
-        private IQueryable<ExerciseResults> FilterMFUsExercise(IQueryable<ExerciseResults> query, PatientFilterDto filter)
-        {
-            query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter!.doctorID)
-                                          .Select(pd => pd.accountID)
-                                          .Contains(p.MFUsExercise!.account!.accountID));
-
-            if (!string.IsNullOrWhiteSpace(filter!.accountID.ToString()))
-                query = query.Where(f => f.MFUsExercise!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
-
-            if (!string.IsNullOrWhiteSpace(filter!.username))
-                query = query.Where(f => f.MFUsExercise!.account!.username.Contains(filter.username ?? ""));
-
-            if (!string.IsNullOrWhiteSpace(filter!.uiemID))
-                query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.uiemID == filter.uiemID));
-
-            if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
-            {
-                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
-                query = query.Where(f => f.MFUsExercise!.months!.month.Contains(monthStr));
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
-                query = query.Where(f => f.MFUsExercise!.months!.year == filter.year);
-
-            if (!string.IsNullOrWhiteSpace(filter!.sex))
-                query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.sex == filter.sex));
-
-            if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
-                query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
-
-            return query;
-        }
+        }*/
     }
 }

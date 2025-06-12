@@ -14,6 +14,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [Authorize(Roles = "Admin")]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Proxy - Exercises")]
+    [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/exercises")]
     [RequestTimeout("CustomPolicy")]
     public class ProxyExercises : ControllerBase
@@ -126,7 +128,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/exercises";
-            Console.WriteLine($"URL: {url}");
 
             var response = await client.PutAsJsonAsync(url, values);
 

@@ -15,6 +15,8 @@ namespace AppVidaSana.Controllers
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - Account_Profile")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/accounts")]
     [RequestTimeout("CustomPolicy")]
     public class AccountProfileController : ControllerBase

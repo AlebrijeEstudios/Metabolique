@@ -14,6 +14,8 @@ namespace AppVidaSana.Controllers.Seg_Men_Controllers
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - MFUsExercise")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/monthly-exercise-monitoring")]
     public class MFUsExerciseController : ControllerBase
     {

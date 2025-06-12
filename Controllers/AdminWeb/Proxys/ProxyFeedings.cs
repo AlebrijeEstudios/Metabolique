@@ -6,14 +6,19 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 using System.Globalization;
 using System.Net.Http.Headers;
+using System.Text;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
     [Authorize(Roles = "Admin")]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Proxy - Feedings")]
+    [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/feedings")]
     [RequestTimeout("CustomPolicy")]
     public class ProxyFeedings : ControllerBase
@@ -121,9 +126,27 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/feeding";
-            Console.WriteLine($"URL: {url}");
+            var dtoToSend = new
+            {
+                userFeedID = values.userFeedID,
+                userFeedDate = values.userFeedDate.ToString("yyyy-MM-dd"),
+                userFeedTime = values.userFeedTime.ToString("HH:mm"),
+                dailyMeal = values.dailyMeal,
+                foodsConsumed = values.foodsConsumed,
+                satietyLevel = values.satietyLevel,
+                emotionsLinked = values.emotionsLinked,
+                saucerPicture = values.saucerPicture
+            };
 
-            var response = await client.PutAsJsonAsync(url, values);
+            var json = JsonConvert.SerializeObject(dtoToSend, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PutAsync(url, content);
 
             var responseBody = await response.Content.ReadAsStringAsync();
 

@@ -8,8 +8,6 @@ namespace AppVidaSana.Services.IServices
     {
         Task<TokensDto> LoginAccountAsync(LoginDto login, CancellationToken cancellationToken);
 
-        Task<TokenAdminDto> LoginAdminAsync(LoginAdminDto login, CancellationToken cancellationToken);
-
         Task<string> LogoutAccountAsync(Guid accountID, CancellationToken cancellationToken);
 
         Task<TokensDto> RefreshTokenAsync(TokensDto values, CancellationToken cancellationToken);
