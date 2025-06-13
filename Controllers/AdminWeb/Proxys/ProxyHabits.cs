@@ -482,9 +482,41 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/monthly-habits-monitoring";
-            Console.WriteLine($"URL: {url}");
+            var dtoToSend = new
+            {
+                monthlyFollowUpID = values.monthlyFollowUpID,
+                month = values.month,
+                year = values.year,
+                answerQuestion1 = values.answerQuestion1.ToString("HH:mm"),
+                answerQuestion2 = values.answerQuestion2,
+                answerQuestion3 = values.answerQuestion3.ToString("HH:mm"),
+                answerQuestion4 = values.answerQuestion4,
+                answerQuestion5a = values.answerQuestion5a,
+                answerQuestion5b = values.answerQuestion5b,
+                answerQuestion5c = values.answerQuestion5c,
+                answerQuestion5d = values.answerQuestion5d,
+                answerQuestion5e = values.answerQuestion5e,
+                answerQuestion5f = values.answerQuestion5f,
+                answerQuestion5g = values.answerQuestion5g,
+                answerQuestion5h = values.answerQuestion5h,
+                answerQuestion5i = values.answerQuestion5i,
+                answerQuestion5j = values.answerQuestion5j,
+                answerQuestion6 = values.answerQuestion6,
+                answerQuestion7 = values.answerQuestion7,
+                answerQuestion8 = values.answerQuestion8,
+                answerQuestion9 = values.answerQuestion9,
 
-            var response = await client.PutAsJsonAsync(url, values);
+            };
+
+            var json = JsonConvert.SerializeObject(dtoToSend, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PutAsync(url, content);
 
             var responseBody = await response.Content.ReadAsStringAsync();
 

@@ -369,7 +369,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/medication/side-effects";
-            Console.WriteLine($"URL: {url}");
 
             var response = await client.PutAsJsonAsync(url, values);
 
@@ -499,7 +498,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/monthly-medications-monitoring";
-            Console.WriteLine($"URL: {url}");
 
             var response = await client.PutAsJsonAsync(url, values);
 

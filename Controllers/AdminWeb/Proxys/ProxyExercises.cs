@@ -253,7 +253,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             var url = $"https://{api}/api/monthly-exercise-monitoring";
-            Console.WriteLine($"URL: {url}");
 
             var response = await client.PutAsJsonAsync(url, values);
 
