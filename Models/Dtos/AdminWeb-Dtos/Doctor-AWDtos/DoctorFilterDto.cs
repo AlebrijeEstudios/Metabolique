@@ -2,7 +2,7 @@
 {
     public class DoctorFilterDto
     {
-        public string? username { get; set; }
+        public Guid? doctorID { get; set; }
     
         public string? role { get; set; }
     }

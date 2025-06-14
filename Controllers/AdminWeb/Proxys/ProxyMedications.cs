@@ -13,7 +13,7 @@ using System.Text;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,User")]
     [EnableCors("RulesCORS")]
     [ApiController]
     [Tags("Proxy - Medications")]

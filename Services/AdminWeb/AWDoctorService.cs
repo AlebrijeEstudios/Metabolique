@@ -24,7 +24,7 @@ namespace AppVidaSana.Services.AdminWeb
             _bd = bd;
         }
 
-        public async Task<AllDoctorsDto> InsertDoctorAsync(DoctorDto values, CancellationToken cancellationToken)
+        public async Task<AllDoctorsDto> CreateDoctorAsync(AWDoctorDto values, CancellationToken cancellationToken)
         {
             List<string?> errors = new List<string?>();
 
@@ -52,6 +52,8 @@ namespace AppVidaSana.Services.AdminWeb
                 password = BCrypt.Net.BCrypt.HashPassword(GenerateValidPassword()),
                 roleID = role.roleID
             };
+
+            ValidationValuesDB.ValidationValues(accountDoctor);
 
             _bd.Doctors.Add(accountDoctor);
 
@@ -225,11 +227,11 @@ namespace AppVidaSana.Services.AdminWeb
             if (filter != null)
             {
 
-                if (!string.IsNullOrWhiteSpace(filter.username))
-                    query = query.Where(f => f.username.Contains(filter.username ?? ""));
+                if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                    query = query.Where(f => f.doctorID.ToString().Contains(filter.doctorID.ToString() ?? ""));
 
                 if (!string.IsNullOrWhiteSpace(filter.role))
-                    query = query.Where(f => f.roles!.role.Contains(filter.username ?? ""));
+                    query = query.Where(f => f.roles!.role.Contains(filter.role ?? ""));
             }
 
             doctors = await query
@@ -239,6 +241,5 @@ namespace AppVidaSana.Services.AdminWeb
 
             return doctors;
         }
-
     }
 }

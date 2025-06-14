@@ -4,6 +4,7 @@ using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Exceptions.Account_Profile.ValidationTimeoutException;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.Models.Dtos.Doctor_Dtos;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
@@ -49,12 +50,6 @@ namespace AppVidaSana.Services
 
             if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
 
-            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == "User", cancellationToken);
-
-            if (role is null) { throw new NoRoleAssignmentException(); }
-
-            var doctor = await _bd.Doctors.FirstOrDefaultAsync(e => e.username == "admin@metabolique.com", cancellationToken);
-
             Account account = new Account
             {
                 username = values.username,
@@ -67,7 +62,7 @@ namespace AppVidaSana.Services
             PacientDoctor pd = new PacientDoctor
             {
                 accountID = account.accountID,
-                doctorID = doctor.doctorID
+                doctorID = values.doctorID ?? Guid.Parse("00000000-0000-0000-0000-000000000000")
             };
 
             _bd.Accounts.Add(account);
@@ -82,6 +77,8 @@ namespace AppVidaSana.Services
 
         public async Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
+            DoctorDto doctorDto = new DoctorDto();
+
             var account = await _bd.Accounts.FindAsync(new object[] { accountID }, cancellationToken);
             var profile = await _bd.Profiles.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
 
@@ -90,9 +87,26 @@ namespace AppVidaSana.Services
             InfoAccountDto infoUser = _mapper.Map<InfoAccountDto>(account);
             _mapper.Map(profile, infoUser);
 
+            var doctorPatient = await _bd.PacientDoctor.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            if (doctorPatient is null) { throw new UserNotFoundException(); }
+
+            var doctor = await _bd.Doctors.FindAsync(new object[] { doctorPatient.doctorID }, cancellationToken);
+
+            if (doctor is null)
+            {
+                doctorDto.username = "Sin doctor asignado.";
+            }
+            else 
+            {
+                doctorDto.doctorID = doctor.doctorID;
+                doctorDto.username = doctor.username;
+            }
+
+            infoUser.doctor = doctorDto;
+
             return infoUser;
         }
-
 
         public async Task<ProfileDto> UpdateAccountAsync(InfoAccountDto values, CancellationToken cancellationToken)
         {
@@ -122,6 +136,10 @@ namespace AppVidaSana.Services
             user.email = values.email;
 
             ValidationValuesDB.ValidationValues(user);
+
+            var doctorPatient = await _bd.PacientDoctor.FirstOrDefaultAsync(e => e.accountID == values.accountID, cancellationToken);
+
+            doctorPatient!.doctorID = values.doctor?.doctorID ?? Guid.Parse("00000000-0000-0000-0000-000000000000");
 
             if (!Save()) { throw new UnstoredValuesException(); }
 

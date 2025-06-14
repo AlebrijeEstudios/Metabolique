@@ -6,7 +6,7 @@ namespace AppVidaSana.Services.IServices.IAdminWeb
     {
         Task<List<AllDoctorsDto>> GetDoctorsAsync(DoctorFilterDto filter, int page, CancellationToken cancellationToken);
 
-        Task<AllDoctorsDto> InsertDoctorAsync(DoctorDto values, CancellationToken cancellationToken);
+        Task<AllDoctorsDto> CreateDoctorAsync(AWDoctorDto values, CancellationToken cancellationToken);
 
         Task<AllDoctorsDto> UpdateDoctorAsync(AllDoctorsDto values, CancellationToken cancellationToken);
 

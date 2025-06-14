@@ -1,135 +1,88 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.Exceptions;
-using AppVidaSana.Exceptions.Account_Profile;
-using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.ProducesResponseType.Account_Profile;
-using AppVidaSana.Services.IServices;
+using AppVidaSana.Services.IServices.IAdminWeb;
+using Microsoft.AspNetCore.Mvc;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Doctor_AWDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
-using Microsoft.AspNetCore.Mvc;
+using AppVidaSana.Exceptions;
+using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.ProducesResponseType.AdminWeb.Doctor;
 
-namespace AppVidaSana.Controllers
+namespace AppVidaSana.Controllers.AdminWeb
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [EnableCors("RulesCORS")]
     [ApiController]
-    [Tags("App - Account_Profile")]
-    [ApiExplorerSettings(GroupName = "app")]
-    [Route("api/accounts")]
+    [Tags("Admin - Doctors")]
+    [ApiExplorerSettings(GroupName = "admin")]
+    [Route("api/admin/doctors")]
     [RequestTimeout("CustomPolicy")]
-    public class AccountProfileController : ControllerBase
+    public class AdminDoctorController : ControllerBase
     {
-        private readonly IAccount _AccountService;
-        private readonly IProfile _ProfileService;
-        private readonly IAuthenticationAuthorization _AuthService;
+        private readonly IAWDoctors _DoctorService;
 
-        public AccountProfileController(IAccount AccountService, IProfile ProfileService, IAuthenticationAuthorization AuthService)
+        public AdminDoctorController(IAWDoctors DoctorsService)
         {
-            _AccountService = AccountService;
-            _ProfileService = ProfileService;
-            _AuthService = AuthService;
+            _DoctorService = DoctorsService;
         }
 
         /// <summary>
-        /// This controller obtains the user's account and profile.
+        /// This controller obtains all doctor accounts.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The birthDate property must have the following structure:   
-        ///     {
-        ///        "birthDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        ///     
-        /// </remarks>
         /// <response code="200">Returns account information if found.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="404">Return an error message if the user is not found.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetPatientsResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
-        [HttpGet("{accountID:guid}")]
+        [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> GetAccountAsync(Guid accountID)
+        public async Task<IActionResult> GetDoctorsAsync([FromQuery] DoctorFilterDto filter, [FromQuery] int page)
         {
-            try
+            var doctors = await _DoctorService.GetDoctorsAsync(filter, page, HttpContext.RequestAborted);
+
+            GetDoctorsResponse response = new GetDoctorsResponse
             {
-                var account = await _AccountService.GetAccountAsync(accountID, HttpContext.RequestAborted);
+                doctors = doctors
+            };
 
-                AccountResponse response = new AccountResponse
-                {
-                    account = account
-                };
-
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, account = response.account });
-            }
-            catch (UserNotFoundException ex)
-            {
-                ExceptionMessage response = new ExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
-            }
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, doctors = response.doctors });
         }
 
         /// <summary>
-        /// This controller creates the user's account.
+        /// This controller creates the doctor's account.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The birthDate property must have the following structure:   
-        ///     {
-        ///        "birthDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        ///     
-        /// </remarks>
         /// <response code="201">Returns a token to validate in the app.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message that you were unable to log in.</response>        
-        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AuthResponse))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AddUpdateDoctorsResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [AllowAnonymous]
-        [HttpPost("account-profile")]
+        [HttpPost]
         [Produces("application/json")]
         [RequestTimeout("CustomPolicy")]
-        public async Task<IActionResult> CreateAccountAsync([FromBody] AccountDto values)
+        public async Task<IActionResult> CreateDoctorAsync([FromBody] AWDoctorDto values)
         {
             try
             {
-                var accountID = await _AccountService.CreateAccountAsync(values, HttpContext.RequestAborted);
+                var doctor = await _DoctorService.CreateDoctorAsync(values, HttpContext.RequestAborted);
 
-                _ProfileService.CreateProfile(accountID, values);
-
-                LoginDto login = new LoginDto
+                AddUpdateDoctorsResponse response = new AddUpdateDoctorsResponse
                 {
-                    email = values.email,
-                    password = values.password
+                    doctor = doctor
                 };
 
-                var token = await _AuthService.LoginAccountAsync(login, HttpContext.RequestAborted);
-
-                AuthResponse response = new AuthResponse
-                {
-                    auth = token
-                };
-
-                return StatusCode(StatusCodes.Status201Created, new { message = response.message, auth = response.auth });
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, doctor = response.doctor });
             }
             catch (UnstoredValuesException ex)
             {
@@ -140,14 +93,14 @@ namespace AppVidaSana.Controllers
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
-            catch (FailLoginException ex)
+            catch (NoRoleAssignmentException ex)
             {
                 ExceptionMessage response = new ExceptionMessage
                 {
                     status = ex.Message
                 };
 
-                return StatusCode(StatusCodes.Status401Unauthorized, new { message = response.message, status = response.status });
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
             catch (ValuesInvalidException ex)
             {
@@ -170,45 +123,33 @@ namespace AppVidaSana.Controllers
         }
 
         /// <summary>
-        /// This driver updates the user's account.
+        /// This driver updates the doctor's account.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The birthDate property must have the following structure:   
-        ///     {
-        ///        "birthDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        ///     
-        /// </remarks>
         /// <response code="200">Returns a message that the update has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>     
+        /// <response code="401">Returns a message indicating that the token has expired.</response>    
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response> 
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AddUpdateDoctorsResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [HttpPut]
         [Produces("application/json")]
-        public async Task<IActionResult> UpdateAccountAsync([FromBody] InfoAccountDto values)
+        public async Task<IActionResult> UpdateDoctorAsync([FromBody] AllDoctorsDto values)
         {
             try
             {
-                var profile = await _AccountService.UpdateAccountAsync(values, HttpContext.RequestAborted);
-                var message = await _ProfileService.UpdateProfileAsync(profile, HttpContext.RequestAborted);
+                var doctor = await _DoctorService.UpdateDoctorAsync(values, HttpContext.RequestAborted);
 
-                ResponseMessage response = new ResponseMessage
+                AddUpdateDoctorsResponse response = new AddUpdateDoctorsResponse
                 {
-                    status = message
+                    doctor = doctor
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, doctor = response.doctor });
 
             }
             catch (UnstoredValuesException ex)
@@ -219,24 +160,6 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
-            }
-            catch (UserNotFoundException ex)
-            {
-                ExceptionMessage response = new ExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
-            }
-            catch (ValuesInvalidException ex)
-            {
-                ExceptionListMessages response = new ExceptionListMessages
-                {
-                    status = ex.Errors
-                };
-
-                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
             catch (ErrorDatabaseException ex)
             {
@@ -250,26 +173,24 @@ namespace AppVidaSana.Controllers
         }
 
         /// <summary>
-        /// This driver deletes the user's account and everything related to it.
+        /// This driver deletes the doctor's account.
         /// </summary>
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response>
-        /// <response code="404">Return a message that the user does not exist in the Accounts table.</response> 
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
-        [HttpDelete("{accountID:guid}")]
+        [HttpDelete("{doctorID:guid}")]
         [Produces("application/json")]
-        public async Task<IActionResult> DeleteAccountAsync(Guid accountID)
+        public async Task<IActionResult> DeleteDoctorAsync(Guid doctorID)
         {
             try
             {
-                var message = await _AccountService.DeleteAccountAsync(accountID, HttpContext.RequestAborted);
+                var message = await _DoctorService.DeleteDoctorAsync(doctorID, HttpContext.RequestAborted);
 
                 ResponseMessage response = new ResponseMessage
                 {
@@ -286,15 +207,6 @@ namespace AppVidaSana.Controllers
                 };
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
-            }
-            catch (UserNotFoundException ex)
-            {
-                ExceptionMessage response = new ExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status404NotFound, new { message = response.message, status = response.status });
             }
         }
     }

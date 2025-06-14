@@ -13,7 +13,7 @@ using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,User")]
     [EnableCors("RulesCORS")]
     [ApiController]
     [Tags("Admin - Exercises")]

@@ -1,5 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Doctor_AWDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
@@ -8,24 +7,24 @@ using System.Net.Http.Headers;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
-    [Authorize(Roles = "Admin,User")]
+    [Authorize(Roles = "Admin")]
     [EnableCors("RulesCORS")]
     [ApiController]
-    [Tags("Proxy - Patients")]
+    [Tags("Proxy - Doctors")]
     [ApiExplorerSettings(GroupName = "proxy")]
-    [Route("proxy/admin/patients")]
+    [Route("proxy/admin/doctors")]
     [RequestTimeout("CustomPolicy")]
-    public class ProxyPatients : ControllerBase
+    public class ProxyDoctors : ControllerBase
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProxyPatients(IHttpContextAccessor httpContextAccessor)
+        public ProxyDoctors(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpGet]
-        public async Task<IActionResult> ProxyPatientsAsync([FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyDoctorsAsync([FromQuery] DoctorFilterDto filter, [FromQuery] int page)
         {
             var client = new HttpClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
@@ -43,60 +42,36 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
                 queryParams.Add($"doctorID={filter.doctorID}");
 
-            if (!string.IsNullOrEmpty(filter.accountID.ToString()))
-                queryParams.Add($"accountID={filter.accountID}");
-
-            if (!string.IsNullOrEmpty(filter.uiemID))
-                queryParams.Add($"uiemID={filter.uiemID}");
-
-            if (!string.IsNullOrEmpty(filter.username))
-                queryParams.Add($"username={filter.username}");
-
-            if (!string.IsNullOrEmpty(filter.month.ToString()))
-                queryParams.Add($"month={filter.month}");
-
-            if (!string.IsNullOrEmpty(filter.year.ToString()))
-                queryParams.Add($"year={filter.year}");
-
-            if (!string.IsNullOrEmpty(filter.sex))
-                queryParams.Add($"sex={filter.sex}");
-
-            if (!string.IsNullOrEmpty(filter.protocolToFollow))
-                queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
+            if (!string.IsNullOrEmpty(filter.role))
+                queryParams.Add($"role={filter.role}");
 
             var queryString = "";
             var response = new HttpResponseMessage();
 
-            if (!string.IsNullOrEmpty(typeExport))
-            {
-                queryParams.Add($"typeExport={typeExport}");
-                queryString = string.Join("&", queryParams);
+            queryParams.Add($"page={page}");
+            queryString = string.Join("&", queryParams);
 
-                response = await client.GetAsync($"https://{api}/api/admin/patients/export-patients?{queryString}");
+            response = await client.GetAsync($"https://{api}/api/admin/doctors?{queryString}");
 
-                var content = await response.Content.ReadAsByteArrayAsync();
-                var contentDisposition = response.Content.Headers.ContentDisposition;
-                var fileName = contentDisposition?.FileName ?? "default.zip";
+            var content = await response.Content.ReadAsStringAsync();
+            return Content(content, "application/json");
+        }
 
-                return new FileContentResult(content, "application/zip")
-                {
-                    FileDownloadName = fileName
-                };
-            }
-            else { 
-                queryParams.Add($"page={page}");
-                queryString = string.Join("&", queryParams);
+        [HttpPost]
+        public async Task<IActionResult> ProxyCreateDoctorAsync([FromBody] AWDoctorDto values)
+        {
+            var client = new HttpClient();
+            var api = Environment.GetEnvironmentVariable("SERVER");
+            client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-                response = await client.GetAsync($"https://{api}/api/admin/patients?{queryString}");
+            var response = await client.PostAsJsonAsync($"https://{api}/api/admin/doctors", values);
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, "application/json");
-
-            }
+            var content = await response.Content.ReadAsStringAsync();
+            return Content(content, "application/json");
         }
 
         [HttpPut("edit")]
-        public async Task<IActionResult> ProxyEditPatientAsync([FromBody] InfoAccountDto values)
+        public async Task<IActionResult> ProxyEditDoctorAsync([FromBody] AllDoctorsDto values)
         {
             var client = new HttpClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
@@ -109,7 +84,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
             }
 
-            var url = $"https://{api}/api/accounts";
+            var url = $"https://{api}/api/admin/doctors";
 
             var response = await client.PutAsJsonAsync(url, values);
 
@@ -126,12 +101,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
 
             return Content(responseBody, "application/json");
-
-
         }
 
         [HttpDelete("delete")]
-        public async Task<IActionResult> ProxyDeletePatientAsync([FromQuery] Guid accountID)
+        public async Task<IActionResult> ProxyDeleteDoctorAsync([FromQuery] Guid doctorID)
         {
             var client = new HttpClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
@@ -144,7 +117,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
             }
 
-            var response = await client.DeleteAsync($"https://{api}/api/accounts/{accountID}");
+            var response = await client.DeleteAsync($"https://{api}/api/admin/doctors/{doctorID}");
 
             var content = await response.Content.ReadAsStringAsync();
             return Content(content, "application/json");

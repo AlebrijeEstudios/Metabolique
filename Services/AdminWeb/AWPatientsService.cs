@@ -9,12 +9,11 @@ namespace AppVidaSana.Services.AdminWeb
     public class AWPatientsService :IAWPatients
     {
         private readonly AppDbContext _bd;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        //private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AWPatientsService(AppDbContext bd, IHttpContextAccessor httpContextAccessor)
+        public AWPatientsService(AppDbContext bd)
         {
             _bd = bd;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<AllPatientsDto>> GetPatientsAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken)

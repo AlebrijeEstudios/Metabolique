@@ -1,148 +1,114 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Habits_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Models.Habits;
-using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace AppVidaSana.Services.AdminWeb
 {
     public class AWHabitService : IAWHabits
     {
         private readonly AppDbContext _bd;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        //private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AWHabitService(AppDbContext bd, IHttpContextAccessor httpContextAccessor)
+        public AWHabitService(AppDbContext bd)
         {
             _bd = bd;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<AllHabitDrinkPerUserDto>> GetAllHabitsDrinkPerUserAsync(HabitDrinkFilterDto filter, int page, CancellationToken cancellationToken) 
         {
-            var role = UserRole();
+            var hDrink = await GetQueryHabitDrinkAsync(filter, page, false, 0, cancellationToken);
 
-            if (role == "Admin") 
+            var allHabitsDrinkPerUser = hDrink.Select(hD => new AllHabitDrinkPerUserDto
             {
-                var hDrink = await GetQueryHabitDrinkAsync(filter, page, false, 0, cancellationToken);
+                drinkHabitID = hD.drinkHabitID,
+                accountID = hD.accountID,
+                username = hD.account!.username,
+                dateHabit = hD.drinkDateHabit,
+                amountConsumed = hD.amountConsumed ?? 0
+            }).ToList();
 
-                var allHabitsDrinkPerUser = hDrink.Select(hD => new AllHabitDrinkPerUserDto
-                {
-                    drinkHabitID = hD.drinkHabitID,
-                    accountID = hD.accountID,
-                    username = hD.account!.username,
-                    dateHabit = hD.drinkDateHabit,
-                    amountConsumed = hD.amountConsumed ?? 0
-                }).ToList();
-
-                return allHabitsDrinkPerUser;
-            }
-
-            return [];
+            return allHabitsDrinkPerUser;
         }
 
         public async Task<List<AllHabitDrugPerUserDto>> GetAllHabitsDrugsPerUserAsync(HabitDrugFilterDto filter, int page, CancellationToken cancellationToken) 
         {
-            var role = UserRole();
+            var hDrug = await GetQueryHabitDrugAsync(filter, page, false, 0, cancellationToken);
 
-            if (role == "Admin") 
+            var allHabitsDrugPerUser = hDrug.Select(hD => new AllHabitDrugPerUserDto
             {
-                var hDrug = await GetQueryHabitDrugAsync(filter, page, false, 0, cancellationToken);
+                drugsHabitID = hD.drugsHabitID,
+                accountID = hD.accountID,
+                username = hD.account!.username,
+                dateHabit = hD.drugsDateHabit,
+                cigarettesSmoked = hD.cigarettesSmoked ?? 0,
+                predominantEmotionalState = hD.predominantEmotionalState ?? "N/A"
+            }).ToList();
 
-                var allHabitsDrugPerUser = hDrug.Select(hD => new AllHabitDrugPerUserDto
-                {
-                    drugsHabitID = hD.drugsHabitID,
-                    accountID = hD.accountID,
-                    username = hD.account!.username,
-                    dateHabit = hD.drugsDateHabit,
-                    cigarettesSmoked = hD.cigarettesSmoked ?? 0,
-                    predominantEmotionalState = hD.predominantEmotionalState ?? "N/A"
-                }).ToList();
-
-                return allHabitsDrugPerUser;
-
-            }
-
-            return [];
+            return allHabitsDrugPerUser;
         }
 
         public async Task<List<AllHabitSleepPerUserDto>> GetAllHabitsSleepPerUserAsync(HabitSleepFilterDto filter, int page, CancellationToken cancellationToken) 
         {
-            var role = UserRole();
+            var hSleep = await GetQueryHabitSleepAsync(filter, page, false, 0, cancellationToken);
 
-            if (role == "Admin") 
+            var allHabitsSleepPerUser = hSleep.Select(hD => new AllHabitSleepPerUserDto
             {
-                var hSleep = await GetQueryHabitSleepAsync(filter, page, false, 0, cancellationToken);
+                sleepHabitID = hD.sleepHabitID,
+                accountID = hD.accountID,
+                username = hD.account!.username,
+                dateHabit = hD.sleepDateHabit,
+                sleepHours = hD.sleepHours ?? 0,
+                perceptionOfRelaxation = hD.perceptionOfRelaxation ?? "N/A"
+            }).ToList();
 
-                var allHabitsSleepPerUser = hSleep.Select(hD => new AllHabitSleepPerUserDto
-                {
-                    sleepHabitID = hD.sleepHabitID,
-                    accountID = hD.accountID,
-                    username = hD.account!.username,
-                    dateHabit = hD.sleepDateHabit,
-                    sleepHours = hD.sleepHours ?? 0,
-                    perceptionOfRelaxation = hD.perceptionOfRelaxation ?? "N/A"
-                }).ToList();
-
-                return allHabitsSleepPerUser;
-            }
-
-            return [];
+            return allHabitsSleepPerUser;
         }
 
         public async Task<List<AllMFUsHabitsPerUserDto>> GetMFUsHabitsAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken)
         {
-            var role = UserRole();
+            var mfus = await GetQueryMFUsHabitsAsync(filter, page, false, 0, cancellationToken);
 
-            if (role == "Admin")
+            var allMFUsPerUser = mfus.Select(m => new AllMFUsHabitsPerUserDto
             {
-                var mfus = await GetQueryMFUsHabitsAsync(filter, page, false, 0, cancellationToken);
+                monthlyFollowUpID = m.monthlyFollowUpID,
+                accountID = m.MFUsHabits!.accountID,
+                username = m.MFUsHabits!.account!.username,
+                month = m.MFUsHabits!.months!.month,
+                year = m.MFUsHabits!.months!.year,
+                answerQuestion1 = m.MFUsHabits!.answerQuestion1,
+                answerQuestion2 = m.MFUsHabits!.answerQuestion2,
+                answerQuestion3 = m.MFUsHabits!.answerQuestion3,
+                answerQuestion4 = m.MFUsHabits!.answerQuestion4,
+                answerQuestion5a = m.MFUsHabits!.answerQuestion5a,
+                answerQuestion5b = m.MFUsHabits!.answerQuestion5b,
+                answerQuestion5c = m.MFUsHabits!.answerQuestion5c,
+                answerQuestion5d = m.MFUsHabits!.answerQuestion5d,
+                answerQuestion5e = m.MFUsHabits!.answerQuestion5e,
+                answerQuestion5f = m.MFUsHabits!.answerQuestion5f,
+                answerQuestion5h = m.MFUsHabits!.answerQuestion5h,
+                answerQuestion5i = m.MFUsHabits!.answerQuestion5i,
+                answerQuestion5j = m.MFUsHabits!.answerQuestion5j,
+                answerQuestion6 = m.MFUsHabits!.answerQuestion6,
+                answerQuestion7 = m.MFUsHabits!.answerQuestion7,
+                answerQuestion8 = m.MFUsHabits!.answerQuestion8,
+                answerQuestion9 = m.MFUsHabits!.answerQuestion9,
+                resultComponent1 = m.resultComponent1,
+                resultComponent2 = m.resultComponent2,
+                resultComponent3 = m.resultComponent3,
+                resultComponent4 = m.resultComponent4,
+                resultComponent5 = m.resultComponent5,
+                resultComponent6 = m.resultComponent6,
+                resultComponent7 = m.resultComponent7,
+                globalClassification = m.globalClassification,
+                classification = m.classification
+            }).ToList();
 
-                var allMFUsPerUser = mfus.Select(m => new AllMFUsHabitsPerUserDto
-                {
-                    monthlyFollowUpID = m.monthlyFollowUpID,
-                    accountID = m.MFUsHabits!.accountID,
-                    username = m.MFUsHabits!.account!.username,
-                    month = m.MFUsHabits!.months!.month,
-                    year = m.MFUsHabits!.months!.year,
-                    answerQuestion1 = m.MFUsHabits!.answerQuestion1,
-                    answerQuestion2 = m.MFUsHabits!.answerQuestion2,
-                    answerQuestion3 = m.MFUsHabits!.answerQuestion3,
-                    answerQuestion4 = m.MFUsHabits!.answerQuestion4,
-                    answerQuestion5a = m.MFUsHabits!.answerQuestion5a,
-                    answerQuestion5b = m.MFUsHabits!.answerQuestion5b,
-                    answerQuestion5c = m.MFUsHabits!.answerQuestion5c,
-                    answerQuestion5d = m.MFUsHabits!.answerQuestion5d,
-                    answerQuestion5e = m.MFUsHabits!.answerQuestion5e,
-                    answerQuestion5f = m.MFUsHabits!.answerQuestion5f,
-                    answerQuestion5h = m.MFUsHabits!.answerQuestion5h,
-                    answerQuestion5i = m.MFUsHabits!.answerQuestion5i,
-                    answerQuestion5j = m.MFUsHabits!.answerQuestion5j,
-                    answerQuestion6 = m.MFUsHabits!.answerQuestion6,
-                    answerQuestion7 = m.MFUsHabits!.answerQuestion7,
-                    answerQuestion8 = m.MFUsHabits!.answerQuestion8,
-                    answerQuestion9 = m.MFUsHabits!.answerQuestion9,
-                    resultComponent1 = m.resultComponent1,
-                    resultComponent2 = m.resultComponent2,
-                    resultComponent3 = m.resultComponent3,
-                    resultComponent4 = m.resultComponent4,
-                    resultComponent5 = m.resultComponent5,
-                    resultComponent6 = m.resultComponent6,
-                    resultComponent7 = m.resultComponent7,
-                    globalClassification = m.globalClassification,
-                    classification = m.classification
-                }).ToList();
-
-                return allMFUsPerUser;
-            }
-
-            return [];
+            return allMFUsPerUser;
         }
 
 
@@ -285,14 +251,14 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private string UserRole()
+        /*private string UserRole()
         {
             var role = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
 
             if (role is null) { throw new UnstoredValuesException(); }
 
             return role;
-        }
+        }*/
 
 
         private async Task<List<DrinkHabit>> GetQueryHabitDrinkAsync(HabitDrinkFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
@@ -328,7 +294,8 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<DrinkHabit> FilterHabitDrink(IQueryable<DrinkHabit> query, HabitDrinkFilterDto filter)
         {
-            query = query.Where(p => _bd.PacientDoctor
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
@@ -416,7 +383,8 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<DrugsHabit> FilterHabitDrugs(IQueryable<DrugsHabit> query, HabitDrugFilterDto filter)
         {
-            query = query.Where(p => _bd.PacientDoctor
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
@@ -507,7 +475,8 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<SleepHabit> FilterHabitSleep(IQueryable<SleepHabit> query, HabitSleepFilterDto filter)
         {
-            query = query.Where(p => _bd.PacientDoctor
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
@@ -601,7 +570,8 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<HabitsResults> FilterMFUsHabits(IQueryable<HabitsResults> query, PatientFilterDto filter)
         {
-            query = query.Where(p => _bd.PacientDoctor
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.MFUsHabits!.account!.accountID));

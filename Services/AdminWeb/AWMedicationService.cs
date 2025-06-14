@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
 using AppVidaSana.Models.Medications;
@@ -7,87 +6,63 @@ using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace AppVidaSana.Services.AdminWeb
 {
     public class AWMedicationService : IAWMedication
     {
         private readonly AppDbContext _bd;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        //private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AWMedicationService(AppDbContext bd, IHttpContextAccessor httpContextAccessor)
+        public AWMedicationService(AppDbContext bd)
         {
             _bd = bd;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<InfoMedicationDto>> GetAllInfoMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken)
         {
-            var role = UserRole();
+            var meds = await GetQueryInfoMedicationsAsync(filter, page, cancellationToken);
 
-            if (role == "Admin")
-            {
-                var meds = await GetQueryInfoMedicationsAsync(filter, page, cancellationToken);
-
-                return meds;
-            }
-
-            return [];
+            return meds;
         }
 
         public async Task<List<AllSideEffectsPerUserDto>> GetAllSideEffectsAsync(SideEffectsFilterDto filter, int page, CancellationToken cancellationToken) 
         {
-            var role = UserRole();
+            var sf = await GetQuerySideEffectsAsync(filter, page, false, 0, cancellationToken);
 
-            if (role == "Admin") 
+            var allSideEffectsPerUser = sf.Select(s => new AllSideEffectsPerUserDto 
             {
-                var sf = await GetQuerySideEffectsAsync(filter, page, false, 0, cancellationToken);
+                sideEffectID = s.sideEffectID,
+                accountID = s.account!.accountID,
+                username = s.account!.username,
+                date = s.dateSideEffects,
+                initialTime = s.initialTime,
+                finalTime = s.finalTime,
+                description = s.description
+            }).ToList();
 
-                var allSideEffectsPerUser = sf.Select(s => new AllSideEffectsPerUserDto 
-                {
-                    sideEffectID = s.sideEffectID,
-                    accountID = s.account!.accountID,
-                    username = s.account!.username,
-                    date = s.dateSideEffects,
-                    initialTime = s.initialTime,
-                    finalTime = s.finalTime,
-                    description = s.description
-                }).ToList();
-
-                return allSideEffectsPerUser;
-            }
-
-            return [];
+            return allSideEffectsPerUser;
         }
 
         public async Task<List<AllMFUsMedicationsPerUserDto>> GetMFUsMedicationsAsync(MFUsMedicationFilterDto filter, int page, CancellationToken cancellationToken)
         {
-            var role = UserRole();
+            var mfus = await GetQueryMFUsMedicationsAsync(filter, page, false, 0, cancellationToken);
 
-            if (role == "Admin") 
+            var allMFUsPerUser = mfus.Select(m => new AllMFUsMedicationsPerUserDto
             {
-                var mfus = await GetQueryMFUsMedicationsAsync(filter, page, false, 0, cancellationToken);
+                monthlyFollowUpID = m.monthlyFollowUpID,
+                accountID = m.account!.accountID,
+                username = m.account!.username,
+                month = m.months!.month,
+                year = m.months!.year,
+                answerQuestion1 = m.answerQuestion1,
+                answerQuestion2 = m.answerQuestion2,
+                answerQuestion3 = m.answerQuestion3,
+                answerQuestion4 = m.answerQuestion4,
+                statusAdherence = m.status!.statusAdherence
+            }).ToList();
 
-                var allMFUsPerUser = mfus.Select(m => new AllMFUsMedicationsPerUserDto
-                {
-                    monthlyFollowUpID = m.monthlyFollowUpID,
-                    accountID = m.account!.accountID,
-                    username = m.account!.username,
-                    month = m.months!.month,
-                    year = m.months!.year,
-                    answerQuestion1 = m.answerQuestion1,
-                    answerQuestion2 = m.answerQuestion2,
-                    answerQuestion3 = m.answerQuestion3,
-                    answerQuestion4 = m.answerQuestion4,
-                    statusAdherence = m.status!.statusAdherence
-                }).ToList();
-
-                return allMFUsPerUser;
-
-            }
-
-            return [];
+            return allMFUsPerUser;
         }
 
 
@@ -196,14 +171,14 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private string UserRole()
+        /*private string UserRole()
         {
             var role = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
 
             if (role is null) { throw new UnstoredValuesException(); }
 
             return role;
-        }
+        }*/
 
 
         private async Task<List<InfoMedicationDto>> GetQueryInfoMedicationsAsync(PeriodMedicationsFilterDto? filter, int page, CancellationToken cancellationToken)
@@ -295,7 +270,8 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<Times> FilterInfoMedications(IQueryable<Times> query, PeriodMedicationsFilterDto filter)
         {
-            query = query.Where(p => _bd.PacientDoctor
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.daysConsumedOfMedications!.periodMedication!.account!.accountID));
@@ -389,7 +365,8 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<SideEffects> FilterSideEffects(IQueryable<SideEffects> query, SideEffectsFilterDto filter)
         {
-            query = query.Where(p => _bd.PacientDoctor
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                query = query.Where(p => _bd.PacientDoctor
                                         .Where(pd => pd.doctorID == filter.doctorID)
                                         .Select(pd => pd.accountID)
                                         .Contains(p.account!.accountID));
@@ -479,7 +456,8 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<MFUsMedication> FilterMFUsMedications(IQueryable<MFUsMedication> query, MFUsMedicationFilterDto filter)
         {
-            query = query.Where(p => _bd.PacientDoctor
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));

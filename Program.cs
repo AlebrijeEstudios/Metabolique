@@ -22,6 +22,7 @@ using AppVidaSana.ProducesResponseType;
 using Newtonsoft.Json;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using AppVidaSana.Services.AdminWeb;
+using System.Security.Claims;
 
 Env.Load();
 
@@ -137,7 +138,8 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-        ClockSkew = TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = ClaimTypes.Role
     };
     options.Events = new JwtBearerEvents
     {

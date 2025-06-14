@@ -12,7 +12,7 @@ using AppVidaSana.ProducesResponseType.AdminWeb.Medication;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,User")]
     [EnableCors("RulesCORS")]
     [ApiController]
     [Tags("Admin - Medications")]

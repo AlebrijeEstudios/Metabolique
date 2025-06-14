@@ -13,7 +13,7 @@ using AppVidaSana.Services.IServices;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,User")]
     [EnableCors("RulesCORS")]
     [ApiController]
     [Tags("Admin -Feedings")]
