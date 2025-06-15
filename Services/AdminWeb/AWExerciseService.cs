@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Exercise_AWDtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Models.Exercises;
@@ -187,6 +186,15 @@ namespace AppVidaSana.Services.AdminWeb
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
+            query = FilterExercisesByPatient(query, filter);
+
+            query = FilterExercisesByExercise(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<Exercise> FilterExercisesByPatient(IQueryable<Exercise> query, ExerciseFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -213,6 +221,11 @@ namespace AppVidaSana.Services.AdminWeb
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
 
+            return query;
+        }
+
+        private IQueryable<Exercise> FilterExercisesByExercise(IQueryable<Exercise> query, ExerciseFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter.typeExercise))
                 query = query.Where(f => f.typeExercise == filter.typeExercise);
 
@@ -285,6 +298,15 @@ namespace AppVidaSana.Services.AdminWeb
                                           .Select(pd => pd.accountID)
                                           .Contains(p.MFUsExercise!.account!.accountID));
 
+            query = FilterMFUsExerciseByPatient(query, filter);
+
+            query = FilterMFUsExerciseByMonthAndYear(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<ExerciseResults> FilterMFUsExerciseByPatient(IQueryable<ExerciseResults> query, PatientFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter!.accountID.ToString()))
                 query = query.Where(f => f.MFUsExercise!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -294,15 +316,6 @@ namespace AppVidaSana.Services.AdminWeb
             if (!string.IsNullOrWhiteSpace(filter!.uiemID))
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.uiemID == filter.uiemID));
-
-            if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
-            {
-                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
-                query = query.Where(f => f.MFUsExercise!.months!.month.Contains(monthStr));
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
-                query = query.Where(f => f.MFUsExercise!.months!.year == filter.year);
 
             if (!string.IsNullOrWhiteSpace(filter!.sex))
                 query = query.Where(f => _bd.Profiles
@@ -315,6 +328,19 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
+        private IQueryable<ExerciseResults> FilterMFUsExerciseByMonthAndYear(IQueryable<ExerciseResults> query, PatientFilterDto filter)
+        {
+            if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
+            {
+                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
+                query = query.Where(f => f.MFUsExercise!.months!.month.Contains(monthStr));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
+                query = query.Where(f => f.MFUsExercise!.months!.year == filter.year);
+
+            return query;
+        }
 
         /*public async Task<List<AllActiveMinutesPerExerciseDto>> GetAllActiveMinutesPerExerciseAsync(ActiveMinutesFilterDto filter, int page, CancellationToken cancellationToken)
         {

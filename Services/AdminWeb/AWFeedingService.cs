@@ -393,6 +393,15 @@ namespace AppVidaSana.Services.AdminWeb
                                         .Select(pd => pd.accountID)
                                         .Contains(p.account!.accountID));
 
+            query = FilterFeedingsByPatient(query, filter);
+
+            query = FilterFeedingsByFeeding(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<UserFeeds> FilterFeedingsByPatient(IQueryable<UserFeeds> query, UserFeedFilterDto filter) 
+        {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -403,6 +412,27 @@ namespace AppVidaSana.Services.AdminWeb
                 query = query.Where(f => _bd.Profiles
                              .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
 
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
+
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
+
+            if (!string.IsNullOrWhiteSpace(filter.sex))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
+
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
+                query = query.Where(f => _bd.Profiles
+                             .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+
+            return query;
+        }
+
+        private IQueryable<UserFeeds> FilterFeedingsByFeeding(IQueryable<UserFeeds> query, UserFeedFilterDto filter)
+        {
             if (filter.startDate != null && filter.endDate != null)
             {
                 query = query.Where(f =>
@@ -423,25 +453,8 @@ namespace AppVidaSana.Services.AdminWeb
                 );
             }
 
-            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
-                query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
-
-            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
-                query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
-
-            if (!string.IsNullOrWhiteSpace(filter.sex))
-                query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
-
-            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
-                query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
-
             if (!string.IsNullOrWhiteSpace(filter.dailyMeal))
                 query = query.Where(f => f.dailyMeals!.dailyMeal.Contains(filter.dailyMeal ?? ""));
-
 
             return query;
         }
@@ -486,6 +499,13 @@ namespace AppVidaSana.Services.AdminWeb
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
+            query = FilterUserCaloriesByPatient(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<UserCalories> FilterUserCaloriesByPatient(IQueryable<UserCalories> query, PatientFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -559,6 +579,15 @@ namespace AppVidaSana.Services.AdminWeb
                                           .Select(pd => pd.accountID)
                                           .Contains(p.MFUsFood!.account!.accountID));
 
+            query = FilterMFUsFeedingByPatient(query, filter);
+
+            query = FilterMFUsFeedingByMonthAndYear(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<FoodResults> FilterMFUsFeedingByPatient(IQueryable<FoodResults> query, PatientFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter!.accountID.ToString()))
                 query = query.Where(f => f.MFUsFood!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -568,15 +597,6 @@ namespace AppVidaSana.Services.AdminWeb
             if (!string.IsNullOrWhiteSpace(filter!.uiemID))
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.MFUsFood!.account!.accountID && p.uiemID == filter.uiemID));
-
-            if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
-            {
-                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
-                query = query.Where(f => f.MFUsFood!.months!.month.Contains(monthStr));
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
-                query = query.Where(f => f.MFUsFood!.months!.year == filter.year);
 
             if (!string.IsNullOrWhiteSpace(filter!.sex))
                 query = query.Where(f => _bd.Profiles
@@ -589,6 +609,19 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
+        private IQueryable<FoodResults> FilterMFUsFeedingByMonthAndYear(IQueryable<FoodResults> query, PatientFilterDto filter)
+        {
+            if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
+            {
+                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
+                query = query.Where(f => f.MFUsFood!.months!.month.Contains(monthStr));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
+                query = query.Where(f => f.MFUsFood!.months!.year == filter.year);
+
+            return query;
+        }
 
         /*public async Task<List<AllCaloriesConsumedPerUserDto>> GetAllCaloriesConsumedPerUserAsync(CaloriesConsumedFilterDto filter, int page, CancellationToken cancellationToken)
         {

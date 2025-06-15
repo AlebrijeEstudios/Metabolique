@@ -145,10 +145,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnAuthenticationFailed = context =>
         {
-            if (context.Exception is SecurityTokenExpiredException)
-            {
-                throw new TokenExpiredException();
-            }
+            if (context.Exception is SecurityTokenExpiredException) { throw new TokenExpiredException(); }
 
             return Task.CompletedTask;
         }
@@ -182,12 +179,10 @@ builder.Services.AddSwaggerGen(c =>
 
     c.DocInclusionPredicate((docName, apiDesc) =>
     {
-        if (string.IsNullOrEmpty(apiDesc.GroupName))
-            return false;
+        if (string.IsNullOrEmpty(apiDesc.GroupName)) { return false; }
 
         return string.Equals(apiDesc.GroupName, docName, StringComparison.OrdinalIgnoreCase);
     });
-
 
     c.TagActionsBy(api =>
     {
@@ -198,8 +193,7 @@ builder.Services.AddSwaggerGen(c =>
                 .SelectMany(t => t.Tags)
                 .ToList();
 
-            if (tags.Any())
-                return tags;
+            if (tags.Any()) { return tags; }
 
             return new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] };
         }
@@ -265,7 +259,24 @@ app.Use(async (context, next) =>
     {
         await next(); 
     }
-    catch (TokenExpiredException ex)
+    catch (Exception ex) when (ex is TokenExpiredException || ex is ApiKeyException)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        context.Response.ContentType = "application/json";
+
+        var errorResponse = new ExceptionExpiredTokenMessage
+        {
+            status = StatusCodes.Status401Unauthorized,
+            error = "Unauthorized",
+            message = ex.Message,
+            timestamp = DateTime.UtcNow.ToString("o"),
+            path = context.Request.Path
+        };
+
+        await context.Response.WriteAsJsonAsync(errorResponse);
+    }
+
+    /*catch (TokenExpiredException ex)
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         context.Response.ContentType = "application/json";
@@ -296,7 +307,7 @@ app.Use(async (context, next) =>
         };
 
         await context.Response.WriteAsJsonAsync(errorResponse);
-    }
+    }*/
 });
 
 app.UseHttpsRedirection();

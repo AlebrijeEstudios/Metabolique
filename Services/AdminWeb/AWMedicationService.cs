@@ -276,6 +276,15 @@ namespace AppVidaSana.Services.AdminWeb
                                           .Select(pd => pd.accountID)
                                           .Contains(p.daysConsumedOfMedications!.periodMedication!.account!.accountID));
 
+            query = FilterInfoMedicationsByPatient(query, filter);
+
+            query = FilterInfoMedicationsByMedication(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<Times> FilterInfoMedicationsByPatient(IQueryable<Times> query, PeriodMedicationsFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.daysConsumedOfMedications!.periodMedication!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -302,6 +311,11 @@ namespace AppVidaSana.Services.AdminWeb
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.daysConsumedOfMedications!.periodMedication!.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
 
+            return query;
+        }
+
+        private IQueryable<Times> FilterInfoMedicationsByMedication(IQueryable<Times> query, PeriodMedicationsFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter.nameMedication))
                 query = query.Where(f => f.daysConsumedOfMedications!.periodMedication!.medication!.nameMedication == filter.nameMedication);
 
@@ -371,6 +385,15 @@ namespace AppVidaSana.Services.AdminWeb
                                         .Select(pd => pd.accountID)
                                         .Contains(p.account!.accountID));
 
+            query = FilterSideEffectsByPatient(query, filter);
+
+            query = FilterSideEffectsByDates(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<SideEffects> FilterSideEffectsByPatient(IQueryable<SideEffects> query, SideEffectsFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -397,6 +420,11 @@ namespace AppVidaSana.Services.AdminWeb
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
 
+            return query;
+        }
+
+        private IQueryable<SideEffects> FilterSideEffectsByDates(IQueryable<SideEffects> query, SideEffectsFilterDto filter)
+        {
             if (filter.startDate != null && filter.endDate != null)
             {
                 query = query.Where(f =>
@@ -462,6 +490,15 @@ namespace AppVidaSana.Services.AdminWeb
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
+            query = FilterMFUsMedicationsByPatient(query, filter);
+
+            query = FilterMFUsMedicationsByMonthAndYear(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<MFUsMedication> FilterMFUsMedicationsByPatient(IQueryable<MFUsMedication> query, MFUsMedicationFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter!.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -472,6 +509,19 @@ namespace AppVidaSana.Services.AdminWeb
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
 
+            if (!string.IsNullOrWhiteSpace(filter!.sex))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
+
+            if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+
+            return query;
+        }
+
+        private IQueryable<MFUsMedication> FilterMFUsMedicationsByMonthAndYear(IQueryable<MFUsMedication> query, MFUsMedicationFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
             {
                 var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
@@ -481,22 +531,12 @@ namespace AppVidaSana.Services.AdminWeb
             if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
                 query = query.Where(f => f.months!.year == filter.year);
 
-            if (!string.IsNullOrWhiteSpace(filter!.sex))
-                query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
-
-            if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
-                query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
-
             if (!string.IsNullOrWhiteSpace(filter!.statusAdherence))
                 query = query.Where(f => f.status!.statusAdherence.Contains(filter.statusAdherence));
 
             return query;
         }
 
-        
-        /*Otra forma de visualizar los regitros de los periodos de los medicamentos por usuario*/
         /*public async Task<List<AllPeriodsMedicationsPerUserDto>> GetAllPeriodMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken)
         {
             var role = UserRole();
@@ -525,7 +565,7 @@ namespace AppVidaSana.Services.AdminWeb
 
             return [];
         }*/
-        /*Metodos usados para exportar todo sin usar admin web*/
+
         /*public async Task<byte[]> ExportAllPeriodsMedicationsAsync(CancellationToken cancellationToken)
         {
             const int pageSize = 1000;

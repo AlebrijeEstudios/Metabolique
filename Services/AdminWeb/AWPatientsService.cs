@@ -87,38 +87,7 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (filter != null)
             {
-                if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
-                    query = query.Where(p => _bd.PacientDoctor
-                                        .Where(pd => pd.doctorID == filter.doctorID)
-                                        .Select(pd => pd.accountID)
-                                        .Contains(p.account!.accountID));
-
-                if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
-                    query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
-
-                if (!string.IsNullOrWhiteSpace(filter.username))
-                    query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
-
-                if (!string.IsNullOrWhiteSpace(filter.uiemID))
-                    query = query.Where(f => _bd.Profiles
-                                    .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
-
-                if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
-                    query = query.Where(f => _bd.Profiles
-                                    .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
-
-                if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
-                    query = query.Where(f => _bd.Profiles
-                                    .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
-
-                if (!string.IsNullOrWhiteSpace(filter.sex))
-                    query = query.Where(f => _bd.Profiles
-                                    .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
-
-                if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
-                    query = query.Where(f => _bd.Profiles
-                                    .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
-
+                query = FilterPatientsByPatient(query, filter);
             }
 
             if (!export)
@@ -136,6 +105,43 @@ namespace AppVidaSana.Services.AdminWeb
             }
 
             return patients;
+        }
+
+        private IQueryable<Profiles> FilterPatientsByPatient(IQueryable<Profiles> query, PatientFilterDto filter) 
+        {
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                query = query.Where(p => _bd.PacientDoctor
+                                    .Where(pd => pd.doctorID == filter.doctorID)
+                                    .Select(pd => pd.accountID)
+                                    .Contains(p.account!.accountID));
+
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
+
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
+
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
+
+            if (!string.IsNullOrWhiteSpace(filter.sex))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
+
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+
+            return query;
         }
     }
 }

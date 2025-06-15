@@ -300,6 +300,15 @@ namespace AppVidaSana.Services.AdminWeb
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
+            query = FilterHabitDrinkByPatient(query, filter);
+
+            query = FilterHabitDrinkByHabit(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<DrinkHabit> FilterHabitDrinkByPatient(IQueryable<DrinkHabit> query, HabitDrinkFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -325,7 +334,11 @@ namespace AppVidaSana.Services.AdminWeb
             if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+            return query;
+        }
 
+        private IQueryable<DrinkHabit> FilterHabitDrinkByHabit(IQueryable<DrinkHabit> query, HabitDrinkFilterDto filter)
+        {
             if (filter.startDate != null && filter.endDate != null)
             {
                 query = query.Where(f =>
@@ -389,6 +402,15 @@ namespace AppVidaSana.Services.AdminWeb
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
+            query = FilterHabitDrugsByPatient(query, filter);
+
+            query = FilterHabitDrugsByHabit(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<DrugsHabit> FilterHabitDrugsByPatient(IQueryable<DrugsHabit> query, HabitDrugFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -415,6 +437,11 @@ namespace AppVidaSana.Services.AdminWeb
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
 
+            return query;
+        }
+
+        private IQueryable<DrugsHabit> FilterHabitDrugsByHabit(IQueryable<DrugsHabit> query, HabitDrugFilterDto filter)
+        {
             if (filter.startDate != null && filter.endDate != null)
             {
                 query = query.Where(f =>
@@ -481,6 +508,15 @@ namespace AppVidaSana.Services.AdminWeb
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
+            query = FilterHabitSleepByPatient(query, filter);
+
+            query = FilterHabitSleepByHabit(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<SleepHabit> FilterHabitSleepByPatient(IQueryable<SleepHabit> query, HabitSleepFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -507,6 +543,11 @@ namespace AppVidaSana.Services.AdminWeb
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
 
+            return query;
+        }
+
+        private IQueryable<SleepHabit> FilterHabitSleepByHabit(IQueryable<SleepHabit> query, HabitSleepFilterDto filter)
+        {
             if (filter.startDate != null && filter.endDate != null)
             {
                 query = query.Where(f =>
@@ -576,6 +617,15 @@ namespace AppVidaSana.Services.AdminWeb
                                           .Select(pd => pd.accountID)
                                           .Contains(p.MFUsHabits!.account!.accountID));
 
+            query = FilterMFUsHabitsByPatient(query, filter);
+
+            query = FilterMFUsHabitsByMonthAndYear(query, filter);
+
+            return query;
+        }
+
+        private IQueryable<HabitsResults> FilterMFUsHabitsByPatient(IQueryable<HabitsResults> query, PatientFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter!.accountID.ToString()))
                 query = query.Where(f => f.MFUsHabits!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
@@ -586,6 +636,19 @@ namespace AppVidaSana.Services.AdminWeb
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.MFUsHabits!.account!.accountID && p.uiemID == filter.uiemID));
 
+            if (!string.IsNullOrWhiteSpace(filter!.sex))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.MFUsHabits!.account!.accountID && p.sex == filter.sex));
+
+            if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.MFUsHabits!.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+
+            return query;
+        }
+
+        private IQueryable<HabitsResults> FilterMFUsHabitsByMonthAndYear(IQueryable<HabitsResults> query, PatientFilterDto filter)
+        {
             if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
             {
                 var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
@@ -594,14 +657,6 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
                 query = query.Where(f => f.MFUsHabits!.months!.year == filter.year);
-
-            if (!string.IsNullOrWhiteSpace(filter!.sex))
-                query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsHabits!.account!.accountID && p.sex == filter.sex));
-
-            if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
-                query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsHabits!.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
