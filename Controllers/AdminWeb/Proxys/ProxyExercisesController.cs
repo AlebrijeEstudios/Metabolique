@@ -18,23 +18,23 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/exercises")]
     [RequestTimeout("CustomPolicy")]
-    public class ProxyExercises : ControllerBase
+    public class ProxyExercisesController : ControllerBase
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public ProxyExercises(IHttpContextAccessor httpContextAccessor)
+        public ProxyExercisesController(IHttpClientFactory clientFactory)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _clientFactory = clientFactory;
         }
 
         [HttpGet]
         public async Task<IActionResult> ProxyExercisesAsync([FromQuery] string? typeExport, [FromQuery] ExerciseFilterDto filter, [FromQuery] int page)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -116,11 +116,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpPut("edit")]
         public async Task<IActionResult> ProxyEditExerciseAsync([FromBody] ExerciseDto values)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -149,11 +149,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpDelete("delete")]
         public async Task<IActionResult> ProxyDeleteExerciseAsync([FromQuery] Guid exerciseID)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -169,11 +169,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpGet("mfu-exercise")]
         public async Task<IActionResult> ProxyMFUsExercisesAsync([FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -241,11 +241,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpPut("mfu-exercise/edit")]
         public async Task<IActionResult> ProxyEditMFUsExercisesAsync([FromBody] UpdateResponsesExerciseDto values)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -271,14 +271,14 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             return Content(responseBody, "application/json");
         }
     
-        [HttpGet("active-minutes")]
+        /*[HttpGet("active-minutes")]
         public async Task<IActionResult> ProxyActiveMinutesAsync([FromQuery] string? typeExport, [FromQuery] ActiveMinutesFilterDto filter, [FromQuery] int page)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -347,6 +347,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 return Content(content, "application/json");
 
             }
-        }
+        }*/
     }
 }

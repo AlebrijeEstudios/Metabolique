@@ -1,8 +1,10 @@
-﻿namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Exercise_AWDtos
+﻿using Newtonsoft.Json;
+
+namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Exercise_AWDtos
 {
     public class ActiveMinutesFilterDto
     {
-        public Guid doctorID { get; set; }
+        public Guid? doctorID { get; set; }
 
         public Guid? accountID { get; set; }
 

@@ -2,7 +2,7 @@
 {
     public class PeriodMedicationsFilterDto
     {
-        public Guid doctorID { get; set; }
+        public Guid? doctorID { get; set; }
 
         public Guid? accountID { get; set; }
 

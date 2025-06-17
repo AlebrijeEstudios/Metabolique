@@ -15,23 +15,23 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/patients")]
     [RequestTimeout("CustomPolicy")]
-    public class ProxyPatients : ControllerBase
+    public class ProxyPatientsController : ControllerBase
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public ProxyPatients(IHttpContextAccessor httpContextAccessor)
+        public ProxyPatientsController(IHttpClientFactory clientFactory)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _clientFactory = clientFactory;
         }
 
         [HttpGet]
         public async Task<IActionResult> ProxyPatientsAsync([FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -98,11 +98,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpPut("edit")]
         public async Task<IActionResult> ProxyEditPatientAsync([FromBody] InfoAccountDto values)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -133,11 +133,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpDelete("delete")]
         public async Task<IActionResult> ProxyDeletePatientAsync([FromQuery] Guid accountID)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {

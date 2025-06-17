@@ -50,7 +50,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -80,7 +80,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -109,7 +109,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -138,7 +138,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -167,7 +167,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -197,7 +197,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -226,7 +226,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -255,7 +255,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -285,7 +285,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -314,7 +314,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -344,7 +344,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -373,7 +373,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -402,7 +402,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -431,14 +431,14 @@ namespace AppVidaSana.Services.AdminWeb
 
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+                await entryStream.WriteAsync(csvBytes, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
         }
 
 
-        private async Task<byte[]> CreateSectionZip(string folderName, Dictionary<string, byte[]> sectionFiles)
+        /*private static async Task<byte[]> CreateSectionZip(string folderName, Dictionary<string, byte[]> sectionFiles)
         {
             using var memoryStream = new MemoryStream();
             using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))

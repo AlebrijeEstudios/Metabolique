@@ -74,7 +74,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         public async Task<List<AllDoctorsDto>> GetDoctorsAsync(DoctorFilterDto filter, int page, CancellationToken cancellationToken)
         {
-            var doctors = await GetQueryDoctorsAsync(filter, page, 0, cancellationToken);
+            var doctors = await GetQueryDoctorsAsync(filter, page, cancellationToken);
 
             var doctorDTOs = doctors.Select(doctor => new AllDoctorsDto
             {
@@ -191,7 +191,7 @@ namespace AppVidaSana.Services.AdminWeb
             return password;
         }
 
-        private static async void SendEmailDoctorAsync(string email, string password)
+        private static async Task SendEmailDoctorAsync(string email, string password)
         {
             List<string?> errors = new List<string?>();
             string linkAW = "https://ambitious-river-0965b2e10.6.azurestaticapps.net/";
@@ -216,10 +216,8 @@ namespace AppVidaSana.Services.AdminWeb
             if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
         }
 
-        private async Task<List<Doctors>> GetQueryDoctorsAsync(DoctorFilterDto? filter, int page, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<Doctors>> GetQueryDoctorsAsync(DoctorFilterDto? filter, int page, CancellationToken cancellationToken)
         {
-            List<Doctors> doctors = new List<Doctors>();
-
             var query = _bd.Doctors
                            .Include(f => f.roles)
                            .AsQueryable();
@@ -234,7 +232,7 @@ namespace AppVidaSana.Services.AdminWeb
                     query = query.Where(f => f.roles!.role.Contains(filter.role ?? ""));
             }
 
-            doctors = await query
+            var doctors = await query
                         .Skip((page - 1) * 10)
                         .Take(10)
                         .ToListAsync(cancellationToken);

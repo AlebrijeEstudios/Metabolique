@@ -14,23 +14,23 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/doctors")]
     [RequestTimeout("CustomPolicy")]
-    public class ProxyDoctors : ControllerBase
+    public class ProxyDoctorsController : ControllerBase
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public ProxyDoctors(IHttpContextAccessor httpContextAccessor)
+        public ProxyDoctorsController(IHttpClientFactory clientFactory)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _clientFactory = clientFactory;
         }
 
         [HttpGet]
         public async Task<IActionResult> ProxyDoctorsAsync([FromQuery] DoctorFilterDto filter, [FromQuery] int page)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -46,12 +46,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"role={filter.role}");
 
             var queryString = "";
-            var response = new HttpResponseMessage();
 
             queryParams.Add($"page={page}");
             queryString = string.Join("&", queryParams);
 
-            response = await client.GetAsync($"https://{api}/api/admin/doctors?{queryString}");
+            var response = await client.GetAsync($"https://{api}/api/admin/doctors?{queryString}");
 
             var content = await response.Content.ReadAsStringAsync();
             return Content(content, "application/json");
@@ -60,7 +59,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpPost]
         public async Task<IActionResult> ProxyCreateDoctorAsync([FromBody] AWDoctorDto values)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
@@ -73,11 +72,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpPut("edit")]
         public async Task<IActionResult> ProxyEditDoctorAsync([FromBody] AllDoctorsDto values)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {
@@ -106,11 +105,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpDelete("delete")]
         public async Task<IActionResult> ProxyDeleteDoctorAsync([FromQuery] Guid doctorID)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 
-            var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+            var token = Request.Headers["Authorization"].ToString();
 
             if (!string.IsNullOrEmpty(token))
             {

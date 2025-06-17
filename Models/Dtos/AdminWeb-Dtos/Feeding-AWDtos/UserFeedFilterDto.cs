@@ -2,7 +2,7 @@
 {
     public class UserFeedFilterDto
     {
-        public Guid doctorID { get; set; }
+        public Guid? doctorID { get; set; }
 
         public Guid? accountID { get; set; }
 

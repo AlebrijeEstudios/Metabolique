@@ -193,7 +193,7 @@ builder.Services.AddSwaggerGen(c =>
                 .SelectMany(t => t.Tags)
                 .ToList();
 
-            if (tags.Any()) { return tags; }
+            if (tags.Count() > 0) { return tags; }
 
             return new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] };
         }
@@ -275,39 +275,6 @@ app.Use(async (context, next) =>
 
         await context.Response.WriteAsJsonAsync(errorResponse);
     }
-
-    /*catch (TokenExpiredException ex)
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        context.Response.ContentType = "application/json";
-
-        var errorResponse = new ExceptionExpiredTokenMessage
-        {
-            status = StatusCodes.Status401Unauthorized,
-            error = "Unauthorized",
-            message = ex.Message,
-            timestamp = DateTime.UtcNow.ToString("o"),
-            path = context.Request.Path
-        };
-
-        await context.Response.WriteAsJsonAsync(errorResponse);
-    }
-    catch (ApiKeyException ex)
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        context.Response.ContentType = "application/json";
-
-        var errorResponse = new ExceptionExpiredTokenMessage
-        {
-            status = StatusCodes.Status401Unauthorized,
-            error = "Unauthorized",
-            message = ex.Message,
-            timestamp = DateTime.UtcNow.ToString("o"),
-            path = context.Request.Path
-        };
-
-        await context.Response.WriteAsJsonAsync(errorResponse);
-    }*/
 });
 
 app.UseHttpsRedirection();

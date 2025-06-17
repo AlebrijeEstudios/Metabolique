@@ -12,13 +12,20 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin")]
     [RequestTimeout("CustomPolicy")]
-    public class ProxyAuth : ControllerBase
+    public class ProxyAuthController : ControllerBase
     {
+        private readonly IHttpClientFactory _clientFactory;
+
+        public ProxyAuthController(IHttpClientFactory clientFactory)
+        {
+            _clientFactory = clientFactory;
+        }
+
         [AllowAnonymous]
         [HttpPost("auth")]
         public async Task<IActionResult> ProxyLoginAsync([FromBody] LoginAdminDto login)
         {
-            var client = new HttpClient();
+            var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable("SERVER");
             client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
 

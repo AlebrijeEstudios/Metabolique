@@ -70,70 +70,63 @@ namespace AppVidaSana.Services.AdminWeb
         public async Task<byte[]> ExportAllExercisesAsync(ExerciseFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
+            List<Exercise> exercises;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("ExerciseID,AccountID,Username,DateExercise,TypeExercise,IntensityExercise,TimeSpent");
+
+            do
             {
-                await streamWriter.WriteLineAsync("ExerciseID,AccountID,Username,DateExercise,TypeExercise,IntensityExercise,TimeSpent");
+                exercises = await GetQueryExercisesAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var e in exercises)
                 {
-                    var exercises = await GetQueryExercisesAsync(filter, 0, true, currentPage, cancellationToken);
-
-                    if (exercises.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var e in exercises)
-                    {
-                        var csvLine = $"{e.exerciseID},{e.accountID},{e.account!.username},{e.dateExercise},{e.typeExercise},{e.intensityExercise},{e.timeSpent}";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
+                    var csvLine = $"{e.exerciseID},{e.accountID},{e.account!.username},{e.dateExercise},{e.typeExercise},{e.intensityExercise},{e.timeSpent}";
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (exercises.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
         public async Task<byte[]> ExportAllMFUsExerciseAsync(PatientFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
+            List<ExerciseResults> mfus;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("MonthlyFollowUpID,AccountID,Username,Month,Year,AnswQ1,AnswQ2,AnswQ3,AnswQ4,AnswQ5,AnswQ6,AnswQ7,Act_Walking,Act_Moderate,Act_Vigorous,TotalMET,SendentaryBehavior,LevelAF");
+
+            do
             {
-                await streamWriter.WriteLineAsync("MonthlyFollowUpID,AccountID,Username,Month,Year,AnswQ1,AnswQ2,AnswQ3,AnswQ4,AnswQ5,AnswQ6,AnswQ7,Act_Walking,Act_Moderate,Act_Vigorous,TotalMET,SendentaryBehavior,LevelAF");
+                mfus = await GetQueryMFUsExerciseAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var m in mfus)
                 {
-                    var mfus = await GetQueryMFUsExerciseAsync(filter, 0, true, currentPage, cancellationToken);
+                    var csvLine = $"{m.monthlyFollowUpID},{m.MFUsExercise!.accountID},{m.MFUsExercise!.account!.username},{m.MFUsExercise!.months!.month},{m.MFUsExercise!.months!.year},{m.MFUsExercise!.question1}," +
+                                    $"{m.MFUsExercise!.question2},{m.MFUsExercise!.question3},{m.MFUsExercise!.question4},{m.MFUsExercise!.question5}," +
+                                    $"{m.MFUsExercise!.question6},{m.MFUsExercise!.question7}," +
+                                    $"{m.actWalking},{m.actModerate},{m.actVigorous},{m.totalMET},{m.sedentaryBehavior},{m.levelAF}";
 
-                    if (mfus.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var m in mfus)
-                    {
-                        var csvLine = $"{m.monthlyFollowUpID},{m.MFUsExercise!.accountID},{m.MFUsExercise!.account!.username},{m.MFUsExercise!.months!.month},{m.MFUsExercise!.months!.year},{m.MFUsExercise!.question1}," +
-                                      $"{m.MFUsExercise!.question2},{m.MFUsExercise!.question3},{m.MFUsExercise!.question4},{m.MFUsExercise!.question5}," +
-                                      $"{m.MFUsExercise!.question6},{m.MFUsExercise!.question7}," +
-                                      $"{m.actWalking},{m.actModerate},{m.actVigorous},{m.totalMET},{m.sedentaryBehavior},{m.levelAF}";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (mfus.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
 
@@ -149,7 +142,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<Exercise>> GetQueryExercisesAsync(ExerciseFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
-            List<Exercise> exercises = new List<Exercise>();
+            List<Exercise> exercises;
 
             var query = _bd.Exercises
                             .Include(f => f.account)
@@ -224,7 +217,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<Exercise> FilterExercisesByExercise(IQueryable<Exercise> query, ExerciseFilterDto filter)
+        private static IQueryable<Exercise> FilterExercisesByExercise(IQueryable<Exercise> query, ExerciseFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.typeExercise))
                 query = query.Where(f => f.typeExercise == filter.typeExercise);
@@ -258,7 +251,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<ExerciseResults>> GetQueryMFUsExerciseAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
-            List<ExerciseResults> mfu = new List<ExerciseResults>();
+            List<ExerciseResults> mfu;
 
             var query = _bd.ResultsExercise
                         .Include(rf => rf.MFUsExercise)
@@ -328,7 +321,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<ExerciseResults> FilterMFUsExerciseByMonthAndYear(IQueryable<ExerciseResults> query, PatientFilterDto filter)
+        private static IQueryable<ExerciseResults> FilterMFUsExerciseByMonthAndYear(IQueryable<ExerciseResults> query, PatientFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
             {
