@@ -24,6 +24,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     public class ProxyHabitsController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;
+        private const string formatDate = "yyyy-MM-dd";
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
         private const string apiKeyHeaderName = "Metabolique_API_KEY";
@@ -80,10 +81,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             var queryString = "";
 
@@ -198,10 +199,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (!string.IsNullOrEmpty(filter.predominatEmotionalState))
                 queryParams.Add($"predominatEmotionalState={filter.predominatEmotionalState}");
@@ -319,10 +320,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (!string.IsNullOrEmpty(filter.perceptionRelax))
                 queryParams.Add($"perceptionRelax={filter.perceptionRelax}");

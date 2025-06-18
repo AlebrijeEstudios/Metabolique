@@ -226,7 +226,7 @@ namespace AppVidaSana.Services.AdminWeb
         
         private async Task<List<Times>> GetQueryPeriodMedicationsAsync(PeriodMedicationsFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
-            List<Times> pMed = new List<Times>();
+            List<Times> pMed;
 
             var query = _bd.Times
                         .Include(t => t.daysConsumedOfMedications)

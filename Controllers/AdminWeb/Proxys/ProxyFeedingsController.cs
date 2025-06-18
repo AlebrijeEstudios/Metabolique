@@ -24,6 +24,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     public class ProxyFeedingsController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;
+        private const string formatDate = "yyyy-MM-dd";
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
         private const string apiKeyHeaderName = "Metabolique_API_KEY";
@@ -83,10 +84,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"dailyMeal={filter.dailyMeal}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             var queryString = "";
 
@@ -137,7 +138,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var dtoToSend = new
             {
                 userFeedID = values.userFeedID,
-                userFeedDate = values.userFeedDate.ToString("yyyy-MM-dd"),
+                userFeedDate = values.userFeedDate.ToString(formatDate),
                 userFeedTime = values.userFeedTime.ToString("HH:mm"),
                 dailyMeal = values.dailyMeal,
                 foodsConsumed = values.foodsConsumed,
@@ -235,10 +236,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"dailyMeal={filter.dailyMeal}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             var queryString = "";
 

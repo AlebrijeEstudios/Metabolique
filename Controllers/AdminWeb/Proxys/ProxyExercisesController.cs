@@ -21,6 +21,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     public class ProxyExercisesController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;
+        private const string formatDate = "yyyy-MM-dd";
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
         private const string apiKeyHeaderName = "Metabolique_API_KEY";
@@ -83,10 +84,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"intensityExercise={filter.intensityExercise}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             var queryString = "";
 

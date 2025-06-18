@@ -23,6 +23,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     public class ProxyMedicationsController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;
+        private const string formatDate = "yyyy-MM-dd";
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
         private const string apiKeyHeaderName = "Metabolique_API_KEY";
@@ -82,10 +83,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"medication={filter.nameMedication}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (filter.status != null)
                 queryParams.Add($"status={filter.status}");
@@ -139,17 +140,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var dtoToSend = new
             {
                 periodID = values.periodID,
-                updateDate = values.updateDate.ToString("yyyy-MM-dd"),
+                updateDate = values.updateDate.ToString(formatDate),
                 nameMedication = values.nameMedication,
                 dose = values.dose,
-                initialFrec = values.initialFrec.ToString("yyyy-MM-dd"),
-                finalFrec = values.finalFrec.ToString("yyyy-MM-dd"),
+                initialFrec = values.initialFrec.ToString(formatDate),
+                finalFrec = values.finalFrec.ToString(formatDate),
                 newTimes = values.newTimes,
                 times = values.times.Select(t => new
                 {
                     timeID = t.timeID,
                     periodID = t.periodID,
-                    dateMedication = t.dateMedication.ToString("yyyy-MM-dd"),
+                    dateMedication = t.dateMedication.ToString(formatDate),
                     time = t.time.ToString("HH:mm"),
                     medicationStatus = t.medicationStatus
                 }).ToList()
@@ -241,10 +242,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             var queryString = "";
 
