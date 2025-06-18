@@ -44,42 +44,36 @@ namespace AppVidaSana.Services.AdminWeb
         public async Task<byte[]> ExportPatientsAsync(PatientFilterDto? filter, CancellationToken cancellationToken) 
         {
             int currentPage = 0;
+            List<Profiles> profiles;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("AccountID,UiemID,UserName,Email,BirthDate,Sex,Stature,Weight,ProtocolToFollow");
+
+            do
             {
-                await streamWriter.WriteLineAsync("AccountID,UiemID,UserName,Email,BirthDate,Sex,Stature,Weight,ProtocolToFollow");
+                profiles = await GetQueryPatientsAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var p in profiles)
                 {
-                    var profiles = await GetQueryPatientsAsync(filter, 0, true, currentPage, cancellationToken);
+                    var csvLine = $"{p.accountID},{p.uiemID ?? "N/A"},{p.account!.username},{p.account!.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
 
-                    if (profiles.Count == 0)
-                    {
-                        currentPage = -1;
-                    }
-                    else 
-                    { 
-                        foreach (var p in profiles)
-                        {
-                            var csvLine = $"{p.accountID},{p.uiemID ?? "N/A"},{p.account!.username},{p.account!.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
-
-                            await streamWriter.WriteLineAsync(csvLine);
-                        }
-
-                        currentPage++;
-                    }
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (profiles.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
         private async Task<List<Profiles>> GetQueryPatientsAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
-            List<Profiles> patients = new List<Profiles>();
+            List<Profiles> patients;
 
             var query = _bd.Profiles
                            .Include(f => f.account)

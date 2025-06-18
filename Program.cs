@@ -45,7 +45,7 @@ builder.Services.AddCors(opt =>
 {
     opt.AddPolicy(name: myrulesCORS, builder =>
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition"); ;
+        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition");
     });
 });
 
@@ -87,6 +87,8 @@ builder.Services.AddControllers(options =>
 });
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddHttpClient();
 
 builder.Services.AddAutoMapper(typeof(Mapper));
 
@@ -193,7 +195,7 @@ builder.Services.AddSwaggerGen(c =>
                 .SelectMany(t => t.Tags)
                 .ToList();
 
-            if (tags.Count() > 0) { return tags; }
+            if (tags.Count > 0) { return tags; }
 
             return new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] };
         }

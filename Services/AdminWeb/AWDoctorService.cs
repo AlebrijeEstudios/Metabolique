@@ -59,7 +59,7 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            SendEmailDoctorAsync(accountDoctor.email, accountDoctor.password);
+            await SendEmailDoctorAsync(accountDoctor.email, accountDoctor.password);
 
             AllDoctorsDto doctor = new AllDoctorsDto
             {

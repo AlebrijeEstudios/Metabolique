@@ -1,6 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Habits_AWDtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Habits;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using AppVidaSana.Months_Dates;
@@ -115,139 +116,127 @@ namespace AppVidaSana.Services.AdminWeb
         public async Task<byte[]> ExportAllHabitsDrinkAsync(HabitDrinkFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
+            List<DrinkHabit> hDrink;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("DrinkHabitID,AccountID,Username,DateHabit,AmountConsumed");
+
+            do
             {
-                await streamWriter.WriteLineAsync("DrinkHabitID,AccountID,Username,DateHabit,AmountConsumed");
+                hDrink = await GetQueryHabitDrinkAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var h in hDrink)
                 {
-                    var hDrink = await GetQueryHabitDrinkAsync(filter, 0, true, currentPage, cancellationToken);
+                    var csvLine = $"{h.drinkHabitID},{h.accountID},{h.account!.username},{h.drinkDateHabit},{h.amountConsumed}";
 
-                    if (hDrink.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var h in hDrink)
-                    {
-                        var csvLine = $"{h.drinkHabitID},{h.accountID},{h.account!.username},{h.drinkDateHabit},{h.amountConsumed}";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (hDrink.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
         public async Task<byte[]> ExportAllHabitsDrugsAsync(HabitDrugFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
+            List<DrugsHabit> hDrugs;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("DrugsHabitID,AccountID,Username,DateHabit,CigarettesSmoked,PredominantEmotionalState");
+
+            do
             {
-                await streamWriter.WriteLineAsync("DrugsHabitID,AccountID,Username,DateHabit,CigarettesSmoked,PredominantEmotionalState");
+                hDrugs = await GetQueryHabitDrugAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var h in hDrugs)
                 {
-                    var hDrugs = await GetQueryHabitDrugAsync(filter, 0, true, currentPage, cancellationToken);
+                    var csvLine = $"{h.drugsHabitID},{h.accountID},{h.account!.username},{h.drugsDateHabit},{h.cigarettesSmoked},{h.predominantEmotionalState}";
 
-                    if (hDrugs.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var h in hDrugs)
-                    {
-                        var csvLine = $"{h.drugsHabitID},{h.accountID},{h.account!.username},{h.drugsDateHabit},{h.cigarettesSmoked},{h.predominantEmotionalState}";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (hDrugs.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
         public async Task<byte[]> ExportAllHabitsSleepAsync(HabitSleepFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
+            List<SleepHabit> hSleep;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("SleepHabitID,AccountID,Username,DateHabit,SleepHours,PerceptionOfRelaxation");
+
+            do
             {
-                await streamWriter.WriteLineAsync("SleepHabitID,AccountID,Username,DateHabit,SleepHours,PerceptionOfRelaxation");
+                hSleep = await GetQueryHabitSleepAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var h in hSleep)
                 {
-                    var hSleep = await GetQueryHabitSleepAsync(filter, 0, true, currentPage, cancellationToken);
+                    var csvLine = $"{h.sleepHabitID},{h.accountID},{h.account!.username},{h.sleepDateHabit},{h.sleepHours},{h.perceptionOfRelaxation}";
 
-                    if (hSleep.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var h in hSleep)
-                    {
-                        var csvLine = $"{h.sleepHabitID},{h.accountID},{h.account!.username},{h.sleepDateHabit},{h.sleepHours},{h.perceptionOfRelaxation}";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (hSleep.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
         public async Task<byte[]> ExportAllMFUsHabitsAsync(PatientFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
+            List<HabitsResults> mfus;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("MonthlyFollowUpID,AccountID,Username,Month,Year,AnswQ1,AnswQ2,AnswQ3,AnswQ4,AnswQ5a,AnswQ5b,AnswQ5c,AnswQ5d,AnswQ5e,AnswQ5f,AnswQ5g,AnswQ5h,AnswQ5i,AnswQ5j,AnswQ6,AnswQ7,AnswQ8,AnswQ9,ResultComponent_1,ResultComponent_2,ResultComponent_3,ResultComponent_4,ResultComponent_5,ResultComponent_6,ResultComponent_7,GlobalClassification,Classification");
+
+            do
             {
-                await streamWriter.WriteLineAsync("MonthlyFollowUpID,AccountID,Username,Month,Year,AnswQ1,AnswQ2,AnswQ3,AnswQ4,AnswQ5a,AnswQ5b,AnswQ5c,AnswQ5d,AnswQ5e,AnswQ5f,AnswQ5g,AnswQ5h,AnswQ5i,AnswQ5j,AnswQ6,AnswQ7,AnswQ8,AnswQ9,ResultComponent_1,ResultComponent_2,ResultComponent_3,ResultComponent_4,ResultComponent_5,ResultComponent_6,ResultComponent_7,GlobalClassification,Classification");
+                mfus = await GetQueryMFUsHabitsAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var m in mfus)
                 {
-                    var mfus = await GetQueryMFUsHabitsAsync(filter, 0, true, currentPage, cancellationToken);
+                    var csvLine = $"{m.monthlyFollowUpID},{m.MFUsHabits!.accountID},{m.MFUsHabits!.account!.username},{m.MFUsHabits!.months!.month},{m.MFUsHabits!.months!.year},{m.MFUsHabits!.answerQuestion1}," +
+                                    $"{m.MFUsHabits!.answerQuestion2},{m.MFUsHabits!.answerQuestion3},{m.MFUsHabits!.answerQuestion4},{m.MFUsHabits!.answerQuestion5a}," +
+                                    $"{m.MFUsHabits!.answerQuestion5b},{m.MFUsHabits!.answerQuestion5c},{m.MFUsHabits!.answerQuestion5d},{m.MFUsHabits!.answerQuestion5e},{m.MFUsHabits!.answerQuestion5f}," +
+                                    $"{m.MFUsHabits!.answerQuestion5g},{m.MFUsHabits!.answerQuestion5h},{m.MFUsHabits!.answerQuestion5i},{m.MFUsHabits!.answerQuestion5j}," +
+                                    $"{m.MFUsHabits!.answerQuestion6},{m.MFUsHabits!.answerQuestion7},{m.MFUsHabits!.answerQuestion8},{m.MFUsHabits!.answerQuestion9}," +
+                                    $"{m.resultComponent1},{m.resultComponent2},{m.resultComponent3},{m.resultComponent4},{m.resultComponent5},{m.resultComponent6},{m.resultComponent7}," +
+                                    $"{m.globalClassification},{m.classification}";
 
-                    if (mfus.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var m in mfus)
-                    {
-                        var csvLine = $"{m.monthlyFollowUpID},{m.MFUsHabits!.accountID},{m.MFUsHabits!.account!.username},{m.MFUsHabits!.months!.month},{m.MFUsHabits!.months!.year},{m.MFUsHabits!.answerQuestion1}," +
-                                      $"{m.MFUsHabits!.answerQuestion2},{m.MFUsHabits!.answerQuestion3},{m.MFUsHabits!.answerQuestion4},{m.MFUsHabits!.answerQuestion5a}," +
-                                      $"{m.MFUsHabits!.answerQuestion5b},{m.MFUsHabits!.answerQuestion5c},{m.MFUsHabits!.answerQuestion5d},{m.MFUsHabits!.answerQuestion5e},{m.MFUsHabits!.answerQuestion5f}," +
-                                      $"{m.MFUsHabits!.answerQuestion5g},{m.MFUsHabits!.answerQuestion5h},{m.MFUsHabits!.answerQuestion5i},{m.MFUsHabits!.answerQuestion5j}," +
-                                      $"{m.MFUsHabits!.answerQuestion6},{m.MFUsHabits!.answerQuestion7},{m.MFUsHabits!.answerQuestion8},{m.MFUsHabits!.answerQuestion9}," +
-                                      $"{m.resultComponent1},{m.resultComponent2},{m.resultComponent3},{m.resultComponent4},{m.resultComponent5},{m.resultComponent6},{m.resultComponent7}," +
-                                      $"{m.globalClassification},{m.classification}";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (mfus.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
 
@@ -263,7 +252,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<DrinkHabit>> GetQueryHabitDrinkAsync(HabitDrinkFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
-            List<DrinkHabit> hDrink = new List<DrinkHabit>();
+            List<DrinkHabit> hDrink;
 
             var query = _bd.HabitsDrink
                             .Include(f => f.account)
@@ -337,7 +326,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<DrinkHabit> FilterHabitDrinkByHabit(IQueryable<DrinkHabit> query, HabitDrinkFilterDto filter)
+        private static IQueryable<DrinkHabit> FilterHabitDrinkByHabit(IQueryable<DrinkHabit> query, HabitDrinkFilterDto filter)
         {
             if (filter.startDate != null && filter.endDate != null)
             {
@@ -365,7 +354,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<DrugsHabit>> GetQueryHabitDrugAsync(HabitDrugFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
-            List<DrugsHabit> hDrugs = new List<DrugsHabit>();
+            List<DrugsHabit> hDrugs;
 
             var query = _bd.HabitsDrugs
                             .Include(f => f.account)
@@ -440,7 +429,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<DrugsHabit> FilterHabitDrugsByHabit(IQueryable<DrugsHabit> query, HabitDrugFilterDto filter)
+        private static IQueryable<DrugsHabit> FilterHabitDrugsByHabit(IQueryable<DrugsHabit> query, HabitDrugFilterDto filter)
         {
             if (filter.startDate != null && filter.endDate != null)
             {
@@ -471,7 +460,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<SleepHabit>> GetQueryHabitSleepAsync(HabitSleepFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
-            List<SleepHabit> hSleep = new List<SleepHabit>();
+            List<SleepHabit> hSleep;
 
             var query = _bd.HabitsSleep
                             .Include(f => f.account)
@@ -546,7 +535,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<SleepHabit> FilterHabitSleepByHabit(IQueryable<SleepHabit> query, HabitSleepFilterDto filter)
+        private static IQueryable<SleepHabit> FilterHabitSleepByHabit(IQueryable<SleepHabit> query, HabitSleepFilterDto filter)
         {
             if (filter.startDate != null && filter.endDate != null)
             {
@@ -577,7 +566,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<HabitsResults>> GetQueryMFUsHabitsAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
-            List<HabitsResults> mfu = new List<HabitsResults>();
+            List<HabitsResults> mfu;
 
             var query = _bd.ResultsHabits
                         .Include(rf => rf.MFUsHabits)
@@ -647,7 +636,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<HabitsResults> FilterMFUsHabitsByMonthAndYear(IQueryable<HabitsResults> query, PatientFilterDto filter)
+        private static IQueryable<HabitsResults> FilterMFUsHabitsByMonthAndYear(IQueryable<HabitsResults> query, PatientFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
             {

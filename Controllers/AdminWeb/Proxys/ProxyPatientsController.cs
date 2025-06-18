@@ -18,6 +18,15 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     public class ProxyPatientsController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;
+        private const string headerToken = "Authorization";
+        private const string apiUrl = "SERVER";
+        private const string apiKeyHeaderName = "Metabolique_API_KEY";
+        private const string apiKey = "API_KEY";
+        private const string bearerScheme = "Bearer";
+        private const string typeArchiveJson = "application/json";
+        private const string typeArchiveZip = "application/zip";
+        private const string defaultNameZip = "default.zip";
+        private const string messageError = "Error al llamar a la API remota.";
 
         public ProxyPatientsController(IHttpClientFactory clientFactory)
         {
@@ -25,17 +34,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet]
-        public async Task<IActionResult> ProxyPatientsAsync([FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyPatientsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
         {
             var client = _clientFactory.CreateClient();
-            var api = Environment.GetEnvironmentVariable("SERVER");
-            client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+            var api = Environment.GetEnvironmentVariable(apiUrl);
+            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
 
-            var token = Request.Headers["Authorization"].ToString();
-
-            if (!string.IsNullOrEmpty(token))
+            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+                var token = headerValue.Parameter;
+
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
             }
 
             var queryParams = new List<string>();
@@ -65,20 +74,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
             var queryString = "";
-            var response = new HttpResponseMessage();
 
             if (!string.IsNullOrEmpty(typeExport))
             {
                 queryParams.Add($"typeExport={typeExport}");
                 queryString = string.Join("&", queryParams);
 
-                response = await client.GetAsync($"https://{api}/api/admin/patients/export-patients?{queryString}");
+                var response = await client.GetAsync($"https://{api}/api/admin/patients/export-patients?{queryString}");
 
                 var content = await response.Content.ReadAsByteArrayAsync();
                 var contentDisposition = response.Content.Headers.ContentDisposition;
-                var fileName = contentDisposition?.FileName ?? "default.zip";
+                var fileName = contentDisposition?.FileName ?? defaultNameZip;
 
-                return new FileContentResult(content, "application/zip")
+                return new FileContentResult(content, typeArchiveZip)
                 {
                     FileDownloadName = fileName
                 };
@@ -87,26 +95,26 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"page={page}");
                 queryString = string.Join("&", queryParams);
 
-                response = await client.GetAsync($"https://{api}/api/admin/patients?{queryString}");
+                var response = await client.GetAsync($"https://{api}/api/admin/patients?{queryString}");
 
                 var content = await response.Content.ReadAsStringAsync();
-                return Content(content, "application/json");
+                return Content(content, typeArchiveJson);
 
             }
         }
 
         [HttpPut("edit")]
-        public async Task<IActionResult> ProxyEditPatientAsync([FromBody] InfoAccountDto values)
+        public async Task<IActionResult> ProxyEditPatientAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] InfoAccountDto values)
         {
             var client = _clientFactory.CreateClient();
-            var api = Environment.GetEnvironmentVariable("SERVER");
-            client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+            var api = Environment.GetEnvironmentVariable(apiUrl);
+            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
 
-            var token = Request.Headers["Authorization"].ToString();
-
-            if (!string.IsNullOrEmpty(token))
+            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+                var token = headerValue.Parameter;
+
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
             }
 
             var url = $"https://{api}/api/accounts";
@@ -119,35 +127,35 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             {
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = "Error al llamar a la API remota",
+                    error = messageError,
                     status = response.StatusCode,
                     content = responseBody
                 });
             }
 
-            return Content(responseBody, "application/json");
+            return Content(responseBody, typeArchiveJson);
 
 
         }
 
         [HttpDelete("delete")]
-        public async Task<IActionResult> ProxyDeletePatientAsync([FromQuery] Guid accountID)
+        public async Task<IActionResult> ProxyDeletePatientAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid accountID)
         {
             var client = _clientFactory.CreateClient();
-            var api = Environment.GetEnvironmentVariable("SERVER");
-            client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+            var api = Environment.GetEnvironmentVariable(apiUrl);
+            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
 
-            var token = Request.Headers["Authorization"].ToString();
-
-            if (!string.IsNullOrEmpty(token))
+            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+                var token = headerValue.Parameter;
+
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
             }
 
             var response = await client.DeleteAsync($"https://{api}/api/accounts/{accountID}");
 
             var content = await response.Content.ReadAsStringAsync();
-            return Content(content, "application/json");
+            return Content(content, typeArchiveJson);
         }
     }
 }

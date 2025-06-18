@@ -19,6 +19,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
     public class ExportFeedingController : ControllerBase
     {
         private readonly IExportToZip _ExportService;
+        private const string exportFilter = "with_filter"; 
+        private const string exportAll = "all";
+        private const string formatDate = "yyyy-MM-dd";
+        private const string typeArchive = "application/zip";
 
         public ExportFeedingController(IExportToZip exportService)
         {
@@ -40,22 +44,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         public async Task<IActionResult> ExportOnlyFeedsOfAUserToCsvAsync([FromQuery] string typeExport, [FromQuery] UserFeedFilterDto filter)
         {
             string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString(formatDate);
             byte[] zipBytes = [];
 
-            if (typeExport == "with_filter")
+            if (typeExport == exportFilter)
             {
                 fileName = $"InfoFeedings_With_Filters_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyFeedingsZipAsync(filter, typeExport, HttpContext.RequestAborted);
             }
 
-            if (typeExport == "all")
+            if (typeExport == exportAll)
             {
                 fileName = $"All_InfoFeedings_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyFeedingsZipAsync(null, typeExport, HttpContext.RequestAborted);
             }
 
-            return File(zipBytes, "application/zip", fileName);
+            return File(zipBytes, typeArchive, fileName);
         }
 
         /// <summary>
@@ -73,22 +77,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         public async Task<IActionResult> ExportOnlyFoodsConsumedPerFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] UserFeedFilterDto filter)
         {
             string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString(formatDate);
             byte[] zipBytes = [];
 
-            if (typeExport == "with_filter")
+            if (typeExport == exportFilter)
             {
                 fileName = $"FoodsConsumedPerFeedingPerPatient_With_Filters_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyFoodsConsumedPerFeedingZipAsync(filter, typeExport, HttpContext.RequestAborted);
             }
 
-            if (typeExport == "all")
+            if (typeExport == exportAll)
             {
                 fileName = $"All_FoodsConsumedPerFeedingPerPatient_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyFoodsConsumedPerFeedingZipAsync(null, typeExport, HttpContext.RequestAborted);
             }
 
-            return File(zipBytes, "application/zip", fileName);
+            return File(zipBytes, typeArchive, fileName);
         }
 
         /// <summary>
@@ -106,22 +110,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         public async Task<IActionResult> ExportOnlyUserCaloriesToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
         {
             string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString(formatDate);
             byte[] zipBytes = [];
 
-            if (typeExport == "with_filter")
+            if (typeExport == exportFilter)
             {
                 fileName = $"CaloriesRequiredPerPatient_With_Filters_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyUserCaloriesZipAsync(filter, typeExport, HttpContext.RequestAborted);
             }
 
-            if (typeExport == "all")
+            if (typeExport == exportAll)
             {
                 fileName = $"All_CaloriesRequiredPerPatient_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyUserCaloriesZipAsync(null, typeExport, HttpContext.RequestAborted);
             }
 
-            return File(zipBytes, "application/zip", fileName);
+            return File(zipBytes, typeArchive, fileName);
         }
 
         /// <summary>
@@ -139,22 +143,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         public async Task<IActionResult> ExportOnlyMFUsFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
         {
             string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString(formatDate);
             byte[] zipBytes = [];
 
-            if (typeExport == "with_filter")
+            if (typeExport == exportFilter)
             {
                 fileName = $"MFUsFeeding_With_Filters_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyMFUsFeedingZipAsync(filter, typeExport, HttpContext.RequestAborted);
             }
 
-            if (typeExport == "all")
+            if (typeExport == exportAll)
             {
                 fileName = $"All_MFUsFeeding_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyMFUsFeedingZipAsync(null, typeExport, HttpContext.RequestAborted);
             }
 
-            return File(zipBytes, "application/zip", fileName);
+            return File(zipBytes, typeArchive, fileName);
         }
     }
 }

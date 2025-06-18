@@ -20,6 +20,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
     public class ExportExerciseController : ControllerBase
     { 
         private readonly IExportToZip _ExportService;
+        private const string exportFilter = "with_filter";
+        private const string exportAll = "all";
+        private const string formatDate = "yyyy-MM-dd";
+        private const string typeArchive = "application/zip";
 
         public ExportExerciseController(IExportToZip exportService)
         {
@@ -41,22 +45,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         public async Task<IActionResult> ExportOnlyExercisesToCsvAsync([FromQuery] string typeExport, [FromQuery] ExerciseFilterDto filter)
         {
             string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString(formatDate);
             byte[] zipBytes = [];
 
-            if (typeExport == "with_filter")
+            if (typeExport == exportFilter)
             {
                 fileName = $"Exercises_With_Filters_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyExercisesZipAsync(filter, typeExport, HttpContext.RequestAborted);
             }
 
-            if (typeExport == "all")
+            if (typeExport == exportAll)
             {
                 fileName = $"All_Exercises_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyExercisesZipAsync(null, typeExport, HttpContext.RequestAborted);
             }
 
-            return File(zipBytes, "application/zip", fileName);
+            return File(zipBytes, typeArchive, fileName);
         }
 
         /// <summary>
@@ -74,22 +78,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         public async Task<IActionResult> ExportOnlyMFUsExerciseToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
         {
             string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString(formatDate);
             byte[] zipBytes = [];
 
-            if (typeExport == "with_filter")
+            if (typeExport == exportFilter)
             {
                 fileName = $"MFUsExercise_With_Filters_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyMFUsExerciseZipAsync(filter, typeExport, HttpContext.RequestAborted);
             }
 
-            if (typeExport == "all")
+            if (typeExport == exportAll)
             {
                 fileName = $"All_MFUsExercise_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyMFUsExerciseZipAsync(null, typeExport, HttpContext.RequestAborted);
             }
 
-            return File(zipBytes, "application/zip", fileName);
+            return File(zipBytes, typeArchive, fileName);
         }
     }
 }

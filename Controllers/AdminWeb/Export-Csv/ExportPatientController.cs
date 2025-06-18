@@ -19,6 +19,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
     public class ExportPatientController : ControllerBase
     {
         private readonly IExportToZip _ExportService;
+        private const string exportFilter = "with_filter";
+        private const string exportAll = "all";
+        private const string formatDate = "yyyy-MM-dd";
+        private const string typeArchive = "application/zip";
 
         public ExportPatientController(IExportToZip exportService)
         {
@@ -40,22 +44,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         public async Task<IActionResult> ExportOnlyPatientsToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
         {
             string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString(formatDate);
             byte[] zipBytes = [];
 
-            if (typeExport == "with_filter")
+            if (typeExport == exportFilter)
             {
                 fileName = $"Patients_With_Filters_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyPatientsZipAsync(filter, typeExport, HttpContext.RequestAborted);
             }
 
-            if (typeExport == "all")
+            if (typeExport == exportAll)
             {
                 fileName = $"All_Patients_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyPatientsZipAsync(null, typeExport, HttpContext.RequestAborted);
             }
 
-            return File(zipBytes, "application/zip", fileName);
+            return File(zipBytes, typeArchive, fileName);
         }
     }
 }

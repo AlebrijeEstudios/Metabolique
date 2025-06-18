@@ -19,6 +19,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
     public class ExportMedicationController : ControllerBase
     {
         private readonly IExportToZip _ExportService;
+        private const string exportFilter = "with_filter";
+        private const string exportAll = "all";
+        private const string formatDate = "yyyy-MM-dd";
+        private const string typeArchive = "application/zip";
 
         public ExportMedicationController(IExportToZip exportService)
         {
@@ -40,22 +44,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         public async Task<IActionResult> ExportOnlyPeriodMedicationsToCsvAsync([FromQuery] string typeExport, [FromQuery] PeriodMedicationsFilterDto filter)
         {
             string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString(formatDate);
             byte[] zipBytes = [];
 
-            if (typeExport == "with_filter")
+            if (typeExport == exportFilter)
             {
                 fileName = $"PeriodsMedications_With_Filters_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyPeriodMedicationsZipAsync(filter, typeExport, HttpContext.RequestAborted);
             }
 
-            if (typeExport == "all")
+            if (typeExport == exportAll)
             {
                 fileName = $"All_PeriodsMedications_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyPeriodMedicationsZipAsync(null, typeExport, HttpContext.RequestAborted);
             }
 
-            return File(zipBytes, "application/zip", fileName);
+            return File(zipBytes, typeArchive, fileName);
         }
 
         /// <summary>
@@ -73,22 +77,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         public async Task<IActionResult> ExportOnlySideEffectsToCsvAsync([FromQuery] string typeExport, [FromQuery] SideEffectsFilterDto filter)
         {
             string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString(formatDate);
             byte[] zipBytes = [];
 
-            if (typeExport == "with_filter")
+            if (typeExport == exportFilter)
             {
                 fileName = $"SideEffects_With_Filters_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlySideEffectsZipAsync(filter, typeExport, HttpContext.RequestAborted);
             }
 
-            if (typeExport == "all")
+            if (typeExport == exportAll)
             {
                 fileName = $"All_SideEffects_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlySideEffectsZipAsync(null, typeExport, HttpContext.RequestAborted);
             }
 
-            return File(zipBytes, "application/zip", fileName);
+            return File(zipBytes, typeArchive, fileName);
         }
 
         /// <summary>
@@ -106,22 +110,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         public async Task<IActionResult> ExportOnlyMFUsMedicationToCsvAsync([FromQuery] string typeExport, [FromQuery] MFUsMedicationFilterDto filter)
         {
             string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
+            string dateSuffix = DateTime.Today.ToString(formatDate);
             byte[] zipBytes = [];
 
-            if (typeExport == "with_filter")
+            if (typeExport == exportFilter)
             {
                 fileName = $"MFUsMedication_With_Filters_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyMFUsMedicationZipAsync(filter, typeExport, HttpContext.RequestAborted);
             }
 
-            if (typeExport == "all")
+            if (typeExport == exportAll)
             {
                 fileName = $"All_MFUsMedication_{dateSuffix}.zip";
                 zipBytes = await _ExportService.GenerateOnlyMFUsMedicationZipAsync(null, typeExport, HttpContext.RequestAborted);
             }
 
-            return File(zipBytes, "application/zip", fileName);
+            return File(zipBytes, typeArchive, fileName);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
+using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Medications;
 using AppVidaSana.Models.Monthly_Follow_Ups;
 using AppVidaSana.Months_Dates;
@@ -69,105 +70,96 @@ namespace AppVidaSana.Services.AdminWeb
         public async Task<byte[]> ExportAllPeriodMedicationsAsync(PeriodMedicationsFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
+            List<Times> pMeds;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("PeriodID,AccountID,Username,Medication,FrecInitial,FrecFinal,DatesExcluded,Dose,DateConsumed,TimeConsumed,StatusConsumed");
+
+            do
             {
-                await streamWriter.WriteLineAsync("PeriodID,AccountID,Username,Medication,FrecInitial,FrecFinal,DatesExcluded,Dose,DateConsumed,TimeConsumed,StatusConsumed");
+                pMeds = await GetQueryPeriodMedicationsAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var m in pMeds)
                 {
-                    var pMed = await GetQueryPeriodMedicationsAsync(filter, 0, true, currentPage, cancellationToken);
+                    var csvLine = $"{m.daysConsumedOfMedications!.periodMedication!.periodID},{m.daysConsumedOfMedications!.periodMedication!.account!.accountID}," +
+                                    $"{m.daysConsumedOfMedications!.periodMedication!.account!.username},{m.daysConsumedOfMedications!.periodMedication!.medication!.nameMedication}," +
+                                    $"{m.daysConsumedOfMedications!.periodMedication!.initialFrec},{m.daysConsumedOfMedications!.periodMedication!.finalFrec}," +
+                                    $"\"{m.daysConsumedOfMedications!.periodMedication!.datesExcluded}\",{m.daysConsumedOfMedications!.periodMedication!.dose}," +
+                                    $"{m.daysConsumedOfMedications!.dateConsumed},{m.time},{m.medicationStatus}";
 
-                    if (pMed.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var m in pMed)
-                    {
-                        var csvLine = $"{m.daysConsumedOfMedications!.periodMedication!.periodID},{m.daysConsumedOfMedications!.periodMedication!.account!.accountID}," +
-                                      $"{m.daysConsumedOfMedications!.periodMedication!.account!.username},{m.daysConsumedOfMedications!.periodMedication!.medication!.nameMedication}," +
-                                      $"{m.daysConsumedOfMedications!.periodMedication!.initialFrec},{m.daysConsumedOfMedications!.periodMedication!.finalFrec}," +
-                                      $"\"{m.daysConsumedOfMedications!.periodMedication!.datesExcluded}\",{m.daysConsumedOfMedications!.periodMedication!.dose}," +
-                                      $"{m.daysConsumedOfMedications!.dateConsumed},{m.time},{m.medicationStatus}";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (pMeds.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
         public async Task<byte[]> ExportAllSideEffectsAsync(SideEffectsFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
+            List<SideEffects> sideEffects;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("SideEffectID,AccountID,Username,Date,InitialTime,FinalTime,Description");
+
+            do
             {
-                await streamWriter.WriteLineAsync("SideEffectID,AccountID,Username,Date,InitialTime,FinalTime,Description");
+                sideEffects = await GetQuerySideEffectsAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var s in sideEffects)
                 {
-                    var sf = await GetQuerySideEffectsAsync(filter, 0, true, currentPage, cancellationToken);
+                    var csvLine = $"{s.sideEffectID},{s.account!.accountID},{s.account!.username},{s.dateSideEffects},{s.initialTime},{s.finalTime},\"{s.description}\"";
 
-                    if (sf.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var s in sf)
-                    {
-                        var csvLine = $"{s.sideEffectID},{s.account!.accountID},{s.account!.username},{s.dateSideEffects},{s.initialTime},{s.finalTime},\"{s.description}\"";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (sideEffects.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
         public async Task<byte[]> ExportAllMFUsMedicationAsync(MFUsMedicationFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
+            List<MFUsMedication> mfus;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("MonthlyFollowUpID,AccountID,Username,Month,Year,AnswQ1,AnswQ2,AnswQ3,AnswQ4,StatusAdherence");
+
+            do
             {
-                await streamWriter.WriteLineAsync("MonthlyFollowUpID,AccountID,Username,Month,Year,AnswQ1,AnswQ2,AnswQ3,AnswQ4,StatusAdherence");
+                mfus = await GetQueryMFUsMedicationsAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var m in mfus)
                 {
-                    var mfus = await GetQueryMFUsMedicationsAsync(filter, 0, true, currentPage, cancellationToken);
+                    var csvLine = $"{m.monthlyFollowUpID},{m.accountID},{m.account!.username},{m.months!.month},{m.months!.year},{m.answerQuestion1}," +
+                                    $"{m.answerQuestion2},{m.answerQuestion3},{m.answerQuestion4},{m.status!.statusAdherence}";
 
-                    if (mfus.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var m in mfus)
-                    {
-                        var csvLine = $"{m.monthlyFollowUpID},{m.accountID},{m.account!.username},{m.months!.month},{m.months!.year},{m.answerQuestion1}," +
-                                      $"{m.answerQuestion2},{m.answerQuestion3},{m.answerQuestion4},{m.status!.statusAdherence}";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (mfus.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
 
@@ -183,7 +175,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<InfoMedicationDto>> GetQueryInfoMedicationsAsync(PeriodMedicationsFilterDto? filter, int page, CancellationToken cancellationToken)
         {
-            List<InfoMedicationDto> meds = new List<InfoMedicationDto>();
+            List<InfoMedicationDto> meds;
 
             var query = _bd.Times
                         .Include(t => t.daysConsumedOfMedications)
@@ -314,7 +306,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<Times> FilterInfoMedicationsByMedication(IQueryable<Times> query, PeriodMedicationsFilterDto filter)
+        private static IQueryable<Times> FilterInfoMedicationsByMedication(IQueryable<Times> query, PeriodMedicationsFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.nameMedication))
                 query = query.Where(f => f.daysConsumedOfMedications!.periodMedication!.medication!.nameMedication == filter.nameMedication);
@@ -348,7 +340,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<SideEffects>> GetQuerySideEffectsAsync(SideEffectsFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
-            List<SideEffects> sideEffects = new List<SideEffects>();
+            List<SideEffects> sideEffects;
 
             var query = _bd.SideEffects
                             .Include(f => f.account)
@@ -423,7 +415,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<SideEffects> FilterSideEffectsByDates(IQueryable<SideEffects> query, SideEffectsFilterDto filter)
+        private static IQueryable<SideEffects> FilterSideEffectsByDates(IQueryable<SideEffects> query, SideEffectsFilterDto filter)
         {
             if (filter.startDate != null && filter.endDate != null)
             {
@@ -451,7 +443,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<MFUsMedication>> GetQueryMFUsMedicationsAsync(MFUsMedicationFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
-            List<MFUsMedication> mfu = new List<MFUsMedication>();
+            List<MFUsMedication> mfu;
 
             var query = _bd.MFUsMedication
                             .Include(m => m.account)
@@ -520,7 +512,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<MFUsMedication> FilterMFUsMedicationsByMonthAndYear(IQueryable<MFUsMedication> query, MFUsMedicationFilterDto filter)
+        private static IQueryable<MFUsMedication> FilterMFUsMedicationsByMonthAndYear(IQueryable<MFUsMedication> query, MFUsMedicationFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
             {
