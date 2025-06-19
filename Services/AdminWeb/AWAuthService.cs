@@ -24,40 +24,35 @@ namespace AppVidaSana.Services.AdminWeb
         {
             using var context = _contextFactory.CreateDbContext();
 
-            var account = await context.Doctors.FirstOrDefaultAsync(u => u.username == login.username, cancellationToken);
+            var account = await context.Doctors.FirstOrDefaultAsync(u => u.email == login.username, cancellationToken);
+
 
             if (account is null || !BCrypt.Net.BCrypt.Verify(login.password, account.password))
             {
                 throw new FailLoginException();
             }
 
-            var accessToken = CreateAccessTokenAdminAsync(account, cancellationToken);
+            var role = await context.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID, cancellationToken);
 
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(accessToken.Result);
+            var accessToken = CreateAccessTokenAdminAsync(account, role!.role, cancellationToken);
 
-            var role = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
 
             TokenAdminDto response = new TokenAdminDto();
 
             response.doctorID = account.doctorID;
-            response.accessToken = await accessToken;
-            response.role = role;
+            response.accessToken = accessToken;
+            response.role = role!.role;
 
             return response;
         }
 
-        private async Task<string> CreateAccessTokenAdminAsync(Doctors account, CancellationToken cancellationToken)
+        private string CreateAccessTokenAdminAsync(Doctors account, string role, CancellationToken cancellationToken)
         {
-            using var context = _contextFactory.CreateDbContext();
-
-            var role = await context.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID, cancellationToken);
-
             Claim[] claims = new Claim[]
             {
                 new Claim(ClaimTypes.Name, account.username.ToString()),
                 new Claim(ClaimTypes.Email, account.email.ToString()),
-                new Claim(ClaimTypes.Role, role!.role)
+                new Claim(ClaimTypes.Role, role)
             };
 
             DateTime durationToken = DateTime.UtcNow.AddDays(7);

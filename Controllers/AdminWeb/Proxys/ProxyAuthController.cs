@@ -15,6 +15,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     public class ProxyAuthController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;
+        private const string apiUrl = "SERVER";
+        private const string apiKeyHeaderName = "ApiKeyHeaderName";
+        private const string apiKey = "API_KEY";
+        private const string typeArchive = "application/json";
 
         public ProxyAuthController(IHttpClientFactory clientFactory)
         {
@@ -26,13 +30,13 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyLoginAsync([FromBody] LoginAdminDto login)
         {
             var client = _clientFactory.CreateClient();
-            var api = Environment.GetEnvironmentVariable("SERVER");
-            client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+            var api = Environment.GetEnvironmentVariable(apiUrl);
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
             var response = await client.PostAsJsonAsync($"https://{api}/api/admin/auth", login);
 
             var content = await response.Content.ReadAsStringAsync();
-            return Content(content, "application/json");
+            return Content(content, typeArchive);
         }
 
     }

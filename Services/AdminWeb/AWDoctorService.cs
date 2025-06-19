@@ -45,11 +45,13 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (role is null) { throw new NoRoleAssignmentException(); }
 
+            var password = GenerateValidPassword();
+
             Doctors accountDoctor = new Doctors
             {
                 username = values.username,
                 email = values.email,
-                password = BCrypt.Net.BCrypt.HashPassword(GenerateValidPassword()),
+                password = BCrypt.Net.BCrypt.HashPassword(password),
                 roleID = role.roleID
             };
 
@@ -59,7 +61,7 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            await SendEmailDoctorAsync(accountDoctor.email, accountDoctor.password);
+            await SendEmailDoctorAsync(accountDoctor.email, password);
 
             AllDoctorsDto doctor = new AllDoctorsDto
             {

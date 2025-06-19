@@ -27,7 +27,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private const string formatDate = "yyyy-MM-dd";
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
-        private const string apiKeyHeaderName = "Metabolique_API_KEY";
+        private const string apiKeyHeaderName = "ApiKeyHeaderName";
         private const string apiKey = "API_KEY";
         private const string bearerScheme = "Bearer";
         private const string typeArchiveJson = "application/json";
@@ -45,7 +45,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         {
             var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
             if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
@@ -122,7 +122,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         {
             var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
             if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
@@ -163,7 +163,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         {
             var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
             if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
@@ -243,7 +243,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         {
             var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
             if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
@@ -284,7 +284,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         {
             var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable(apiKey);
-            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
             if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
@@ -365,7 +365,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         {
             var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
             if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
@@ -406,7 +406,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         {
             var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
             if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
@@ -478,7 +478,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         {
             var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(apiKeyHeaderName, Environment.GetEnvironmentVariable(apiKey));
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
             if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
