@@ -4,7 +4,7 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos
 {
     public class CaloriesRequiredPerDaysFilterDto
     {
-        public Guid doctorID { get; set; }
+        public Guid? doctorID { get; set; }
 
         public Guid? accountID { get; set; }
 

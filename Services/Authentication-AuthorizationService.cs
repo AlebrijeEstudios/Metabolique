@@ -93,7 +93,7 @@ namespace AppVidaSana.Services
             return response;
         }
 
-        private string CreateAccessToken(Account account)
+        private static string CreateAccessToken(Account account)
         {
             Claim[] claims = new Claim[]
             {

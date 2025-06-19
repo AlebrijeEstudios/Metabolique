@@ -10,6 +10,7 @@ using Azure.Communication.Email;
 using Azure;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
+using AppVidaSana.ValidationValues;
 
 namespace AppVidaSana.Services.AdminWeb
 {
@@ -23,7 +24,7 @@ namespace AppVidaSana.Services.AdminWeb
             _bd = bd;
         }
 
-        public async Task<string> InsertDoctorAsync(DoctorDto values, CancellationToken cancellationToken)
+        public async Task<AllDoctorsDto> CreateDoctorAsync(AWDoctorDto values, CancellationToken cancellationToken)
         {
             List<string?> errors = new List<string?>();
 
@@ -44,21 +45,93 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (role is null) { throw new NoRoleAssignmentException(); }
 
+            var password = GenerateValidPassword();
+
             Doctors accountDoctor = new Doctors
             {
                 username = values.username,
                 email = values.email,
-                password = BCrypt.Net.BCrypt.HashPassword(GenerateValidPassword()),
+                password = BCrypt.Net.BCrypt.HashPassword(password),
                 roleID = role.roleID
             };
+
+            ValidationValuesDB.ValidationValues(accountDoctor);
 
             _bd.Doctors.Add(accountDoctor);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            SendEmailDoctorAsync(accountDoctor.email, accountDoctor.password);
+            await SendEmailDoctorAsync(accountDoctor.email, password);
 
-            return "Registro de nuevo doctor completado con éxito.";
+            AllDoctorsDto doctor = new AllDoctorsDto
+            {
+                doctorID = accountDoctor.doctorID,
+                username = accountDoctor.username,
+                email = accountDoctor.email,
+                role = role.role
+            };
+
+            return doctor;
+        }
+
+        public async Task<List<AllDoctorsDto>> GetDoctorsAsync(DoctorFilterDto filter, int page, CancellationToken cancellationToken)
+        {
+            var doctors = await GetQueryDoctorsAsync(filter, page, cancellationToken);
+
+            var doctorDTOs = doctors.Select(doctor => new AllDoctorsDto
+            {
+                doctorID = doctor.doctorID,
+                username = doctor.username ?? "N/A",
+                email = doctor.email ?? "N/A",
+                role = doctor.roles!.role
+
+            }).ToList();
+
+            return doctorDTOs;
+        }
+
+        public async Task<AllDoctorsDto> UpdateDoctorAsync(AllDoctorsDto values, CancellationToken cancellationToken)
+        {
+            var doctorToUpdate = await _bd.Doctors.FindAsync(new object[] { values.doctorID }, cancellationToken);
+
+            if (doctorToUpdate is null) { throw new UnstoredValuesException(); }
+
+            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == values.role, cancellationToken);
+
+            doctorToUpdate.username = values.username;
+            doctorToUpdate.email = values.email;
+            doctorToUpdate.roleID = role!.roleID;
+
+            ValidationValuesDB.ValidationValues(doctorToUpdate);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            AllDoctorsDto doctorDTOs = new AllDoctorsDto
+            {
+                doctorID = doctorToUpdate.doctorID,
+                username = doctorToUpdate.username ?? "N/A",
+                email = doctorToUpdate.email ?? "N/A",
+                role = role!.role
+            };
+
+            return doctorDTOs;
+        }
+
+        public async Task<string> DeleteDoctorAsync(Guid doctorID, CancellationToken cancellationToken)
+        {
+            var patientDoctorToDelete = await _bd.PacientDoctor.Where(e => e.doctorID == doctorID).ToListAsync(cancellationToken);
+
+            _bd.PacientDoctor.RemoveRange(patientDoctorToDelete);
+
+            var doctorToDelete = await _bd.Doctors.FindAsync(new object[] { doctorID }, cancellationToken);
+
+            if (doctorToDelete is null) { throw new UnstoredValuesException(); }
+
+            _bd.Doctors.Remove(doctorToDelete);
+
+            if (!Save()) { throw new UnstoredValuesException(); }
+
+            return "El registro ha sido eliminado correctamente.";
         }
 
         public bool Save()
@@ -120,7 +193,7 @@ namespace AppVidaSana.Services.AdminWeb
             return password;
         }
 
-        private static async void SendEmailDoctorAsync(string email, string password)
+        private static async Task SendEmailDoctorAsync(string email, string password)
         {
             List<string?> errors = new List<string?>();
             string linkAW = "https://ambitious-river-0965b2e10.6.azurestaticapps.net/";
@@ -143,6 +216,30 @@ namespace AppVidaSana.Services.AdminWeb
             }
 
             if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
+        }
+
+        private async Task<List<Doctors>> GetQueryDoctorsAsync(DoctorFilterDto? filter, int page, CancellationToken cancellationToken)
+        {
+            var query = _bd.Doctors
+                           .Include(f => f.roles)
+                           .AsQueryable();
+
+            if (filter != null)
+            {
+
+                if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+                    query = query.Where(f => f.doctorID.ToString().Contains(filter.doctorID.ToString() ?? ""));
+
+                if (!string.IsNullOrWhiteSpace(filter.role))
+                    query = query.Where(f => f.roles!.role.Contains(filter.role ?? ""));
+            }
+
+            var doctors = await query
+                        .Skip((page - 1) * 10)
+                        .Take(10)
+                        .ToListAsync(cancellationToken);
+
+            return doctors;
         }
     }
 }

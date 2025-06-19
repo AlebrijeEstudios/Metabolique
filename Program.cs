@@ -23,6 +23,7 @@ using AppVidaSana.ProducesResponseType;
 using Newtonsoft.Json;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using AppVidaSana.Services.AdminWeb;
+using System.Security.Claims;
 
 Env.Load();
 
@@ -45,7 +46,7 @@ builder.Services.AddCors(opt =>
 {
     opt.AddPolicy(name: myrulesCORS, builder =>
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition"); ;
+        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition");
     });
 });
 
@@ -87,6 +88,8 @@ builder.Services.AddControllers(options =>
 });
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddHttpClient();
 
 builder.Services.AddAutoMapper(typeof(Mapper));
 
@@ -138,16 +141,14 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-        ClockSkew = TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = ClaimTypes.Role
     };
     options.Events = new JwtBearerEvents
     {
         OnAuthenticationFailed = context =>
         {
-            if (context.Exception is SecurityTokenExpiredException)
-            {
-                throw new TokenExpiredException();
-            }
+            if (context.Exception is SecurityTokenExpiredException) { throw new TokenExpiredException(); }
 
             return Task.CompletedTask;
         }
@@ -181,12 +182,10 @@ builder.Services.AddSwaggerGen(c =>
 
     c.DocInclusionPredicate((docName, apiDesc) =>
     {
-        if (string.IsNullOrEmpty(apiDesc.GroupName))
-            return false;
+        if (string.IsNullOrEmpty(apiDesc.GroupName)) { return false; }
 
         return string.Equals(apiDesc.GroupName, docName, StringComparison.OrdinalIgnoreCase);
     });
-
 
     c.TagActionsBy(api =>
     {
@@ -197,8 +196,7 @@ builder.Services.AddSwaggerGen(c =>
                 .SelectMany(t => t.Tags)
                 .ToList();
 
-            if (tags.Any())
-                return tags;
+            if (tags.Count > 0) { return tags; }
 
             return new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] };
         }
@@ -264,23 +262,7 @@ app.Use(async (context, next) =>
     {
         await next(); 
     }
-    catch (TokenExpiredException ex)
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        context.Response.ContentType = "application/json";
-
-        var errorResponse = new ExceptionExpiredTokenMessage
-        {
-            status = StatusCodes.Status401Unauthorized,
-            error = "Unauthorized",
-            message = ex.Message,
-            timestamp = DateTime.UtcNow.ToString("o"),
-            path = context.Request.Path
-        };
-
-        await context.Response.WriteAsJsonAsync(errorResponse);
-    }
-    catch (ApiKeyException ex)
+    catch (Exception ex) when (ex is TokenExpiredException || ex is ApiKeyException)
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         context.Response.ContentType = "application/json";

@@ -4,6 +4,12 @@ namespace AppVidaSana.Services.IServices.IAdminWeb
 {
     public interface IAWDoctors
     {
-        Task<string> InsertDoctorAsync(DoctorDto values, CancellationToken cancellationToken);
+        Task<List<AllDoctorsDto>> GetDoctorsAsync(DoctorFilterDto filter, int page, CancellationToken cancellationToken);
+
+        Task<AllDoctorsDto> CreateDoctorAsync(AWDoctorDto values, CancellationToken cancellationToken);
+
+        Task<AllDoctorsDto> UpdateDoctorAsync(AllDoctorsDto values, CancellationToken cancellationToken);
+
+        Task<string> DeleteDoctorAsync(Guid doctorID, CancellationToken cancellationToken);
     }
 }
