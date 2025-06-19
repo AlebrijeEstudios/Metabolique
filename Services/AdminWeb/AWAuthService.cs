@@ -6,7 +6,6 @@ using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using AppVidaSana.Tokens;
 using Microsoft.EntityFrameworkCore;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace AppVidaSana.Services.AdminWeb
@@ -34,7 +33,7 @@ namespace AppVidaSana.Services.AdminWeb
 
             var role = await context.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID, cancellationToken);
 
-            var accessToken = CreateAccessTokenAdminAsync(account, role!.role, cancellationToken);
+            var accessToken = CreateAccessTokenAdminAsync(account, role!.role);
 
 
             TokenAdminDto response = new TokenAdminDto();
@@ -46,7 +45,7 @@ namespace AppVidaSana.Services.AdminWeb
             return response;
         }
 
-        private string CreateAccessTokenAdminAsync(Doctors account, string role, CancellationToken cancellationToken)
+        private static string CreateAccessTokenAdminAsync(Doctors account, string role)
         {
             Claim[] claims = new Claim[]
             {
