@@ -34,7 +34,7 @@ namespace AppVidaSana.Services.AdminWeb
                 sex = profile.sex,
                 stature = profile.stature,
                 weight = profile.weight,
-                protocolToFollow = profile?.protocol?.protocolToFollow
+                protocolToFollow = profile.protocol?.protocolToFollow
 
             }).ToList();
 

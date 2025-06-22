@@ -89,7 +89,7 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var userKcal = await _CaloriesService.UpdateUserCaloriesAsync(profile, cancellationToken);
+            await _CaloriesService.UpdateUserCaloriesAsync(profile, cancellationToken);
 
             await _CaloriesService.CaloriesRequiredPerDaysAsync(values.accountID, today, cancellationToken);
 
