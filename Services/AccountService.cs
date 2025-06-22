@@ -63,7 +63,7 @@ namespace AppVidaSana.Services
             PacientDoctor pd = new PacientDoctor
             {
                 accountID = account.accountID,
-                doctorID = values.doctorID ?? Guid.Parse("f7f8fb3a-8018-4f35-a6b4-181947d447b7")
+                doctorID = values.doctorID
             };
 
             _bd.Accounts.Add(account);
@@ -88,22 +88,23 @@ namespace AppVidaSana.Services
             InfoAccountDto infoUser = _mapper.Map<InfoAccountDto>(account);
             _mapper.Map(profile, infoUser);
 
+            var protocol = await _bd.Protocols.FindAsync(new object[] { profile.protocolID! }, cancellationToken);
+
             var doctorPatient = await _bd.PacientDoctor.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
 
-            if (doctorPatient is null) { throw new UserNotFoundException(); }
-
-            var doctor = await _bd.Doctors.FindAsync(new object[] { doctorPatient.doctorID }, cancellationToken);
-
-            if (doctor is null)
+            if (doctorPatient!.doctorID is null)
             {
                 doctorDto.username = "Sin doctor asignado.";
             }
             else 
-            {
-                doctorDto.doctorID = doctor.doctorID;
-                doctorDto.username = doctor.username;
+            {  
+                var doctor = await _bd.Doctors.FindAsync(new object[] { doctorPatient.doctorID }, cancellationToken);
+
+                doctorDto.doctorID = doctor!.doctorID;
+                doctorDto.username = doctor!.username;
             }
 
+            infoUser.protocolToFollow = protocol!.protocolToFollow;
             infoUser.doctor = doctorDto;
 
             return infoUser;
@@ -140,7 +141,7 @@ namespace AppVidaSana.Services
 
             var doctorPatient = await _bd.PacientDoctor.FirstOrDefaultAsync(e => e.accountID == values.accountID, cancellationToken);
 
-            doctorPatient!.doctorID = values.doctor?.doctorID ?? Guid.Parse("00000000-0000-0000-0000-000000000000");
+            doctorPatient!.doctorID = values.doctor?.doctorID;
 
             if (!Save()) { throw new UnstoredValuesException(); }
 

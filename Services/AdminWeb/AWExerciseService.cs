@@ -212,7 +212,7 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
@@ -316,7 +316,7 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }

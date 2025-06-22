@@ -110,6 +110,7 @@ builder.Services.AddScoped<IUserDaySummary, UserDaySummaryService>();
 builder.Services.AddScoped<ICalories, CaloriesService>();
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
+builder.Services.AddScoped<IDoctor, DoctorService>();
 builder.Services.AddScoped<IAuthenticationAuthorization, AuthenticationAuthorizationService>();
 builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
 builder.Services.AddScoped<IFeeding, FeedingService>();

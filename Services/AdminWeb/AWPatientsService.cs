@@ -34,7 +34,7 @@ namespace AppVidaSana.Services.AdminWeb
                 sex = profile.sex,
                 stature = profile.stature,
                 weight = profile.weight,
-                protocolToFollow = profile.protocolToFollow
+                protocolToFollow = profile?.protocol?.protocolToFollow
 
             }).ToList();
 
@@ -57,7 +57,7 @@ namespace AppVidaSana.Services.AdminWeb
 
                 foreach (var p in profiles)
                 {
-                    var csvLine = $"{p.accountID},{p.uiemID ?? "N/A"},{p.account!.username},{p.account!.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
+                    var csvLine = $"{p.accountID},{p.uiemID ?? "N/A"},{p.account!.username},{p.account!.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocol!.protocolToFollow}";
 
                     await streamWriter.WriteLineAsync(csvLine);
                 }
@@ -77,6 +77,7 @@ namespace AppVidaSana.Services.AdminWeb
 
             var query = _bd.Profiles
                            .Include(f => f.account)
+                           .Include(f => f.protocol)
                            .AsQueryable();
 
             if (filter != null)
@@ -133,7 +134,7 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
+                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }

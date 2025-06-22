@@ -114,7 +114,7 @@ namespace AppVidaSana.Controllers
             {
                 var accountID = await _AccountService.CreateAccountAsync(values, HttpContext.RequestAborted);
 
-                _ProfileService.CreateProfile(accountID, values);
+                await _ProfileService.CreateProfileAsync(accountID, values, HttpContext.RequestAborted);
 
                 LoginDto login = new LoginDto
                 {
