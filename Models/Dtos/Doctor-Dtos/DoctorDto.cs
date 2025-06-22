@@ -1,7 +1,4 @@
-﻿using Newtonsoft.Json;
-
-
-namespace AppVidaSana.Models.Dtos.Doctor_Dtos
+﻿namespace AppVidaSana.Models.Dtos.Doctor_Dtos
 {
     public class DoctorDto
     {

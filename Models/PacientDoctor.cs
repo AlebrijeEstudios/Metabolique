@@ -12,7 +12,7 @@ namespace AppVidaSana.Models
         public Guid accountID { get; set; }
 
         [ForeignKey("Doctors")]
-        public Guid doctorID { get; set; }
+        public Guid? doctorID { get; set; }
 
         public Account? account { get; set; }
 

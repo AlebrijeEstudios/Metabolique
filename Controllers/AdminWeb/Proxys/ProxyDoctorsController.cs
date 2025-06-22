@@ -29,6 +29,26 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             _clientFactory = clientFactory;
         }
 
+        [HttpGet("all")]
+        public async Task<IActionResult> ProxyListDoctorsAsync([FromHeader(Name = headerToken)] string authorization)
+        {
+            var client = _clientFactory.CreateClient();
+            var api = Environment.GetEnvironmentVariable(apiUrl);
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
+
+            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
+            {
+                var token = headerValue.Parameter;
+
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
+            }
+
+            var response = await client.GetAsync($"https://{api}/api/doctors");
+
+            var content = await response.Content.ReadAsStringAsync();
+            return Content(content, typeArchive);
+        }
+
         [HttpGet]
         public async Task<IActionResult> ProxyDoctorsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] DoctorFilterDto filter, [FromQuery] int page)
         {
