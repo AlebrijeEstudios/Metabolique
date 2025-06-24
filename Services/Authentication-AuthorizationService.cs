@@ -101,7 +101,7 @@ namespace AppVidaSana.Services
                 new Claim(ClaimTypes.Email, account.email.ToString())
             };
 
-            DateTime durationToken = DateTime.UtcNow.AddMinutes(1);
+            DateTime durationToken = DateTime.UtcNow.AddHours(1);
 
             var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
 
@@ -122,7 +122,7 @@ namespace AppVidaSana.Services
                 {
                     accountID = accountID,
                     refreshToken = refreshToken,
-                    dateExpiration = DateTime.Now.AddMinutes(1)
+                    dateExpiration = DateTime.Now.AddDays(14)
                 };
 
                 await context.HistorialRefreshTokens.AddAsync(historialRefreshToken, cancellationToken);
@@ -142,7 +142,7 @@ namespace AppVidaSana.Services
 
             historial.refreshToken = refreshToken;
 
-            historial.dateExpiration = DateTime.Now.AddMinutes(1);
+            historial.dateExpiration = DateTime.Now.AddDays(14);
 
             try
             {
@@ -169,7 +169,7 @@ namespace AppVidaSana.Services
 
             historial.refreshToken = refreshToken;
 
-            historial.dateExpiration = DateTime.Now.AddMinutes(1);
+            historial.dateExpiration = DateTime.Now.AddDays(14);
 
             try
             {
