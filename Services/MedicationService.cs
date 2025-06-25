@@ -63,29 +63,18 @@ namespace AppVidaSana.Services
 
             _bd.PeriodsMedications.Add(period);
 
-            DaysConsumedOfMedications dayConsumed = new DaysConsumedOfMedications
-            {
-                periodID = period.periodID,
-                dateConsumed = values.initialFrec,
-                consumptionTimes = ""
-            };
-
-            ValidationValuesDB.ValidationValues(dayConsumed);
-
-            _bd.DaysConsumedOfMedications.Add(dayConsumed);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
+            if (!Save()) throw new UnstoredValuesException();
 
             if (!(period.initialFrec <= values.dateActual && values.dateActual <= period.finalFrec))
             {
-                CreateTimes(dayConsumed.dayConsumedID, values.times);
+                CreateDayConsumedOfMedication(period, values);
 
                 return null;
             }
 
-            CreateTimes(dayConsumed.dayConsumedID, values.times);
+            var dayConsumedID = CreateDayConsumedOfMedication(period, values);
 
-            return await InfoMedicationAsync(medication, period, dayConsumed.dayConsumedID, values.dateActual, cancellationToken);
+            return await InfoMedicationAsync(medication, period, dayConsumedID, values.dateActual, cancellationToken);
         }
 
         public async Task<MedicationsAndValuesGraphicDto> GetMedicationsAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)
@@ -486,6 +475,35 @@ namespace AppVidaSana.Services
             if (!Save()) { throw new UnstoredValuesException(); }
 
             return newMedication;
+        }
+
+        private Guid CreateDayConsumedOfMedication(PeriodsMedications period, AddMedicationUseDto values) 
+        {
+            Guid dayConsumedID = Guid.Empty;
+            var dates = new List<DateOnly> { values.initialFrec };
+            if (period.initialFrec != period.finalFrec)
+                dates.Add(values.finalFrec);
+
+            foreach (var date in dates)
+            {
+                var day = new DaysConsumedOfMedications
+                {
+                    periodID = period.periodID,
+                    dateConsumed = date,
+                    consumptionTimes = ""
+                };
+
+                ValidationValuesDB.ValidationValues(day);
+                _bd.DaysConsumedOfMedications.Add(day);
+
+                if (!Save()) throw new UnstoredValuesException();
+
+                CreateTimes(day.dayConsumedID, values.times);
+
+                dayConsumedID = day.dayConsumedID;
+            }
+
+            return dayConsumedID;
         }
 
         private List<Times> CreateTimes(Guid dayConsumedID, string times)
