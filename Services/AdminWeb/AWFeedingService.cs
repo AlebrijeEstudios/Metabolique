@@ -56,11 +56,11 @@ namespace AppVidaSana.Services.AdminWeb
                                         {
                                             nutritionalValueCode = nv.nutritionalValues!.nutritionalValueID.ToString(),
                                             portion = nv.nutritionalValues.portion ?? "",
-                                            kilocalories = Math.Round(nv.nutritionalValues.kilocalories, 2),
-                                            protein = Math.Round(nv.nutritionalValues.protein, 2),
-                                            carbohydrates = Math.Round(nv.nutritionalValues.carbohydrates, 2),
-                                            totalLipids = Math.Round(nv.nutritionalValues.totalLipids, 2),
-                                            netWeight = (float?)Math.Round(nv.nutritionalValues.netWeight ?? 0, 2)
+                                            kilocalories = nv.nutritionalValues.kilocalories,
+                                            protein = nv.nutritionalValues.protein,
+                                            carbohydrates = nv.nutritionalValues.carbohydrates,
+                                            totalLipids = nv.nutritionalValues.totalLipids,
+                                            netWeight = nv.nutritionalValues.netWeight ?? null
                                         }))
                                         .ToList()
                                 })

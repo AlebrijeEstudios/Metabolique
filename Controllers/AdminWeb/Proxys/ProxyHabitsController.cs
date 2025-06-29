@@ -283,7 +283,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyHabitSleepAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] HabitSleepFilterDto filter, [FromQuery] int page)
         {
             var client = _clientFactory.CreateClient();
-            var api = Environment.GetEnvironmentVariable(apiKey);
+            var api = Environment.GetEnvironmentVariable(apiUrl);
             client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
             if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
