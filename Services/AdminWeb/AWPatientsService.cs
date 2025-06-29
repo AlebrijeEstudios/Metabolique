@@ -45,8 +45,8 @@ namespace AppVidaSana.Services.AdminWeb
                     protocolToFollow = profile.protocol!.protocolToFollow,
                     doctor = new DoctorDto
                     {
-                        doctorID = patientDoctor!.doctor!.doctorID,
-                        username = patientDoctor!.doctor!.username
+                        doctorID = patientDoctor?.doctor?.doctorID ?? Guid.Parse("00000000-0000-0000-0000-000000000000"),
+                        username = patientDoctor?.doctor?.username ?? "Sin doctor asignado."
                     }
                 };
 
