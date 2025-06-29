@@ -1,6 +1,7 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+using AppVidaSana.Models.Dtos.Doctor_Dtos;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,18 +24,31 @@ namespace AppVidaSana.Services.AdminWeb
             if (role is null) { throw new UnstoredValuesException(); }*/
 
             var profiles = await GetQueryPatientsAsync(filter, page, false, 0, cancellationToken);
-                
-            var accountProfileDTOs = profiles.Select(profile => new AllPatientsDto
+
+            var accountProfileDTOs = profiles.Select(profile =>
             {
-                accountID = profile.accountID,
-                uiemID = profile.uiemID,
-                username = profile.account?.username ?? "N/A",
-                email = profile.account?.email ?? "N/A",
-                birthDate = profile.birthDate,
-                sex = profile.sex,
-                stature = profile.stature,
-                weight = profile.weight,
-                protocolToFollow = profile.protocol?.protocolToFollow
+                var accountID = profile.account!.accountID;
+
+                var patientDoctor = profile.account!.pacientDoctor?
+                                    .FirstOrDefault(pd => pd.accountID == accountID); 
+
+                return new AllPatientsDto
+                {
+                    accountID = profile.accountID,
+                    uiemID = profile.uiemID,
+                    username = profile.account?.username ?? "N/A",
+                    email = profile.account?.email ?? "N/A",
+                    birthDate = profile.birthDate,
+                    sex = profile.sex,
+                    stature = profile.stature,
+                    weight = profile.weight,
+                    protocolToFollow = profile.protocol!.protocolToFollow,
+                    doctor = new DoctorDto
+                    {
+                        doctorID = patientDoctor!.doctor!.doctorID,
+                        username = patientDoctor!.doctor!.username
+                    }
+                };
 
             }).ToList();
 
@@ -76,7 +90,9 @@ namespace AppVidaSana.Services.AdminWeb
             List<Profiles> patients;
 
             var query = _bd.Profiles
-                           .Include(f => f.account)
+                           .Include(f => f.account)                          
+                           .Include(f => f.account!.pacientDoctor)
+                                .ThenInclude(pd => pd.doctor)
                            .Include(f => f.protocol)
                            .AsQueryable();
 
