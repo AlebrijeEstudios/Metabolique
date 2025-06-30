@@ -93,7 +93,7 @@ namespace AppVidaSana.Services
 
             if (doctorPatient!.doctorID is null)
             {
-                doctorDto.username = "Sin doctor asignado.";
+                doctorDto = null;
             }
             else 
             {  
