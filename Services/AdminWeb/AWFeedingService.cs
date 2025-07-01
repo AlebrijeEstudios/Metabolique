@@ -365,11 +365,19 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<UserFeeds> FilterFeedings(IQueryable<UserFeeds> query, UserFeedFilterDto filter) 
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
                 query = query.Where(p => _bd.PacientDoctor
                                         .Where(pd => pd.doctorID == filter.doctorID)
                                         .Select(pd => pd.accountID)
                                         .Contains(p.account!.accountID));
+
+            if (filter.doctorID == Guid.Empty)
+            {
+                query = query.Where(p => _bd.PacientDoctor
+                                    .Where(pd => pd.doctorID == null)
+                                    .Select(pd => pd.accountID)
+                                    .Contains(p.account!.accountID));
+            }
 
             query = FilterFeedingsByPatient(query, filter);
 
@@ -471,11 +479,19 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<UserCalories> FilterUserCalories(IQueryable<UserCalories> query, PatientFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000") )
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
+
+            if (filter.doctorID == Guid.Empty)
+            {
+                query = query.Where(p => _bd.PacientDoctor
+                                    .Where(pd => pd.doctorID == null)
+                                    .Select(pd => pd.accountID)
+                                    .Contains(p.account!.accountID));
+            }
 
             query = FilterUserCaloriesByPatient(query, filter);
 
@@ -551,11 +567,19 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<FoodResults> FilterMFUsFeeding(IQueryable<FoodResults> query, PatientFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.MFUsFood!.account!.accountID));
+            
+            if (filter.doctorID == Guid.Empty)
+            {
+                query = query.Where(p => _bd.PacientDoctor
+                                    .Where(pd => pd.doctorID == null)
+                                    .Select(pd => pd.accountID)
+                                    .Contains(p.MFUsFood!.account!.accountID));
+            }
 
             query = FilterMFUsFeedingByPatient(query, filter);
 

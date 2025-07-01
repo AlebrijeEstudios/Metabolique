@@ -261,11 +261,19 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<Times> FilterInfoMedications(IQueryable<Times> query, PeriodMedicationsFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.daysConsumedOfMedications!.periodMedication!.account!.accountID));
+
+            if (filter.doctorID == Guid.Empty)
+            {
+                query = query.Where(p => _bd.PacientDoctor
+                                    .Where(pd => pd.doctorID == null)
+                                    .Select(pd => pd.accountID)
+                                    .Contains(p.daysConsumedOfMedications!.periodMedication!.account!.accountID));
+            }
 
             query = FilterInfoMedicationsByPatient(query, filter);
 
@@ -370,11 +378,19 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<SideEffects> FilterSideEffects(IQueryable<SideEffects> query, SideEffectsFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
                 query = query.Where(p => _bd.PacientDoctor
                                         .Where(pd => pd.doctorID == filter.doctorID)
                                         .Select(pd => pd.accountID)
                                         .Contains(p.account!.accountID));
+
+            if (filter.doctorID == Guid.Empty)
+            {
+                query = query.Where(p => _bd.PacientDoctor
+                                    .Where(pd => pd.doctorID == null)
+                                    .Select(pd => pd.accountID)
+                                    .Contains(p.account!.accountID));
+            }
 
             query = FilterSideEffectsByPatient(query, filter);
 
@@ -475,11 +491,20 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<MFUsMedication> FilterMFUsMedications(IQueryable<MFUsMedication> query, MFUsMedicationFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
+
+
+            if (filter.doctorID == Guid.Empty)
+            {
+                query = query.Where(p => _bd.PacientDoctor
+                                    .Where(pd => pd.doctorID == null)
+                                    .Select(pd => pd.accountID)
+                                    .Contains(p.account!.accountID));
+            }
 
             query = FilterMFUsMedicationsByPatient(query, filter);
 

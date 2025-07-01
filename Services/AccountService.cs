@@ -77,7 +77,7 @@ namespace AppVidaSana.Services
 
         public async Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
-            DoctorDto doctorDto = new DoctorDto();
+            DoctorDto? doctorDto = new DoctorDto();
 
             var account = await _bd.Accounts.FindAsync(new object[] { accountID }, cancellationToken);
             var profile = await _bd.Profiles.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);

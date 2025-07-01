@@ -120,11 +120,20 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<Profiles> FilterPatientsByPatient(IQueryable<Profiles> query, PatientFilterDto filter) 
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            {
                 query = query.Where(p => _bd.PacientDoctor
                                     .Where(pd => pd.doctorID == filter.doctorID)
                                     .Select(pd => pd.accountID)
                                     .Contains(p.account!.accountID));
+            }
+
+            if (filter.doctorID == Guid.Empty) {
+                query = query.Where(p => _bd.PacientDoctor
+                                    .Where(pd => pd.doctorID == null)
+                                    .Select(pd => pd.accountID)
+                                    .Contains(p.account!.accountID));
+            }
 
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
