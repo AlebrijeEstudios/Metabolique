@@ -479,7 +479,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<UserCalories> FilterUserCalories(IQueryable<UserCalories> query, PatientFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000") )
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
