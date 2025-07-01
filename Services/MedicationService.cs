@@ -481,7 +481,7 @@ namespace AppVidaSana.Services
         {
             Guid dayConsumedID = Guid.Empty;
             var dates = new List<DateOnly> { values.initialFrec };
-            if(period.initialFrec <= values.dateActual && values.dateActual <= period.finalFrec)
+            if(period.initialFrec < values.dateActual && values.dateActual < period.finalFrec)
                 dates.Add(values.dateActual);
             if (period.initialFrec != period.finalFrec)
                 dates.Add(values.finalFrec);
