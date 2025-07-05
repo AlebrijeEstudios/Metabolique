@@ -17,6 +17,7 @@ namespace AppVidaSana.Services
         public async Task<List<DoctorDto>> GetDoctorsAsync(CancellationToken cancellationToken)
         {
             return await _bd.Doctors
+                    .OrderBy(d => d.username)
                     .Select(d => new DoctorDto
                     {
                         doctorID = d.doctorID,
