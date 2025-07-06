@@ -294,7 +294,23 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var url = $"https://{api}/api/medication/side-effects";
 
-            var response = await client.PutAsJsonAsync(url, values);
+            var dtoToSend = new
+            {
+                sideEffectID = values.sideEffectID,
+                initialTime = values.initialTime.ToString("HH:mm"),
+                finalTime = values.finalTime.ToString("HH:mm"),
+                description = values.description
+            };
+
+            var json = JsonConvert.SerializeObject(dtoToSend, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
+            var content = new StringContent(json, Encoding.UTF8, typeArchiveJson);
+
+            var response = await client.PutAsync(url, content);
 
             var responseBody = await response.Content.ReadAsStringAsync();
 
