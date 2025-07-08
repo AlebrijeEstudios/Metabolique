@@ -23,12 +23,16 @@ using Newtonsoft.Json;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using AppVidaSana.Services.AdminWeb;
 using System.Security.Claims;
+using AppVidaSana.KeyToken;
+using System.Threading.RateLimiting;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
+var adminWeb = Environment.GetEnvironmentVariable("ADMIN_WEB_TEST");
+
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
@@ -40,13 +44,74 @@ builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServ
 
 builder.Services.AddSingleton(x => new BlobServiceClient(storageAccount));
 
-var myrulesCORS = "RulesCORS";
 builder.Services.AddCors(opt =>
 {
-    opt.AddPolicy(name: myrulesCORS, builder =>
+    opt.AddPolicy("RulesCORS", policy =>
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition");
+        policy.WithOrigins(adminWeb)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .WithExposedHeaders("Content-Disposition");
     });
+});
+
+builder.Services.AddRateLimiter(opt =>
+{
+    opt.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    opt.AddPolicy("refresh", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.IsAuthenticated == true
+                          ? httpContext.User.Identity.Name
+                          : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    opt.AddPolicy("reset", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(5)
+            }));
+
+    opt.AddPolicy("general", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.IsAuthenticated == true
+                          ? httpContext.User.Identity.Name
+                          : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromSeconds(10)
+            }));
+
+    opt.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        var errorResponse = new RequestTimeoutExceptionMessage
+        {
+            status = StatusCodes.Status503ServiceUnavailable,
+            error = "Service Unavailable",
+            message = "La petici&oacute;n ha tenido muchos intentos, int&eacute;ntelo de nuevo",
+            timestamp = DateTime.UtcNow.ToString("o"),
+            path = context.HttpContext.Request.Path
+        };
+
+        var jsonResponse = JsonConvert.SerializeObject(errorResponse);
+        await context.HttpContext.Response.WriteAsync(jsonResponse, token);
+    };
 });
 
 builder.Services.AddRequestTimeouts(options =>
@@ -136,8 +201,10 @@ builder.Services.AddAuthentication(options =>
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidIssuer = KeyTokenEnv.GetTokenIssuerEnv(),
+        ValidateAudience = true,
+        ValidAudience = KeyTokenEnv.GetTokenAudienceEnv(),
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
@@ -283,13 +350,13 @@ app.Use(async (context, next) =>
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors(myrulesCORS);
+app.UseCors("RulesCORS");
 app.UseRequestTimeouts();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-app.MapControllers();
-
+app.MapControllers().RequireRateLimiting("general");
 await app.RunAsync();

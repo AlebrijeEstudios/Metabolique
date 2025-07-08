@@ -9,6 +9,7 @@ using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers
 {
@@ -41,6 +42,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("login")]
         [HttpPost("login")]
         [Produces("application/json")]
         public async Task<IActionResult> LoginAccountAsync([FromBody] LoginDto login)
@@ -99,6 +101,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("refresh")]
         [HttpPost("refresh-token")]
         [Produces("application/json")]
         public async Task<IActionResult> RefreshTokenAsync([FromBody] TokensDto values)
