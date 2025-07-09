@@ -1,14 +1,12 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Services.IServices;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AppVidaSana.Controllers
 {
-    [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
     [Tags("App - Doctors")]
