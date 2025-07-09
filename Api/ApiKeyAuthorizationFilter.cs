@@ -16,6 +16,7 @@ namespace AppVidaSana.Api
 
             var validKeys = new[]
             {
+                storedApiKey,
                 storedIosApiKey,
                 storedAndroidApiKey,
                 storedAdminWebApiKey

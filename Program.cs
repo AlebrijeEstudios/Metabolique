@@ -44,9 +44,9 @@ builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServ
 
 builder.Services.AddSingleton(x => new BlobServiceClient(storageAccount));
 
-builder.Services.AddCors(opt =>
+builder.Services.AddCors(options =>
 {
-    opt.AddPolicy("RulesCORS", policy =>
+    options.AddPolicy("RulesCORS", policy =>
     {
         policy.WithOrigins(adminWeb)
               .AllowAnyMethod()
@@ -54,6 +54,8 @@ builder.Services.AddCors(opt =>
               .WithExposedHeaders("Content-Disposition");
     });
 });
+
+builder.Logging.AddDebug();
 
 builder.Services.AddRateLimiter(opt =>
 {
@@ -347,8 +349,8 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseHttpsRedirection();         
+app.UseStaticFiles();              
 app.UseRouting();
 app.UseCors("RulesCORS");
 app.UseRequestTimeouts();
@@ -358,5 +360,6 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-app.MapControllers().RequireRateLimiting("general");
-await app.RunAsync();
+//app.MapControllers().RequireRateLimiting("general");  
+app.MapControllers();
+await app.RunAsync();   
