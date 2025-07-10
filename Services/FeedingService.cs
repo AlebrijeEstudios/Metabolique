@@ -10,6 +10,7 @@ using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -422,13 +423,29 @@ namespace AppVidaSana.Services
 
         private async Task<string?> GetSaucerPictureUrlAsync(Guid? saucerPictureID, CancellationToken cancellationToken)
         {
-            if (saucerPictureID is null)
-            {
-                return null;
-            }
+            if (saucerPictureID is null) { return null; }
 
-            var suacerPictureUrl = await _bd.SaucerPictures.FindAsync(new object[] { saucerPictureID }, cancellationToken);
-            return suacerPictureUrl!.saucerPictureUrl;
+            var saucerPictureUrl = await _bd.SaucerPictures.FindAsync(new object[] { saucerPictureID }, cancellationToken);
+
+            var blobUri = new Uri(saucerPictureUrl!.saucerPictureUrl);
+            var blobName = Path.GetFileName(blobUri.LocalPath);
+
+            var blobClient = _blobServiceClient.GetBlobContainerClient(ContainerName)
+                                               .GetBlobClient(blobName);
+
+            var sasBuilder = new BlobSasBuilder
+            {
+                BlobContainerName = ContainerName,
+                BlobName = blobName,
+                Resource = "b",
+                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(5)
+            };
+
+            sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+            var sasUri = blobClient.GenerateSasUri(sasBuilder);
+
+            return sasUri.ToString();
         }
 
         private static double TotalKcal(List<FoodsConsumedDto> foods)
