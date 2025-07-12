@@ -36,7 +36,7 @@ namespace AppVidaSana.Services
                 new Claim(ClaimTypes.Email, account.email.ToString())
             };
 
-            DateTime durationToken = DateTime.UtcNow.AddMinutes(15);
+            DateTime durationToken = DateTime.UtcNow.AddMinutes(1);
 
             var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
 

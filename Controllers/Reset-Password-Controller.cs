@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Azure;
 
 namespace AppVidaSana.Controllers
 {
@@ -56,9 +57,9 @@ namespace AppVidaSana.Controllers
 
                 if (resetLink == null) { throw new EmailNotSendException(); }
 
-                _resetPasswordService.SendEmailAsync(email.email, resetLink);
+                //_resetPasswordService.SendEmailAsync(email.email, resetLink);
 
-                return StatusCode(StatusCodes.Status200OK);
+                return StatusCode(StatusCodes.Status200OK, new { link = resetLink} );
             }
             catch (EmailNotSendException ex)
             {
@@ -134,7 +135,9 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("reset")]
         [HttpPut("reset-password")]
+        [Authorize]
         [Produces("application/json")]
         public async Task<IActionResult> UpdatePassword([FromBody] ResetPasswordDto values)
         {

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers
 {
@@ -17,6 +18,7 @@ namespace AppVidaSana.Controllers
     [ApiController]
     [Tags("App - Account_Profile")]
     [ApiExplorerSettings(GroupName = "app")]
+    [EnableRateLimiting("general")]
     [Route("api/accounts")]
     [RequestTimeout("CustomPolicy")]
     public class AccountProfileController : ControllerBase
