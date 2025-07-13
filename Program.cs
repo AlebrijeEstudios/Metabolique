@@ -64,8 +64,8 @@ builder.Services.AddRateLimiter(opt =>
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(1)
+                PermitLimit = 10, 
+                Window = TimeSpan.FromMinutes(5) 
             }));
 
     opt.AddPolicy("refresh", httpContext =>
@@ -79,33 +79,54 @@ builder.Services.AddRateLimiter(opt =>
                 Window = TimeSpan.FromMinutes(1)
             }));
 
-    opt.AddPolicy("reset", httpContext =>
+    opt.AddPolicy("forgot-password", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(15) 
+            }));
+
+    opt.AddPolicy("reset-password", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
                 Window = TimeSpan.FromMinutes(5)
             }));
 
-    opt.AddPolicy("general", httpContext =>
+    opt.AddPolicy("read-only", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.User.Identity?.IsAuthenticated == true
                           ? httpContext.User.Identity.Name
                           : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 30,
-                Window = TimeSpan.FromSeconds(10)
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    opt.AddPolicy("write", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.IsAuthenticated == true
+                          ? httpContext.User.Identity.Name
+                          : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 50,
+                Window = TimeSpan.FromMinutes(1)
             }));
 
     opt.OnRejected = async (context, token) =>
     {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.HttpContext.Response.ContentType = "application/json";
         var errorResponse = new RequestTimeoutExceptionMessage
         {
-            status = StatusCodes.Status503ServiceUnavailable,
-            error = "Service Unavailable",
+            status = StatusCodes.Status429TooManyRequests,
+            error = "Too Many Requests",
             message = "La petici&oacute;n ha tenido muchos intentos, int&eacute;ntelo de nuevo",
             timestamp = DateTime.UtcNow.ToString("o"),
             path = context.HttpContext.Request.Path
@@ -360,6 +381,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-//app.MapControllers().RequireRateLimiting("general");  
 app.MapControllers();
 await app.RunAsync();   

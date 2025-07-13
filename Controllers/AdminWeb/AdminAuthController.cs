@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.Services.IServices.IAdminWeb;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -38,6 +39,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("login")]
         [HttpPost]
         [Produces("application/json")]
         public async Task<IActionResult> LoginAdminAsync([FromBody] LoginAdminDto login)

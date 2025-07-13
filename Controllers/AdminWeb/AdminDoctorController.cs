@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +9,7 @@ using Microsoft.AspNetCore.Http.Timeouts;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.ProducesResponseType.AdminWeb.Doctor;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -39,6 +39,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetDoctorsAsync([FromQuery] DoctorFilterDto filter, [FromQuery] int page)
@@ -68,6 +69,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [AllowAnonymous]
+        [EnableRateLimiting("write")]
         [HttpPost]
         [Produces("application/json")]
         [RequestTimeout("CustomPolicy")]
@@ -136,6 +138,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPut]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateDoctorAsync([FromBody] AllDoctorsDto values)
@@ -184,6 +187,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpDelete("{doctorID:guid}")]
         [Produces("application/json")]
         public async Task<IActionResult> DeleteDoctorAsync(Guid doctorID)

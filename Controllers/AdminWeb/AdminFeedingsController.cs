@@ -9,7 +9,7 @@ using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
 using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType.AdminWeb.Feeding;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
-using AppVidaSana.Services.IServices;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -55,6 +55,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetFeedsOfAUserAsync([FromQuery] UserFeedFilterDto filter, [FromQuery] int page)
@@ -107,6 +108,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("foods")]
         [Produces("application/json")]
         public async Task<IActionResult> GetFoodsConsumedPerUserFeedAsync([FromQuery] UserFeedFilterDto filter, [FromQuery] int page)
@@ -160,6 +162,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("calories-needed-per-user")]
         [Produces("application/json")]
         public async Task<IActionResult> GetUserCaloriesAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
@@ -213,6 +216,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("mfu-feeding")]
         [Produces("application/json")]
         public async Task<IActionResult> GetMFUsFeedingAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)

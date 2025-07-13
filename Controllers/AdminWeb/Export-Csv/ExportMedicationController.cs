@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
@@ -39,6 +40,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-periods-medications")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyPeriodMedicationsToCsvAsync([FromQuery] string typeExport, [FromQuery] PeriodMedicationsFilterDto filter)
@@ -72,6 +74,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-side-effects")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlySideEffectsToCsvAsync([FromQuery] string typeExport, [FromQuery] SideEffectsFilterDto filter)
@@ -105,6 +108,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-medication")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyMFUsMedicationToCsvAsync([FromQuery] string typeExport, [FromQuery] MFUsMedicationFilterDto filter)

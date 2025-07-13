@@ -156,6 +156,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpDelete("logout/{accountID:guid}")]
         [Produces("application/json")]
         public async Task<IActionResult> LogoutAccountAsync(Guid accountID)

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.Habits
 {
@@ -50,6 +51,7 @@ namespace AppVidaSana.Controllers.Habits
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPost]
         [Produces("application/json")]
         public async Task<IActionResult> AddDrugsConsumedAsync([FromBody] DrugsHabitDto values)
@@ -120,6 +122,7 @@ namespace AppVidaSana.Controllers.Habits
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPatch]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateDrugsConsumedAsync([FromQuery] Guid drugsHabitID, [FromBody] JsonPatchDocument values)

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers
 {
@@ -49,6 +50,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetExercisesAsync([FromQuery] Guid accountID, [FromQuery] DateOnly date)
@@ -94,6 +96,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPost]
         [Produces("application/json")]
         public async Task<IActionResult> AddExercisesAsync([FromBody] AddExerciseDto values)
@@ -155,6 +158,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPut]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateExercisesAsync([FromBody] ExerciseDto values)
@@ -215,6 +219,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpDelete("{exerciseID:guid}")]
         [Produces("application/json")]
         public async Task<IActionResult> DeleteExerciseAsync(Guid exerciseID)

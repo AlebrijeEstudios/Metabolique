@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
@@ -39,6 +40,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-patients")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyPatientsToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)

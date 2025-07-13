@@ -8,6 +8,7 @@ using AppVidaSana.Services.IServices.IMonthly_Follow_Ups;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.MFUsControllers
 {
@@ -42,6 +43,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPost]
         [Produces("application/json")]
         public async Task<IActionResult> AddAnswersHabitsAsync([FromBody] SaveResponsesHabitsDto responses)
@@ -107,6 +109,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> RetrieveAnswersHabits([FromQuery] Guid accountID, [FromQuery] int month, [FromQuery] int year)
@@ -148,6 +151,7 @@ namespace AppVidaSana.Controllers.MFUsControllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPut]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateAnswersHabits([FromBody] UpdateResponsesHabitsDto responses)

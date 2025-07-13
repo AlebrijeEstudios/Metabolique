@@ -9,6 +9,7 @@ using AppVidaSana.ProducesResponseType.AdminWeb.Exercise;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Exercise_AWDtos;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -54,6 +55,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetExercisesPerUserAsync([FromQuery] ExerciseFilterDto filter, [FromQuery] int page)
@@ -106,6 +108,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("mfu-exercise")]
         [Produces("application/json")]
         public async Task<IActionResult> GetMFUsExerciseAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)

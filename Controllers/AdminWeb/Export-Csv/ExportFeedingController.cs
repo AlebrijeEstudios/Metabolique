@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Services.IServices;
+using Microsoft.AspNetCore.RateLimiting;
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
     [Authorize(Roles = "Admin,User")]
@@ -39,6 +40,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-feedings")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyFeedsOfAUserToCsvAsync([FromQuery] string typeExport, [FromQuery] UserFeedFilterDto filter)
@@ -72,6 +74,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-foods")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyFoodsConsumedPerFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] UserFeedFilterDto filter)
@@ -105,6 +108,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-calories-needed-per-user")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyUserCaloriesToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
@@ -138,6 +142,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-feeding")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyMFUsFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)

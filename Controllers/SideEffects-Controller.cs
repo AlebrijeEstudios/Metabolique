@@ -7,6 +7,7 @@ using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers
 {
@@ -48,6 +49,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPost("side-effects")]
         [Produces("application/json")]
         public async Task<IActionResult> AddSideEffectsAsync([FromBody] AddSideEffectDto values)
@@ -106,6 +108,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPut("side-effects")]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateSideEffectsAsync([FromBody] SideEffectsListDto values)
@@ -153,6 +156,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpDelete("side-effects")]
         [Produces("application/json")]
         public async Task<IActionResult> DeleteASideEffectsAsync([FromQuery] Guid sideEffectID)

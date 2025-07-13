@@ -55,6 +55,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("{accountID:guid}")]
         [Produces("application/json")]
         public async Task<IActionResult> GetAccountAsync(Guid accountID)
@@ -107,6 +108,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [AllowAnonymous]
+        [EnableRateLimiting("write")]
         [HttpPost("account-profile")]
         [Produces("application/json")]
         [RequestTimeout("CustomPolicy")]
@@ -196,6 +198,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPut]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateAccountAsync([FromBody] InfoAccountDto values)
@@ -265,6 +268,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpDelete("{accountID:guid}")]
         [Produces("application/json")]
         public async Task<IActionResult> DeleteAccountAsync(Guid accountID)

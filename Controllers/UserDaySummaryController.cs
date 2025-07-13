@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers
 {
@@ -34,6 +35,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetUserDaySummary([FromQuery] Guid accountID, [FromQuery] DateOnly date)

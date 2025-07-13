@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http.Timeouts;
 using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -47,6 +48,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetPatientsAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)

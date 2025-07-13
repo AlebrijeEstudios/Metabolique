@@ -7,6 +7,7 @@ using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Exercise_AWDtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
@@ -40,6 +41,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-exercises")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyExercisesToCsvAsync([FromQuery] string typeExport, [FromQuery] ExerciseFilterDto filter)
@@ -73,6 +75,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-exercise")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyMFUsExerciseToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)

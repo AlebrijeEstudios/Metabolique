@@ -8,6 +8,7 @@ using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers
 {
@@ -47,6 +48,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetMedicationsAsync([FromQuery] Guid accountID, [FromQuery] DateOnly date)
@@ -106,6 +108,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPost]
         [Produces("application/json")]
         public async Task<IActionResult> AddMedicationAsync([FromBody] AddMedicationUseDto medication)
@@ -173,6 +176,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPut]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateMedicationAsync([FromBody] UpdateMedicationUseDto medication)
@@ -258,6 +262,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPut("status")]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateMedicationStatusAsync([FromBody] UpdateMedicationStatusDto value)
@@ -306,6 +311,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpDelete]
         [Produces("application/json")]
         public async Task<IActionResult> DeleteAMedicationAsync([FromQuery] Guid periodID, [FromQuery] DateOnly date)

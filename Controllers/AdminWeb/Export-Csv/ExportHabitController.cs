@@ -7,6 +7,7 @@ using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Habits_AWDtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
@@ -40,6 +41,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-drink")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyHabitsDrinkToCsvAsync([FromQuery] string typeExport, [FromQuery] HabitDrinkFilterDto filter)
@@ -73,6 +75,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-drugs")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyHabitsDrugsToCsvAsync([FromQuery] string typeExport, [FromQuery] HabitDrugFilterDto filter)
@@ -106,6 +109,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-sleep")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyHabitsSleepToCsvAsync([FromQuery] string typeExport, [FromQuery] HabitSleepFilterDto filter)
@@ -139,6 +143,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-habit")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyMFUsHabitsToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
