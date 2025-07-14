@@ -10,7 +10,6 @@ namespace AppVidaSana.Services.AdminWeb
     public class AWPatientsService :IAWPatients
     {
         private readonly AppDbContext _bd;
-        //private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AWPatientsService(AppDbContext bd)
         {
@@ -19,10 +18,6 @@ namespace AppVidaSana.Services.AdminWeb
 
         public async Task<List<AllPatientsDto>> GetPatientsAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken)
         {
-            /*var role = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (role is null) { throw new UnstoredValuesException(); }*/
-
             var profiles = await GetQueryPatientsAsync(filter, page, false, 0, cancellationToken);
 
             var accountProfileDTOs = profiles.Select(profile =>

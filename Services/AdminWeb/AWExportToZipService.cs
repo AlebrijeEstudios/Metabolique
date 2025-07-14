@@ -177,6 +177,64 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
+        public async Task<byte[]> GenerateOnlyCaloriesConsumedZipAsync(CaloriesConsumedFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        {
+            using var mainMemoryStream = new MemoryStream();
+
+            using (var mainZip = new ZipArchive(mainMemoryStream, ZipArchiveMode.Create, true))
+            {
+                string dateSuffix = DateTime.Today.ToString(formatDate);
+                string csvFileName = "";
+
+                byte[] csvBytes = await _feedingService.ExportAllCaloriesConsumedAsync(filter, cancellationToken);
+
+                if (typeExport == exportFilter)
+                {
+                    csvFileName = $"TotalCaloriesConsumedPerPatientPerDay_With_Filters_{dateSuffix}.csv";
+                }
+
+                if (typeExport == exportAll)
+                {
+                    csvFileName = $"All_TotalCaloriesConsumedPerPatientPerDay_{dateSuffix}.csv";
+                }
+
+                var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
+                using var entryStream = entry.Open();
+                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+            }
+
+            return mainMemoryStream.ToArray();
+        }
+
+        public async Task<byte[]> GenerateOnlyCaloriesRequiredPerDaysZipAsync(CaloriesRequiredPerDaysFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        {
+            using var mainMemoryStream = new MemoryStream();
+
+            using (var mainZip = new ZipArchive(mainMemoryStream, ZipArchiveMode.Create, true))
+            {
+                string dateSuffix = DateTime.Today.ToString(formatDate);
+                string csvFileName = "";
+
+                byte[] csvBytes = await _feedingService.ExportAllCaloriesRequiredPerDaysAsync(filter, cancellationToken);
+
+                if (typeExport == exportFilter)
+                {
+                    csvFileName = $"CaloriesRequiredPerDaysPerPatient_With_Filters_{dateSuffix}.csv";
+                }
+
+                if (typeExport == exportAll)
+                {
+                    csvFileName = $"All_CaloriesRequiredPerDaysPerPatient_{dateSuffix}.csv";
+                }
+
+                var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
+                using var entryStream = entry.Open();
+                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
+            }
+
+            return mainMemoryStream.ToArray();
+        }
+
         /*Medication*/
         public async Task<byte[]> GenerateOnlyPeriodMedicationsZipAsync(PeriodMedicationsFilterDto? filter, string typeExport, CancellationToken cancellationToken)
         {
@@ -319,6 +377,35 @@ namespace AppVidaSana.Services.AdminWeb
                 var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
                 using var entryStream = entry.Open();
                 await entryStream.WriteAsync(csvBytes, cancellationToken);
+            }
+
+            return mainMemoryStream.ToArray();
+        }
+
+        public async Task<byte[]> GenerateOnlyActivesMinutesZipAsync(ActiveMinutesFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        {
+            using var mainMemoryStream = new MemoryStream();
+
+            using (var mainZip = new ZipArchive(mainMemoryStream, ZipArchiveMode.Create, true))
+            {
+                string dateSuffix = DateTime.Today.ToString(formatDate);
+                string csvFileName = "";
+
+                byte[] csvBytes = await _exerciseService.ExportAllActivesMinutesAsync(filter, cancellationToken);
+
+                if (typeExport == exportFilter)
+                {
+                    csvFileName = $"ActivesMinutes_With_Filters_{dateSuffix}.csv";
+                }
+
+                if (typeExport == exportAll)
+                {
+                    csvFileName = $"All_ActivesMinutes_{dateSuffix}.csv";
+                }
+
+                var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
+                using var entryStream = entry.Open();
+                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
             }
 
             return mainMemoryStream.ToArray();
@@ -528,93 +615,5 @@ namespace AppVidaSana.Services.AdminWeb
 
             return mainMemoryStream.ToArray();
         }*/
-
-        /*public async Task<byte[]> GenerateOnlyCaloriesConsumedZipAsync(CaloriesConsumedFilterDto? filter, string typeExport, CancellationToken cancellationToken)
-        {
-            using var mainMemoryStream = new MemoryStream();
-
-            using (var mainZip = new ZipArchive(mainMemoryStream, ZipArchiveMode.Create, true))
-            {
-                string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-                string csvFileName = "";
-
-                byte[] csvBytes = await _feedingService.ExportAllCaloriesConsumedAsync(filter, cancellationToken);
-
-                if (typeExport == "with_filter")
-                {
-                    csvFileName = $"TotalCaloriesConsumedPerPatientPerDay_With_Filters_{dateSuffix}.csv";
-                }
-
-                if (typeExport == "all")
-                {
-                    csvFileName = $"All_TotalCaloriesConsumedPerPatientPerDay_{dateSuffix}.csv";
-                }
-
-                var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
-                using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
-            }
-
-            return mainMemoryStream.ToArray();
-        }
-
-        public async Task<byte[]> GenerateOnlyCaloriesRequiredPerDaysZipAsync(CaloriesRequiredPerDaysFilterDto? filter, string typeExport, CancellationToken cancellationToken)
-        {
-            using var mainMemoryStream = new MemoryStream();
-
-            using (var mainZip = new ZipArchive(mainMemoryStream, ZipArchiveMode.Create, true))
-            {
-                string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-                string csvFileName = "";
-
-                byte[] csvBytes = await _feedingService.ExportAllCaloriesRequiredPerDaysAsync(filter, cancellationToken);
-
-                if (typeExport == "with_filter")
-                {
-                    csvFileName = $"CaloriesRequiredPerDaysPerPatient_With_Filters_{dateSuffix}.csv";
-                }
-
-                if (typeExport == "all")
-                {
-                    csvFileName = $"All_CaloriesRequiredPerDaysPerPatient_{dateSuffix}.csv";
-                }
-
-                var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
-                using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
-            }
-
-            return mainMemoryStream.ToArray();
-        }*/
-
-        /*public async Task<byte[]> GenerateOnlyActivesMinutesZipAsync(ActiveMinutesFilterDto? filter, string typeExport, CancellationToken cancellationToken)
-        {
-            using var mainMemoryStream = new MemoryStream();
-
-            using (var mainZip = new ZipArchive(mainMemoryStream, ZipArchiveMode.Create, true))
-            {
-                string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-                string csvFileName = "";
-
-                byte[] csvBytes = await _exerciseService.ExportAllActivesMinutesAsync(filter, cancellationToken);
-
-                if (typeExport == "with_filter")
-                {
-                    csvFileName = $"ActivesMinutes_With_Filters_{dateSuffix}.csv";
-                }
-
-                if (typeExport == "all")
-                {
-                    csvFileName = $"All_ActivesMinutes_{dateSuffix}.csv";
-                }
-
-                var entry = mainZip.CreateEntry(csvFileName, CompressionLevel.Optimal);
-                using var entryStream = entry.Open();
-                await entryStream.WriteAsync(csvBytes, 0, csvBytes.Length, cancellationToken);
-            }
-
-            return mainMemoryStream.ToArray();
-        }*/
-
     }
 }

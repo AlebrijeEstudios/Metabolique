@@ -1,6 +1,6 @@
 ﻿namespace AppVidaSana.ProducesResponseType
 {
-    public class RequestTimeoutExceptionMessage
+    public class RequestGeneralExceptionMessage
     {
         public int status { get; set; }
         public string error { get; set; } = null!;

@@ -123,7 +123,7 @@ builder.Services.AddRateLimiter(opt =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.HttpContext.Response.ContentType = "application/json";
-        var errorResponse = new RequestTimeoutExceptionMessage
+        var errorResponse = new RequestGeneralExceptionMessage
         {
             status = StatusCodes.Status429TooManyRequests,
             error = "Too Many Requests",
@@ -146,7 +146,7 @@ builder.Services.AddRequestTimeouts(options =>
             TimeoutStatusCode = 503,
             WriteTimeoutResponse = async (HttpContext context) => {
                 context.Response.ContentType = "application/json";
-                var errorResponse = new RequestTimeoutExceptionMessage
+                var errorResponse = new RequestGeneralExceptionMessage
                 {
                     status = StatusCodes.Status503ServiceUnavailable,
                     error = "Service Unavailable",

@@ -13,8 +13,8 @@ namespace AppVidaSana.Services.IServices.IAdminWeb
 
         Task<byte[]> ExportAllMFUsExerciseAsync(PatientFilterDto? filter, CancellationToken cancellationToken);
         
-        /*Task<List<AllActiveMinutesPerExerciseDto>> GetAllActiveMinutesPerExerciseAsync(ActiveMinutesFilterDto filter, int page, CancellationToken cancellationToken);
+        Task<List<AllActiveMinutesPerExerciseDto>> GetAllActiveMinutesPerExerciseAsync(ActiveMinutesFilterDto filter, int page, CancellationToken cancellationToken);
         
-        Task<byte[]> ExportAllActivesMinutesAsync(ActiveMinutesFilterDto? filter, CancellationToken cancellationToken);*/
+        Task<byte[]> ExportAllActivesMinutesAsync(ActiveMinutesFilterDto? filter, CancellationToken cancellationToken);
     }
 }
