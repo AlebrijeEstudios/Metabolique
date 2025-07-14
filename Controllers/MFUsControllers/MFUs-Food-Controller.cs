@@ -35,11 +35,13 @@ namespace AppVidaSana.Controllers.MFUsControllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(MFUsFoodResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestTimeoutExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("write")]
@@ -93,10 +95,12 @@ namespace AppVidaSana.Controllers.MFUsControllers
         /// <response code="200">Return the answers of the questionnaire that was made in such month and such year.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response>
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MFUsFoodResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))] 
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestTimeoutExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -135,11 +139,13 @@ namespace AppVidaSana.Controllers.MFUsControllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MFUsFoodResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestTimeoutExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("write")]

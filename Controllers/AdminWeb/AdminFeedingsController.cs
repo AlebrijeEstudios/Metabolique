@@ -49,10 +49,12 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200">Returns information from the user's feed.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetFeedingsResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestTimeoutExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -102,10 +104,12 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200">Returns information from the food consumed by the user.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetFoodsResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestTimeoutExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -156,10 +160,12 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200"></response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetUserCaloriesResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestTimeoutExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -210,10 +216,12 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200"></response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsFeedingResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestTimeoutExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]

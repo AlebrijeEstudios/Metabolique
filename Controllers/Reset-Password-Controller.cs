@@ -42,6 +42,7 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestTimeoutExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
