@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Net.Http.Headers;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
@@ -97,9 +98,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/patients?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -125,17 +136,15 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
             return Content(responseBody, typeArchiveJson);
-
-
         }
 
         [HttpDelete("delete")]
@@ -154,8 +163,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.DeleteAsync($"https://{api}/api/accounts/{accountID}");
 
-            var content = await response.Content.ReadAsStringAsync();
-            return Content(content, typeArchiveJson);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
+                return StatusCode((int)response.StatusCode, new
+                {
+                    statusCode = response.StatusCode,
+                    content = contentObject
+                });
+            }
+
+            return Content(responseBody, typeArchiveJson);
         }
     }
 }

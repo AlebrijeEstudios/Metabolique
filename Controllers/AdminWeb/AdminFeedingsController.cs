@@ -143,21 +143,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <summary>
         /// The required calories per patient are obtained.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
+        /// <response code="200">Returns a message that the update has been successful</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="429">Returns a series of messages indicating too many requests.</response>
@@ -199,21 +185,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <summary>
         /// The monthly dietary follow-ups of the patients are obtained.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
+        /// <response code="200">Returns a message that the update has been successful</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="429">Returns a series of messages indicating too many requests.</response>
@@ -251,32 +223,21 @@ namespace AppVidaSana.Controllers.AdminWeb
             }
         }
 
-        /* /// <summary>
-        /// PENDIENTE
+        /// <summary>
+        /// This driver gets calories consumed per day per patient.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
+        /// <response code="200">Returns a message that the update has been successful</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetCalConsumedResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("calories-consumed-per-day")]
         [Produces("application/json")]
         public async Task<IActionResult> GetCaloriesConsumedPerUserAsync([FromQuery] CaloriesConsumedFilterDto filter, [FromQuery] int page)
@@ -305,31 +266,20 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// PENDIENTE
+        /// This driver gets calories required per days per patient.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
+        /// <response code="200">Returns a message that the update has been successful</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetCalRequiredResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("calories-required-per-days")]
         [Produces("application/json")]
         public async Task<IActionResult> GetCaloriesRequiredPerDaysAsync([FromQuery] CaloriesRequiredPerDaysFilterDto filter, [FromQuery] int page)
@@ -356,71 +306,5 @@ namespace AppVidaSana.Controllers.AdminWeb
             }
 
         }
-        
-         /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-calories-consumed-per-day")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyCaloriesConsumedToCsvAsync([FromQuery] string typeExport, [FromQuery] CaloriesConsumedFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"TotalCaloriesConsumedPerPatientPerDay_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyCaloriesConsumedZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_TotalCaloriesConsumedPerPatientPerDay_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyCaloriesConsumedZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
-        }
-
-        /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-calories-required-per-days")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyCaloriesRequiredPerDaysToCsvAsync([FromQuery] string typeExport, [FromQuery] CaloriesRequiredPerDaysFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"CaloriesRequiredPerDaysPerPatient_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyCaloriesRequiredPerDaysZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_CaloriesRequiredPerDaysPerPatient_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyCaloriesRequiredPerDaysZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
-        }*/
     }
 }

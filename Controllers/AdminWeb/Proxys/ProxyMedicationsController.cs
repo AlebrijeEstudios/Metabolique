@@ -116,9 +116,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/medications/info-medications?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -170,11 +180,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
@@ -197,8 +207,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.DeleteAsync($"https://{api}/api/medication?periodID={periodID}&date={date}");
 
-            var content = await response.Content.ReadAsStringAsync();
-            return Content(content, typeArchiveJson);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
+                return StatusCode((int)response.StatusCode, new
+                {
+                    statusCode = response.StatusCode,
+                    content = contentObject
+                });
+            }
+
+            return Content(responseBody, typeArchiveJson);
         }
 
         [HttpGet("side-effects")]
@@ -272,9 +293,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/medications/side-effects?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -316,11 +347,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
@@ -343,8 +374,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.DeleteAsync($"https://{api}/api/medication/side-effects?sideEffectID={sideEffectID}");
 
-            var content = await response.Content.ReadAsStringAsync();
-            return Content(content, typeArchiveJson);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
+                return StatusCode((int)response.StatusCode, new
+                {
+                    statusCode = response.StatusCode,
+                    content = contentObject
+                });
+            }
+
+            return Content(responseBody, typeArchiveJson);
         }
 
         [HttpGet("mfu-medication")]
@@ -416,9 +458,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/medications/mfu-medication?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -444,11 +496,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 

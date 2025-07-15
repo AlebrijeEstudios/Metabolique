@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using NuGet.Protocol;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -35,9 +37,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.PostAsJsonAsync($"https://{api}/api/admin/auth", login);
 
-            var content = await response.Content.ReadAsStringAsync();
-            return Content(content, typeArchive);
-        }
+            var responseBody = await response.Content.ReadAsStringAsync();
 
+            if (!response.IsSuccessStatusCode)
+            {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
+                return StatusCode((int)response.StatusCode, new
+                {
+                    statusCode = response.StatusCode,
+                    content = contentObject
+                });
+            }
+
+            return Content(responseBody, typeArchive);
+        }
     }
 }

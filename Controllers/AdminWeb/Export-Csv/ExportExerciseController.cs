@@ -102,5 +102,41 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 
             return File(zipBytes, typeArchive, fileName);
         }
+
+        /// <summary>
+        /// This driver exports active minutes in csv records.
+        /// </summary>
+        /// <response code="200">Returns information succesfully.</response>
+        /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
+        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
+        [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
+        [HttpGet("export-active-minutes")]
+        [Produces("application/zip")]
+        public async Task<IActionResult> ExportOnlyActivesMinutesToCsvAsync([FromQuery] string typeExport, [FromQuery] ActiveMinutesFilterDto filter)
+        {
+            string fileName = "";
+            string dateSuffix = DateTime.Today.ToString(formatDate);
+            byte[] zipBytes = [];
+
+            if (typeExport == exportFilter)
+            {
+                fileName = $"ActivesMinutes_With_Filters_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyActivesMinutesZipAsync(filter, typeExport, HttpContext.RequestAborted);
+            }
+
+            if (typeExport == exportAll)
+            {
+                fileName = $"All_ActivesMinutes_{dateSuffix}.zip";
+                zipBytes = await _ExportService.GenerateOnlyActivesMinutesZipAsync(null, typeExport, HttpContext.RequestAborted);
+            }
+
+            return File(zipBytes, typeArchive, fileName);
+        }
     }
 }
