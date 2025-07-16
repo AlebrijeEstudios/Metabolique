@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using AppVidaSana.KeyToken;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -16,6 +17,8 @@ namespace AppVidaSana.Tokens
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = durationToken,
+                Issuer = KeyTokenEnv.GetTokenIssuerEnv(),
+                Audience = KeyTokenEnv.GetTokenAudienceEnv(),
                 SigningCredentials = new(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature)
             };
 

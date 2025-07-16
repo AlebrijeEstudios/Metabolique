@@ -7,6 +7,7 @@ using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Habits_AWDtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
@@ -35,11 +36,14 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-drink")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyHabitsDrinkToCsvAsync([FromQuery] string typeExport, [FromQuery] HabitDrinkFilterDto filter)
@@ -68,11 +72,14 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-drugs")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyHabitsDrugsToCsvAsync([FromQuery] string typeExport, [FromQuery] HabitDrugFilterDto filter)
@@ -101,11 +108,14 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-sleep")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyHabitsSleepToCsvAsync([FromQuery] string typeExport, [FromQuery] HabitSleepFilterDto filter)
@@ -134,11 +144,14 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-habit")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyMFUsHabitsToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)

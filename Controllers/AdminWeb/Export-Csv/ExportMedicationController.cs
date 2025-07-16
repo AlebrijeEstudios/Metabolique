@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
@@ -34,11 +35,14 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-periods-medications")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyPeriodMedicationsToCsvAsync([FromQuery] string typeExport, [FromQuery] PeriodMedicationsFilterDto filter)
@@ -67,11 +71,14 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-side-effects")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlySideEffectsToCsvAsync([FromQuery] string typeExport, [FromQuery] SideEffectsFilterDto filter)
@@ -100,11 +107,14 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-medication")]
         [Produces("application/zip")]
         public async Task<IActionResult> ExportOnlyMFUsMedicationToCsvAsync([FromQuery] string typeExport, [FromQuery] MFUsMedicationFilterDto filter)

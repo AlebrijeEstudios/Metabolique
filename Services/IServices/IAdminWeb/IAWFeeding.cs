@@ -22,12 +22,13 @@ namespace AppVidaSana.Services.IServices.IAdminWeb
 
         Task<byte[]> ExportAllMFUsFeedingAsync(PatientFilterDto? filter, CancellationToken cancellationToken);
 
-        /*Task<List<AllCaloriesConsumedPerUserDto>> GetAllCaloriesConsumedPerUserAsync(CaloriesConsumedFilterDto filter, int page, CancellationToken cancellationToken);
+
+        Task<List<AllCaloriesConsumedPerUserDto>> GetAllCaloriesConsumedPerUserAsync(CaloriesConsumedFilterDto filter, int page, CancellationToken cancellationToken);
 
         Task<List<AllCaloriesRequiredPerDaysDto>> GetAllCaloriesRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto filter, int page, CancellationToken cancellationToken);
 
         Task<byte[]> ExportAllCaloriesConsumedAsync(CaloriesConsumedFilterDto? filter, CancellationToken cancellationToken);
 
-        Task<byte[]> ExportAllCaloriesRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto? filter, CancellationToken cancellationToken);*/
+        Task<byte[]> ExportAllCaloriesRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto? filter, CancellationToken cancellationToken);
     }
 }

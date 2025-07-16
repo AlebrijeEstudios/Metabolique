@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +9,7 @@ using Microsoft.AspNetCore.Http.Timeouts;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.ProducesResponseType.AdminWeb.Doctor;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -34,11 +34,14 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// </summary>
         /// <response code="200">Returns account information if found.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetDoctorsResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetDoctorsAsync([FromQuery] DoctorFilterDto filter, [FromQuery] int page)
@@ -60,14 +63,17 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message that you were unable to log in.</response>        
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AddUpdateDoctorsResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [AllowAnonymous]
+        [EnableRateLimiting("write")]
         [HttpPost]
         [Produces("application/json")]
         [RequestTimeout("CustomPolicy")]
@@ -129,13 +135,16 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response>    
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AddUpdateDoctorsResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPut]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateDoctorAsync([FromBody] AllDoctorsDto values)
@@ -178,12 +187,15 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200">Returns a message that the elimination has been successful.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response>
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpDelete("{doctorID:guid}")]
         [Produces("application/json")]
         public async Task<IActionResult> DeleteDoctorAsync(Guid doctorID)

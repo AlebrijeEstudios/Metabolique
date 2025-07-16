@@ -12,7 +12,6 @@ namespace AppVidaSana.Services.AdminWeb
     public class AWMedicationService : IAWMedication
     {
         private readonly AppDbContext _bd;
-        //private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AWMedicationService(AppDbContext bd)
         {
@@ -160,16 +159,6 @@ namespace AppVidaSana.Services.AdminWeb
 
             return memoryStream.ToArray();
         }
-
-
-        /*private string UserRole()
-        {
-            var role = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (role is null) { throw new UnstoredValuesException(); }
-
-            return role;
-        }*/
 
 
         private async Task<List<InfoMedicationDto>> GetQueryInfoMedicationsAsync(PeriodMedicationsFilterDto? filter, int page, CancellationToken cancellationToken)

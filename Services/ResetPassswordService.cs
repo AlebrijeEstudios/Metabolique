@@ -12,6 +12,7 @@ using Azure.Communication.Email;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using AppVidaSana.Exceptions.Account_Profile.ValidationTimeoutException;
+using System.Text.RegularExpressions;
 
 namespace AppVidaSana.Services
 {
@@ -123,17 +124,24 @@ namespace AppVidaSana.Services
 
         private static string verifyPassword(string password)
         {
-            if (password.Length < 8)
+            try
             {
-                return "La contraseña debe tener al menos 8 caracteres.";
-            }
+                if (password.Length < 8)
+                {
+                    return "La contraseña debe tener al menos 8 caracteres.";
+                }
 
-            if (!RegexPatterns.RegexPatterns.Passwordregex.IsMatch(password))
+                if (!RegexPatterns.RegexPatterns.Passwordregex.IsMatch(password))
+                {
+                    return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico.";
+                }
+
+                return "";
+            }
+            catch (RegexMatchTimeoutException)
             {
-                return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico.";
+                throw new PasswordValidationTimeoutException();
             }
-
-            return "";
         }
     }
 }

@@ -12,7 +12,6 @@ namespace AppVidaSana.Services.AdminWeb
     public class AWHabitService : IAWHabits
     {
         private readonly AppDbContext _bd;
-        //private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AWHabitService(AppDbContext bd)
         {
@@ -237,16 +236,6 @@ namespace AppVidaSana.Services.AdminWeb
 
             return memoryStream.ToArray();
         }
-
-
-        /*private string UserRole()
-        {
-            var role = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (role is null) { throw new UnstoredValuesException(); }
-
-            return role;
-        }*/
 
 
         private async Task<List<DrinkHabit>> GetQueryHabitDrinkAsync(HabitDrinkFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 

@@ -206,7 +206,7 @@ namespace AppVidaSana.Services.AdminWeb
                     senderAddress: "DoNotReply@6895ce04-ff2e-4cd1-b2fa-4544b971a71e.azurecomm.net",
                     recipientAddress: email,
                     subject: "Cuenta Administrador Web Metabolique",
-                    htmlContent: $"<html><body><h2>Cuenta Admin Web Metabolique</h2><p>Hola,</p><p>Se te ha dado de alta en el administrador web de la app Metabolique.</p><p>Email:{email}</p><p>Password:{password}</p><p>Este es el link para accesar al administrador web:</p><p><a href=\"{linkAW}\">Admin web Metabolique</a></p><p>Gracias,</p><p>Tu equipo de soporte</p></body></html>",
+                    htmlContent: $"<html><body><h2>Cuenta Admin Web Metabolique</h2><p>Hola,</p><p>Se te ha dado de alta en el administrador web de la app Metabolique.</p><p>Email: {email}</p><p>Password: {password}</p><p>Este es el link para accesar al administrador web:</p><p><a href=\"{linkAW}\">Admin web Metabolique</a></p><p>Gracias,</p><p>Tu equipo de soporte</p></body></html>",
                     plainTextContent: $"Click the link to access admin web: {linkAW}");
 
             }

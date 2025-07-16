@@ -111,9 +111,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/habits/drink?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -147,11 +157,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
@@ -232,9 +242,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/habits/drugs?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -268,11 +288,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
@@ -354,9 +374,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/habits/sleep?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -390,11 +420,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
@@ -467,9 +497,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/habits/mfu-habit?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -528,11 +568,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 

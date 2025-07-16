@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Globalization;
 using System.Net.Http.Headers;
 
@@ -114,11 +115,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/exercises?{queryString}");
 
-                Console.WriteLine($"URL: {$"https://{api}/api/admin/exercises?{queryString}"}");
+                var responseBody = await response.Content.ReadAsStringAsync();
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
 
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -144,11 +153,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
@@ -171,8 +180,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.DeleteAsync($"https://{api}/api/exercises/{exerciseID}");
 
-            var content = await response.Content.ReadAsStringAsync();
-            return Content(content, typeArchiveJson);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
+                return StatusCode((int)response.StatusCode, new
+                {
+                    statusCode = response.StatusCode,
+                    content = contentObject
+                });
+            }
+
+            return Content(responseBody, typeArchiveJson);
         }
 
         [HttpGet("mfu-exercise")]
@@ -240,9 +260,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/exercises/mfu-exercise?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -268,29 +298,29 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
             return Content(responseBody, typeArchiveJson);
         }
     
-        /*[HttpGet("active-minutes")]
-        public async Task<IActionResult> ProxyActiveMinutesAsync([FromQuery] string? typeExport, [FromQuery] ActiveMinutesFilterDto filter, [FromQuery] int page)
+        [HttpGet("active-minutes")]
+        public async Task<IActionResult> ProxyActiveMinutesAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] ActiveMinutesFilterDto filter, [FromQuery] int page)
         {
             var client = _clientFactory.CreateClient();
-            var api = Environment.GetEnvironmentVariable("SERVER");
-            client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+            var api = Environment.GetEnvironmentVariable(apiUrl);
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
-            var token = Request.Headers["Authorization"].ToString();
-
-            if (!string.IsNullOrEmpty(token))
+            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+                var token = headerValue.Parameter;
+
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
             }
 
             var queryParams = new List<string>();
@@ -320,26 +350,25 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
             if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             var queryString = "";
-            var response = new HttpResponseMessage();
 
             if (!string.IsNullOrEmpty(typeExport))
             {
                 queryParams.Add($"typeExport={typeExport}");
                 queryString = string.Join("&", queryParams);
 
-                response = await client.GetAsync($"https://{api}/api/admin/exercises/export-active-minutes?{queryString}");
+                var response = await client.GetAsync($"https://{api}/api/admin/exercises/export-active-minutes?{queryString}");
 
                 var content = await response.Content.ReadAsByteArrayAsync();
                 var contentDisposition = response.Content.Headers.ContentDisposition;
-                var fileName = contentDisposition?.FileName ?? "default.zip";
+                var fileName = contentDisposition?.FileName ?? defaultNameZip;
 
-                return new FileContentResult(content, "application/zip")
+                return new FileContentResult(content, typeArchiveZip)
                 {
                     FileDownloadName = fileName
                 };
@@ -349,12 +378,22 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"page={page}");
                 queryString = string.Join("&", queryParams);
 
-                response = await client.GetAsync($"https://{api}/api/admin/exercises/active-minutes?{queryString}");
+                var response = await client.GetAsync($"https://{api}/api/admin/exercises/active-minutes?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, "application/json");
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
-        }*/
+        }
     }
 }

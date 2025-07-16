@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Net.Http.Headers;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
@@ -45,8 +46,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.GetAsync($"https://{api}/api/doctors");
 
-            var content = await response.Content.ReadAsStringAsync();
-            return Content(content, typeArchive);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
+                return StatusCode((int)response.StatusCode, new
+                {
+                    statusCode = response.StatusCode,
+                    content = contentObject
+                });
+            }
+
+            return Content(responseBody, typeArchive);
         }
 
         [HttpGet]
@@ -78,8 +90,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.GetAsync($"https://{api}/api/admin/doctors?{queryString}");
 
-            var content = await response.Content.ReadAsStringAsync();
-            return Content(content, typeArchive);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
+                return StatusCode((int)response.StatusCode, new
+                {
+                    statusCode = response.StatusCode,
+                    content = contentObject
+                });
+            }
+
+            return Content(responseBody, typeArchive);
         }
 
         [HttpPost]
@@ -91,8 +114,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.PostAsJsonAsync($"https://{api}/api/admin/doctors", values);
 
-            var content = await response.Content.ReadAsStringAsync();
-            return Content(content, typeArchive);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
+                return StatusCode((int)response.StatusCode, new
+                {
+                    statusCode = response.StatusCode,
+                    content = contentObject
+                });
+            }
+
+            return Content(responseBody, typeArchive);
         }
 
         [HttpPut("edit")]
@@ -117,11 +151,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = "Error al llamar a la API remota",
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
@@ -144,8 +178,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.DeleteAsync($"https://{api}/api/admin/doctors/{doctorID}");
 
-            var content = await response.Content.ReadAsStringAsync();
-            return Content(content, typeArchive);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
+                return StatusCode((int)response.StatusCode, new
+                {
+                    statusCode = response.StatusCode,
+                    content = contentObject
+                });
+            }
+
+            return Content(responseBody, typeArchive);
         }
     }
 }

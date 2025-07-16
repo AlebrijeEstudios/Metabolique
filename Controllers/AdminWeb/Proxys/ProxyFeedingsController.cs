@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Net;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -114,8 +115,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/feedings?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
 
             }
         }
@@ -161,11 +173,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
@@ -188,8 +200,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.DeleteAsync($"https://{api}/api/feeding/{userFeedID}");
 
-            var content = await response.Content.ReadAsStringAsync();
-            return Content(content, typeArchiveJson);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
+                return StatusCode((int)response.StatusCode, new
+                {
+                    statusCode = response.StatusCode,
+                    content = contentObject
+                });
+            }
+
+            return Content(responseBody, typeArchiveJson);
         }
 
         [HttpGet("foods")]
@@ -266,9 +289,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/feedings/foods?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -337,9 +370,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/feedings/mfu-feeding?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
@@ -365,11 +408,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
+                var contentObject = JsonConvert.DeserializeObject(responseBody);
                 return StatusCode((int)response.StatusCode, new
                 {
-                    error = messageError,
-                    status = response.StatusCode,
-                    content = responseBody
+                    statusCode = response.StatusCode,
+                    content = contentObject
                 });
             }
 
@@ -441,154 +484,182 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 var response = await client.GetAsync($"https://{api}/api/admin/feedings/calories-needed-per-user?{queryString}");
 
-                var content = await response.Content.ReadAsStringAsync();
-                return Content(content, typeArchiveJson);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
             }
         }
 
-        /*[HttpGet("calories-consumed-per-day")]
-       public async Task<IActionResult> ProxyCaloriesConsumedPerUserAsync([FromQuery] string? typeExport, [FromQuery] CaloriesConsumedFilterDto filter, [FromQuery] int page)
-       {
-           var client = _clientFactory.CreateClient();
-           var api = Environment.GetEnvironmentVariable("SERVER");
-           client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+        [HttpGet("calories-consumed-per-day")]
+        public async Task<IActionResult> ProxyCaloriesConsumedPerUserAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] CaloriesConsumedFilterDto filter, [FromQuery] int page)
+        {
+            var client = _clientFactory.CreateClient();
+            var api = Environment.GetEnvironmentVariable(apiUrl);
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
-           var token = Request.Headers["Authorization"].ToString();
+            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
+            {
+                var token = headerValue.Parameter;
 
-           if (!string.IsNullOrEmpty(token))
-           {
-               client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
-           }
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
+            }
 
-           var queryParams = new List<string>();
+            var queryParams = new List<string>();
 
-           if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
-               queryParams.Add($"doctorID={filter.doctorID}");
+            if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
+                queryParams.Add($"doctorID={filter.doctorID}");
 
-           if (!string.IsNullOrEmpty(filter.accountID.ToString()))
-               queryParams.Add($"accountID={filter.accountID}");
+            if (!string.IsNullOrEmpty(filter.accountID.ToString()))
+                queryParams.Add($"accountID={filter.accountID}");
 
-           if (!string.IsNullOrEmpty(filter.uiemID))
-               queryParams.Add($"uiemID={filter.uiemID}");
+            if (!string.IsNullOrEmpty(filter.uiemID))
+                queryParams.Add($"uiemID={filter.uiemID}");
 
-           if (!string.IsNullOrEmpty(filter.username))
-               queryParams.Add($"username={filter.username}");
+            if (!string.IsNullOrEmpty(filter.username))
+                queryParams.Add($"username={filter.username}");
 
-           if (!string.IsNullOrEmpty(filter.sex))
-               queryParams.Add($"sex={filter.sex}");
+            if (!string.IsNullOrEmpty(filter.sex))
+                queryParams.Add($"sex={filter.sex}");
 
-           if (!string.IsNullOrEmpty(filter.protocolToFollow))
-               queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
+            if (!string.IsNullOrEmpty(filter.protocolToFollow))
+                queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
-           if (filter.startDate != null)
-               queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+            if (filter.startDate != null)
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
-           if (filter.endDate != null)
-               queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+            if (filter.endDate != null)
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
-           var queryString = "";
-           var response = new HttpResponseMessage();
+            var queryString = "";
 
-           if (!string.IsNullOrEmpty(typeExport))
-           {
-               queryParams.Add($"typeExport={typeExport}");
-               queryString = string.Join("&", queryParams);
+            if (!string.IsNullOrEmpty(typeExport))
+            {
+                queryParams.Add($"typeExport={typeExport}");
+                queryString = string.Join("&", queryParams);
 
-               response = await client.GetAsync($"https://{api}/api/admin/feedings/export-calories-consumed-per-day?{queryString}");
+                var response = await client.GetAsync($"https://{api}/api/admin/feedings/export-calories-consumed-per-day?{queryString}");
 
-               var content = await response.Content.ReadAsByteArrayAsync();
-               var contentDisposition = response.Content.Headers.ContentDisposition;
-               var fileName = contentDisposition?.FileName ?? "default.zip";
+                var content = await response.Content.ReadAsByteArrayAsync();
+                var contentDisposition = response.Content.Headers.ContentDisposition;
+                var fileName = contentDisposition?.FileName ?? defaultNameZip;
 
-               return new FileContentResult(content, "application/zip")
-               {
-                   FileDownloadName = fileName
-               };
-           }
-           else
-           {
-               queryParams.Add($"page={page}");
-               queryString = string.Join("&", queryParams);
+                return new FileContentResult(content, typeArchiveZip)
+                {
+                    FileDownloadName = fileName
+                };
+            }
+            else
+            {
+                queryParams.Add($"page={page}");
+                queryString = string.Join("&", queryParams);
 
-               response = await client.GetAsync($"https://{api}/api/admin/feedings/calories-consumed-per-day?{queryString}");
+                var response = await client.GetAsync($"https://{api}/api/admin/feedings/calories-consumed-per-day?{queryString}");
 
-               var content = await response.Content.ReadAsStringAsync();
-               return Content(content, "application/json");
+                var responseBody = await response.Content.ReadAsStringAsync();
 
-           }
-       }
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
+            }
+        }
 
        [HttpGet("calories-required-per-days")]
-       public async Task<IActionResult> ProxyCaloriesRequiredPerDaysAsync([FromQuery] string? typeExport, [FromQuery] CaloriesRequiredPerDaysFilterDto filter, [FromQuery] int page)
+       public async Task<IActionResult> ProxyCaloriesRequiredPerDaysAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] CaloriesRequiredPerDaysFilterDto filter, [FromQuery] int page)
        {
-           var client = _clientFactory.CreateClient();
-           var api = Environment.GetEnvironmentVariable("SERVER");
-           client.DefaultRequestHeaders.Add("Metabolique_API_KEY", Environment.GetEnvironmentVariable("API_KEY"));
+            var client = _clientFactory.CreateClient();
+            var api = Environment.GetEnvironmentVariable(apiUrl);
+            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
-           var token = Request.Headers["Authorization"].ToString();
+            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
+            {
+                var token = headerValue.Parameter;
 
-           if (!string.IsNullOrEmpty(token))
-           {
-               client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
-           }
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
+            }
 
-           var queryParams = new List<string>();
+            var queryParams = new List<string>();
 
-           if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
+            if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
                queryParams.Add($"doctorID={filter.doctorID}");
 
-           if (!string.IsNullOrEmpty(filter.accountID.ToString()))
-               queryParams.Add($"accountID={filter.accountID}");
+            if (!string.IsNullOrEmpty(filter.accountID.ToString()))
+                queryParams.Add($"accountID={filter.accountID}");
 
-           if (!string.IsNullOrEmpty(filter.uiemID))
-               queryParams.Add($"uiemID={filter.uiemID}");
+            if (!string.IsNullOrEmpty(filter.uiemID))
+                queryParams.Add($"uiemID={filter.uiemID}");
 
-           if (!string.IsNullOrEmpty(filter.username))
-               queryParams.Add($"username={filter.username}");
+            if (!string.IsNullOrEmpty(filter.username))
+                queryParams.Add($"username={filter.username}");
 
-           if (!string.IsNullOrEmpty(filter.sex))
-               queryParams.Add($"sex={filter.sex}");
+            if (!string.IsNullOrEmpty(filter.sex))
+                queryParams.Add($"sex={filter.sex}");
 
-           if (!string.IsNullOrEmpty(filter.protocolToFollow))
-               queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
+            if (!string.IsNullOrEmpty(filter.protocolToFollow))
+                queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
 
-           if (filter.startDate != null)
-               queryParams.Add($"startDate={filter.startDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+            if (filter.startDate != null)
+                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
-           if (filter.endDate != null)
-               queryParams.Add($"endDate={filter.endDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}");
+            if (filter.endDate != null)
+                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
-           var queryString = "";
-           var response = new HttpResponseMessage();
+            var queryString = "";
 
-           if (!string.IsNullOrEmpty(typeExport))
-           {
-               queryParams.Add($"typeExport={typeExport}");
-               queryString = string.Join("&", queryParams);
+            if (!string.IsNullOrEmpty(typeExport))
+            {
+                queryParams.Add($"typeExport={typeExport}");
+                queryString = string.Join("&", queryParams);
 
-               response = await client.GetAsync($"https://{api}/api/admin/feedings/export-calories-required-per-days?{queryString}");
+                var response = await client.GetAsync($"https://{api}/api/admin/feedings/export-calories-required-per-days?{queryString}");
 
-               var content = await response.Content.ReadAsByteArrayAsync();
-               var contentDisposition = response.Content.Headers.ContentDisposition;
-               var fileName = contentDisposition?.FileName ?? "default.zip";
+                var content = await response.Content.ReadAsByteArrayAsync();
+                var contentDisposition = response.Content.Headers.ContentDisposition;
+                var fileName = contentDisposition?.FileName ?? defaultNameZip;
 
-               return new FileContentResult(content, "application/zip")
-               {
-                   FileDownloadName = fileName
-               };
-           }
-           else
-           {
-               queryParams.Add($"page={page}");
-               queryString = string.Join("&", queryParams);
+                return new FileContentResult(content, typeArchiveZip)
+                {
+                    FileDownloadName = fileName
+                };
+            }
+            else
+            {
+                queryParams.Add($"page={page}");
+                queryString = string.Join("&", queryParams);
 
-               response = await client.GetAsync($"https://{api}/api/admin/feedings/calories-required-per-days?{queryString}");
+                var response = await client.GetAsync($"https://{api}/api/admin/feedings/calories-required-per-days?{queryString}");
 
-               var content = await response.Content.ReadAsStringAsync();
-               return Content(content, "application/json");
+                var responseBody = await response.Content.ReadAsStringAsync();
 
-           }
-       }*/
+                if (!response.IsSuccessStatusCode)
+                {
+                    var contentObject = JsonConvert.DeserializeObject(responseBody);
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        statusCode = response.StatusCode,
+                        content = contentObject
+                    });
+                }
+
+                return Content(responseBody, typeArchiveJson);
+            }
+       }
     }
 }

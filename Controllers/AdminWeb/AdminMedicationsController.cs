@@ -8,6 +8,7 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
 using AppVidaSana.ProducesResponseType.AdminWeb.Medication;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -30,29 +31,18 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <summary>
         /// This driver obtains the medication consumption records per patient.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
+        /// <response code="200">Returns a message that the update has been successful</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetInfoMedResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("info-medications")]
         [Produces("application/json")]
         public async Task<IActionResult> GetInfoMedicationsPerUserAsync([FromQuery] PeriodMedicationsFilterDto filter, [FromQuery] int page)
@@ -82,29 +72,18 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <summary>
         /// This driver obtains the side effect records per patient.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
+        /// <response code="200">Returns a message that the update has been successful</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetSideEffectsResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("side-effects")]
         [Produces("application/json")]
         public async Task<IActionResult> GetSideEffectsAAsync([FromQuery] SideEffectsFilterDto filter, [FromQuery] int page)
@@ -134,29 +113,18 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <summary>
         /// This driver obtains the monthly medication tracking records per patient.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
+        /// <response code="200">Returns a message that the update has been successful</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
+        /// <response code="429">Returns a series of messages indicating too many requests.</response>
         /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsMedicationResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("mfu-medication")]
         [Produces("application/json")]
         public async Task<IActionResult> GetMFUsMedicationsAsync([FromQuery] MFUsMedicationFilterDto filter, [FromQuery] int page)

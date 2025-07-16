@@ -24,10 +24,14 @@ using Newtonsoft.Json;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using AppVidaSana.Services.AdminWeb;
 using System.Security.Claims;
+using AppVidaSana.KeyToken;
+using System.Threading.RateLimiting;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+var adminWeb = Environment.GetEnvironmentVariable("ADMIN_WEB");
 
 var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
 
@@ -41,13 +45,97 @@ builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServ
 
 builder.Services.AddSingleton(x => new BlobServiceClient(storageAccount));
 
-var myrulesCORS = "RulesCORS";
-builder.Services.AddCors(opt =>
+builder.Services.AddCors(options =>
 {
-    opt.AddPolicy(name: myrulesCORS, builder =>
+    options.AddPolicy("RulesCORS", policy =>
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition");
+        policy.WithOrigins(adminWeb)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .WithExposedHeaders("Content-Disposition");
     });
+});
+
+builder.Logging.AddDebug();
+
+builder.Services.AddRateLimiter(opt =>
+{
+    opt.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10, 
+                Window = TimeSpan.FromMinutes(5) 
+            }));
+
+    opt.AddPolicy("refresh", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.IsAuthenticated == true
+                          ? httpContext.User.Identity.Name
+                          : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    opt.AddPolicy("forgot-password", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(15) 
+            }));
+
+    opt.AddPolicy("reset-password", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(5)
+            }));
+
+    opt.AddPolicy("read-only", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.IsAuthenticated == true
+                          ? httpContext.User.Identity.Name
+                          : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    opt.AddPolicy("write", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.IsAuthenticated == true
+                          ? httpContext.User.Identity.Name
+                          : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 50,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    opt.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+        var errorResponse = new RequestGeneralExceptionMessage
+        {
+            status = StatusCodes.Status429TooManyRequests,
+            error = "Too Many Requests",
+            message = "La petici&oacute;n ha tenido muchos intentos, int&eacute;ntelo de nuevo",
+            timestamp = DateTime.UtcNow.ToString("o"),
+            path = context.HttpContext.Request.Path
+        };
+
+        var jsonResponse = JsonConvert.SerializeObject(errorResponse);
+        await context.HttpContext.Response.WriteAsync(jsonResponse, token);
+    };
 });
 
 builder.Services.AddRequestTimeouts(options =>
@@ -59,7 +147,7 @@ builder.Services.AddRequestTimeouts(options =>
             TimeoutStatusCode = 503,
             WriteTimeoutResponse = async (HttpContext context) => {
                 context.Response.ContentType = "application/json";
-                var errorResponse = new RequestTimeoutExceptionMessage
+                var errorResponse = new RequestGeneralExceptionMessage
                 {
                     status = StatusCodes.Status503ServiceUnavailable,
                     error = "Service Unavailable",
@@ -137,8 +225,10 @@ builder.Services.AddAuthentication(options =>
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidIssuer = KeyTokenEnv.GetTokenIssuerEnv(),
+        ValidateAudience = true,
+        ValidAudience = KeyTokenEnv.GetTokenAudienceEnv(),
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
@@ -281,16 +371,16 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseHttpsRedirection();         
+app.UseStaticFiles();              
 app.UseRouting();
-app.UseCors(myrulesCORS);
+app.UseCors("RulesCORS");
 app.UseRequestTimeouts();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllers();
-
-await app.RunAsync();
+await app.RunAsync();   

@@ -8,11 +8,21 @@ namespace AppVidaSana.Api
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var apiKeyHeader = context.HttpContext.Request.Headers["Metabolique_API_KEY"].FirstOrDefault();
+            var apiKeyHeader = context.HttpContext.Request.Headers["Metabolique_API_KEY"].ToString();;
             var storedApiKey = Environment.GetEnvironmentVariable("API_KEY");
-            var headerApiKey = context.HttpContext.Request.Headers["Metabolique_API_KEY"].ToString();
+            var storedIosApiKey = Environment.GetEnvironmentVariable("IOS_API_KEY");
+            var storedAndroidApiKey = Environment.GetEnvironmentVariable("ANDROID_API_KEY");
+            var storedAdminWebApiKey = Environment.GetEnvironmentVariable("ADMIN_WEB_API_KEY");
 
-            if (string.IsNullOrEmpty(apiKeyHeader) || (storedApiKey != headerApiKey))
+            var validKeys = new[]
+            {
+                storedApiKey,
+                storedIosApiKey,
+                storedAndroidApiKey,
+                storedAdminWebApiKey
+            };
+
+            if (!validKeys.Contains(apiKeyHeader))
             {
                 throw new ApiKeyException();
             }
