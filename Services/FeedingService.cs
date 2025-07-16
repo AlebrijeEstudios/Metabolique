@@ -438,7 +438,7 @@ namespace AppVidaSana.Services
                 BlobContainerName = ContainerName,
                 BlobName = blobName,
                 Resource = "b",
-                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(5)
+                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(1)
             };
 
             sasBuilder.SetPermissions(BlobSasPermissions.Read);
