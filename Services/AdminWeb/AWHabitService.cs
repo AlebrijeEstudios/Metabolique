@@ -12,6 +12,7 @@ namespace AppVidaSana.Services.AdminWeb
     public class AWHabitService : IAWHabits
     {
         private readonly AppDbContext _bd;
+        private const string notDoctorID = "00000000-0000-0000-0000-000000000000";
 
         public AWHabitService(AppDbContext bd)
         {
@@ -271,7 +272,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<DrinkHabit> FilterHabitDrink(IQueryable<DrinkHabit> query, HabitDrinkFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
@@ -382,7 +383,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<DrugsHabit> FilterHabitDrugs(IQueryable<DrugsHabit> query, HabitDrugFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
@@ -497,7 +498,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<SleepHabit> FilterHabitSleep(IQueryable<SleepHabit> query, HabitSleepFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
@@ -614,7 +615,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<HabitsResults> FilterMFUsHabits(IQueryable<HabitsResults> query, PatientFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)

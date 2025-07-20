@@ -1,10 +1,10 @@
-﻿using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+﻿using AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper;
+using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System.Net.Http.Headers;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
@@ -27,7 +27,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private const string typeArchiveJson = "application/json";
         private const string typeArchiveZip = "application/zip";
         private const string defaultNameZip = "default.zip";
-        private const string messageError = "Error al llamar a la API remota.";
 
         public ProxyPatientsController(IHttpClientFactory clientFactory)
         {
@@ -102,12 +101,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var contentObject = JsonConvert.DeserializeObject(responseBody);
-                    return StatusCode((int)response.StatusCode, new
-                    {
-                        statusCode = response.StatusCode,
-                        content = contentObject
-                    });
+                    return this.HandleErrorResponse(response, responseBody);
                 }
 
                 return Content(responseBody, typeArchiveJson);
@@ -136,12 +130,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
-                var contentObject = JsonConvert.DeserializeObject(responseBody);
-                return StatusCode((int)response.StatusCode, new
-                {
-                    statusCode = response.StatusCode,
-                    content = contentObject
-                });
+                return this.HandleErrorResponse(response, responseBody);
             }
 
             return Content(responseBody, typeArchiveJson);
@@ -167,12 +156,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
-                var contentObject = JsonConvert.DeserializeObject(responseBody);
-                return StatusCode((int)response.StatusCode, new
-                {
-                    statusCode = response.StatusCode,
-                    content = contentObject
-                });
+                return this.HandleErrorResponse(response, responseBody);
             }
 
             return Content(responseBody, typeArchiveJson);

@@ -8,7 +8,7 @@ namespace AppVidaSana.Api
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var apiKeyHeader = context.HttpContext.Request.Headers["Metabolique_API_KEY"].ToString();;
+            var apiKeyHeader = context.HttpContext.Request.Headers["Metabolique_API_KEY"].ToString();
             var storedApiKey = Environment.GetEnvironmentVariable("API_KEY");
             var storedIosApiKey = Environment.GetEnvironmentVariable("IOS_API_KEY");
             var storedAndroidApiKey = Environment.GetEnvironmentVariable("ANDROID_API_KEY");

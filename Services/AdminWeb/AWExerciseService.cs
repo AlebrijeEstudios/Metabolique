@@ -12,6 +12,7 @@ namespace AppVidaSana.Services.AdminWeb
     public class AWExerciseService : IAWExercise
     {
         private readonly AppDbContext _bd;
+        private const string notDoctorID = "00000000-0000-0000-0000-000000000000";
 
         public AWExerciseService(AppDbContext bd)
         {
@@ -98,7 +99,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<Exercise> FilterExercises(IQueryable<Exercise> query, ExerciseFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
@@ -281,7 +282,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<ExerciseResults> FilterMFUsExercise(IQueryable<ExerciseResults> query, PatientFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)
@@ -389,7 +390,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<ActiveMinutes>> GetQueryActiveMinutesAsync(ActiveMinutesFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
-            List<ActiveMinutes> actM = new List<ActiveMinutes>();
+            List<ActiveMinutes> actM;
 
             var query = _bd.ActiveMinutes
                             .Include(f => f.account)
@@ -420,7 +421,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<ActiveMinutes> FilterActiveMinutes(IQueryable<ActiveMinutes> query, ActiveMinutesFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)

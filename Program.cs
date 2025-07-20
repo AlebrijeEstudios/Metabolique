@@ -25,7 +25,7 @@ using AppVidaSana.Services.IServices.IAdminWeb;
 using AppVidaSana.Services.AdminWeb;
 using System.Security.Claims;
 using AppVidaSana.KeyToken;
-using System.Threading.RateLimiting;
+using AppVidaSana.RateLimitHelpers;
 
 Env.Load();
 
@@ -49,7 +49,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("RulesCORS", policy =>
     {
-        policy.WithOrigins(adminWeb)
+        policy.WithOrigins(adminWeb!)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .WithExposedHeaders("Content-Disposition");
@@ -61,64 +61,22 @@ builder.Logging.AddDebug();
 builder.Services.AddRateLimiter(opt =>
 {
     opt.AddPolicy("login", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 10, 
-                Window = TimeSpan.FromMinutes(5) 
-            }));
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetIpPartitionKey(httpContext), 10, TimeSpan.FromMinutes(5)));
 
     opt.AddPolicy("refresh", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.User.Identity?.IsAuthenticated == true
-                          ? httpContext.User.Identity.Name
-                          : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(1)
-            }));
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetUserOrIpPartitionKey(httpContext), 5, TimeSpan.FromMinutes(1)));
 
     opt.AddPolicy("forgot-password", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 3,
-                Window = TimeSpan.FromMinutes(15) 
-            }));
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetIpPartitionKey(httpContext), 3, TimeSpan.FromMinutes(15)));
 
     opt.AddPolicy("reset-password", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(5)
-            }));
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetIpPartitionKey(httpContext), 5, TimeSpan.FromMinutes(5)));
 
     opt.AddPolicy("read-only", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.User.Identity?.IsAuthenticated == true
-                          ? httpContext.User.Identity.Name
-                          : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 300,
-                Window = TimeSpan.FromMinutes(1)
-            }));
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetUserOrIpPartitionKey(httpContext), 300, TimeSpan.FromMinutes(1)));
 
     opt.AddPolicy("write", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.User.Identity?.IsAuthenticated == true
-                          ? httpContext.User.Identity.Name
-                          : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 50,
-                Window = TimeSpan.FromMinutes(1)
-            }));
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetUserOrIpPartitionKey(httpContext), 50, TimeSpan.FromMinutes(1)));
 
     opt.OnRejected = async (context, token) =>
     {

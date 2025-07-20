@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Net;
+using AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -34,7 +35,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private const string typeArchiveJson = "application/json";
         private const string typeArchiveZip = "application/zip";
         private const string defaultNameZip = "default.zip";
-        private const string messageError = "Error al llamar a la API remota.";
 
         public ProxyFeedingsController(IHttpClientFactory clientFactory)
         {
@@ -119,12 +119,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var contentObject = JsonConvert.DeserializeObject(responseBody);
-                    return StatusCode((int)response.StatusCode, new
-                    {
-                        statusCode = response.StatusCode,
-                        content = contentObject
-                    });
+                    return this.HandleErrorResponse(response, responseBody);
                 }
 
                 return Content(responseBody, typeArchiveJson);
@@ -173,12 +168,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
-                var contentObject = JsonConvert.DeserializeObject(responseBody);
-                return StatusCode((int)response.StatusCode, new
-                {
-                    statusCode = response.StatusCode,
-                    content = contentObject
-                });
+                return this.HandleErrorResponse(response, responseBody);
             }
 
             return Content(responseBody, typeArchiveJson);
@@ -204,12 +194,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
-                var contentObject = JsonConvert.DeserializeObject(responseBody);
-                return StatusCode((int)response.StatusCode, new
-                {
-                    statusCode = response.StatusCode,
-                    content = contentObject
-                });
+                return this.HandleErrorResponse(response, responseBody);
             }
 
             return Content(responseBody, typeArchiveJson);
@@ -293,12 +278,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var contentObject = JsonConvert.DeserializeObject(responseBody);
-                    return StatusCode((int)response.StatusCode, new
-                    {
-                        statusCode = response.StatusCode,
-                        content = contentObject
-                    });
+                    return this.HandleErrorResponse(response, responseBody);
                 }
 
                 return Content(responseBody, typeArchiveJson);
@@ -374,12 +354,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var contentObject = JsonConvert.DeserializeObject(responseBody);
-                    return StatusCode((int)response.StatusCode, new
-                    {
-                        statusCode = response.StatusCode,
-                        content = contentObject
-                    });
+                    return this.HandleErrorResponse(response, responseBody);
                 }
 
                 return Content(responseBody, typeArchiveJson);
@@ -408,12 +383,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
-                var contentObject = JsonConvert.DeserializeObject(responseBody);
-                return StatusCode((int)response.StatusCode, new
-                {
-                    statusCode = response.StatusCode,
-                    content = contentObject
-                });
+                return this.HandleErrorResponse(response, responseBody);
             }
 
             return Content(responseBody, typeArchiveJson);
@@ -488,12 +458,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var contentObject = JsonConvert.DeserializeObject(responseBody);
-                    return StatusCode((int)response.StatusCode, new
-                    {
-                        statusCode = response.StatusCode,
-                        content = contentObject
-                    });
+                    return this.HandleErrorResponse(response, responseBody);
                 }
 
                 return Content(responseBody, typeArchiveJson);
@@ -569,21 +534,16 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var contentObject = JsonConvert.DeserializeObject(responseBody);
-                    return StatusCode((int)response.StatusCode, new
-                    {
-                        statusCode = response.StatusCode,
-                        content = contentObject
-                    });
+                    return this.HandleErrorResponse(response, responseBody);
                 }
 
                 return Content(responseBody, typeArchiveJson);
             }
         }
 
-       [HttpGet("calories-required-per-days")]
-       public async Task<IActionResult> ProxyCaloriesRequiredPerDaysAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] CaloriesRequiredPerDaysFilterDto filter, [FromQuery] int page)
-       {
+        [HttpGet("calories-required-per-days")]
+        public async Task<IActionResult> ProxyCaloriesRequiredPerDaysAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] CaloriesRequiredPerDaysFilterDto filter, [FromQuery] int page)
+        {
             var client = _clientFactory.CreateClient();
             var api = Environment.GetEnvironmentVariable(apiUrl);
             client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
@@ -598,7 +558,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var queryParams = new List<string>();
 
             if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
-               queryParams.Add($"doctorID={filter.doctorID}");
+                queryParams.Add($"doctorID={filter.doctorID}");
 
             if (!string.IsNullOrEmpty(filter.accountID.ToString()))
                 queryParams.Add($"accountID={filter.accountID}");
@@ -650,16 +610,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var contentObject = JsonConvert.DeserializeObject(responseBody);
-                    return StatusCode((int)response.StatusCode, new
-                    {
-                        statusCode = response.StatusCode,
-                        content = contentObject
-                    });
+                    return this.HandleErrorResponse(response, responseBody);
                 }
 
                 return Content(responseBody, typeArchiveJson);
             }
-       }
+        }
     }
 }

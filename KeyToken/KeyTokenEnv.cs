@@ -13,12 +13,12 @@ namespace AppVidaSana.KeyToken
 
         public static string GetTokenIssuerEnv()
         {
-            return Environment.GetEnvironmentVariable("TOKEN_ISSUER");
+            return Environment.GetEnvironmentVariable("TOKEN_ISSUER")!;
         }
 
         public static string GetTokenAudienceEnv()
         {
-            return Environment.GetEnvironmentVariable("TOKEN_AUDIENCE");
+            return Environment.GetEnvironmentVariable("TOKEN_AUDIENCE")!;
         }
     }
 }

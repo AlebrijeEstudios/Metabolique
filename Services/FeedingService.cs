@@ -688,7 +688,7 @@ namespace AppVidaSana.Services
                                 {
                                     foodID = existingFoods[food.foodCode],
                                     portion = nutrValue.portion,
-                                    netWeight = nutrValue?.netWeight,
+                                    netWeight = nutrValue.netWeight,
                                     kilocalories = nutrValue.kilocalories,
                                     protein = nutrValue.protein,
                                     carbohydrates = nutrValue.carbohydrates,

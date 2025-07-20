@@ -54,7 +54,7 @@ namespace AppVidaSana.Services.AdminWeb
                 new Claim(ClaimTypes.Role, role)
             };
 
-            DateTime durationToken = DateTime.UtcNow.AddDays(7);
+            DateTime durationToken = DateTime.UtcNow.AddDays(1);
 
             var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
 

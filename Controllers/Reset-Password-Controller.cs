@@ -59,9 +59,9 @@ namespace AppVidaSana.Controllers
 
                 if (resetLink == null) { throw new EmailNotSendException(); }
 
-                //_resetPasswordService.SendEmailAsync(email.email, resetLink);
+                _resetPasswordService.SendEmailAsync(email.email, resetLink);
 
-                return StatusCode(StatusCodes.Status200OK, new { link = resetLink} );
+                return StatusCode(StatusCodes.Status200OK );
             }
             catch (EmailNotSendException ex)
             {
