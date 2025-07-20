@@ -12,6 +12,7 @@ namespace AppVidaSana.Services.AdminWeb
     public class AWMedicationService : IAWMedication
     {
         private readonly AppDbContext _bd;
+        private const string notDoctorID = "00000000-0000-0000-0000-000000000000";
 
         public AWMedicationService(AppDbContext bd)
         {
@@ -250,7 +251,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<Times> FilterInfoMedications(IQueryable<Times> query, PeriodMedicationsFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
@@ -367,7 +368,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<SideEffects> FilterSideEffects(IQueryable<SideEffects> query, SideEffectsFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                         .Where(pd => pd.doctorID == filter.doctorID)
                                         .Select(pd => pd.accountID)
@@ -480,7 +481,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<MFUsMedication> FilterMFUsMedications(IQueryable<MFUsMedication> query, MFUsMedicationFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)
@@ -541,147 +542,5 @@ namespace AppVidaSana.Services.AdminWeb
 
             return query;
         }
-
-        /*public async Task<List<AllPeriodsMedicationsPerUserDto>> GetAllPeriodMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken)
-        {
-            var role = UserRole();
-
-            if (role == "Admin")
-            {
-                var pMed = await GetQueryPeriodMedicationsAsync(filter, page, false, 0, cancellationToken);
-
-                var allPeriodMedicationPerUser = pMed.Select(pM => new AllPeriodsMedicationsPerUserDto
-                {
-                    periodID = pM.daysConsumedOfMedications!.periodMedication!.periodID,
-                    accountID = pM.daysConsumedOfMedications!.periodMedication!.account!.accountID,
-                    username = pM.daysConsumedOfMedications!.periodMedication!.account!.username,
-                    medication = pM.daysConsumedOfMedications!.periodMedication!.medication!.nameMedication,
-                    initialDate = pM.daysConsumedOfMedications!.periodMedication!.initialFrec,
-                    finalDate = pM.daysConsumedOfMedications!.periodMedication!.finalFrec,
-                    daysEliminated = pM.daysConsumedOfMedications!.periodMedication!.datesExcluded ?? "N/A",
-                    dose = pM.daysConsumedOfMedications!.periodMedication!.dose,
-                    dateConsumed = pM.daysConsumedOfMedications!.dateConsumed,
-                    timeConsumed = pM.time,
-                    statusConsumed = pM.medicationStatus
-                }).ToList();
-
-                return allPeriodMedicationPerUser;
-            }
-
-            return [];
-        }*/
-
-        /*public async Task<byte[]> ExportAllPeriodsMedicationsAsync(CancellationToken cancellationToken)
-        {
-            const int pageSize = 1000;
-            int currentPage = 0;
-
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
-            {
-                await streamWriter.WriteLineAsync("PeriodID,Medication,AccountID,FrecInitial,FrecFinal,Dose,TimesPeriodActual,DatesExcluded");
-
-                while (currentPage >= 0)
-                {
-                    var pMed = await _bd.PeriodsMedications
-                            .Include(m => m.medication)
-                            .Skip(currentPage * pageSize)
-                            .Take(pageSize)
-                            .ToListAsync(cancellationToken);
-
-                    if (pMed.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var m in pMed)
-                    {
-                        var csvLine = $"{m.periodID},{m.medication.nameMedication},{m.accountID},{m.initialFrec},{m.finalFrec}," +
-                                      $"{m.dose},\"{m.timesPeriod}\",\"{m.datesExcluded}\"";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
-                }
-
-                await streamWriter.FlushAsync(cancellationToken);
-
-                return memoryStream.ToArray();
-            }
-        }
-
-        public async Task<byte[]> ExportAllDaysConsumedOfMedAsync(CancellationToken cancellationToken)
-        {
-            const int pageSize = 1000;
-            int currentPage = 0;
-
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
-            {
-                await streamWriter.WriteLineAsync("DayConsumedID,PeriodID,Date,ConsuptionTimes");
-
-                while (currentPage >= 0)
-                {
-                    var days = await _bd.DaysConsumedOfMedications
-                            .Skip(currentPage * pageSize)
-                            .Take(pageSize)
-                            .ToListAsync(cancellationToken);
-
-                    if (days.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var d in days)
-                    {
-                        var csvLine = $"{d.dayConsumedID},{d.periodID},{d.dateConsumed},\"{d.consumptionTimes}\"";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
-                }
-
-                await streamWriter.FlushAsync(cancellationToken);
-
-                return memoryStream.ToArray();
-            }
-        }
-
-        public async Task<byte[]> ExportAllConsumptionTimesAsync(CancellationToken cancellationToken)
-        {
-            const int pageSize = 1000;
-            int currentPage = 0;
-
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
-            {
-                await streamWriter.WriteLineAsync("TimeID,DayConsumedID,Time,MedicationStatus");
-
-                while (currentPage >= 0)
-                {
-                    var times = await _bd.Times
-                            .Skip(currentPage * pageSize)
-                            .Take(pageSize)
-                            .ToListAsync(cancellationToken);
-
-                    if (times.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (var t in times)
-                    {
-                        var csvLine = $"{t.timeID},{t.dayConsumedID},{t.time},{t.medicationStatus}";
-
-                        await streamWriter.WriteLineAsync(csvLine);
-                    }
-                    currentPage++;
-                }
-
-                await streamWriter.FlushAsync(cancellationToken);
-
-                return memoryStream.ToArray();
-            }
-        }*/
     }
 }

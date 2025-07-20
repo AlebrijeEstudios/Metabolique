@@ -670,7 +670,8 @@ namespace AppVidaSana.Services
         private List<NutritionalValues> CreateNutritionalValues(Dictionary<string, Guid> existingFoods, 
                                                                 List<FoodsConsumedDto> foods)
         {
-            float tolerance = 0.0001f;
+            float floatTolerance = 0.0001f;
+            double doubleTolerance = 0.0001;
 
             var allNutrValues = foods
                                 .SelectMany(food => food.nutritionalValues
@@ -688,7 +689,7 @@ namespace AppVidaSana.Services
                                 {
                                     foodID = existingFoods[food.foodCode],
                                     portion = nutrValue.portion,
-                                    netWeight = nutrValue?.netWeight,
+                                    netWeight = nutrValue.netWeight,
                                     kilocalories = nutrValue.kilocalories,
                                     protein = nutrValue.protein,
                                     carbohydrates = nutrValue.carbohydrates,
@@ -704,22 +705,22 @@ namespace AppVidaSana.Services
                                     .Where(nv => allNutrValues.Any(anv =>
                                         anv.foodID == nv.foodID &&
                                         anv.portion == nv.portion &&
-                                        anv.netWeight == nv.netWeight &&
-                                        Math.Abs(anv.kilocalories - nv.kilocalories) < tolerance &&
-                                        Math.Abs(anv.protein - nv.protein) < tolerance &&
-                                        Math.Abs(anv.carbohydrates - nv.carbohydrates) < tolerance &&
-                                        Math.Abs(anv.totalLipids - nv.totalLipids) < tolerance))
+                                        Math.Abs(anv.netWeight ?? 0f - nv.netWeight ?? 0f) < floatTolerance &&
+                                        Math.Abs(anv.kilocalories - nv.kilocalories) < doubleTolerance &&
+                                        Math.Abs(anv.protein - nv.protein) < doubleTolerance &&
+                                        Math.Abs(anv.carbohydrates - nv.carbohydrates) < doubleTolerance &&
+                                        Math.Abs(anv.totalLipids - nv.totalLipids) < doubleTolerance))
                                     .ToList();
 
             var newNutrValues = allNutrValues
                                 .Where(nv => !existingNutrValues.Any(anv =>
                                     anv.foodID == nv.foodID &&
                                     anv.portion == nv.portion &&
-                                    anv.netWeight == nv.netWeight &&
-                                    Math.Abs(anv.kilocalories - nv.kilocalories) < tolerance &&
-                                    Math.Abs(anv.protein - nv.protein) < tolerance &&
-                                    Math.Abs(anv.carbohydrates - nv.carbohydrates) < tolerance &&
-                                    Math.Abs(anv.totalLipids - nv.totalLipids) < tolerance))
+                                    Math.Abs(anv.netWeight ?? 0f - nv.netWeight ?? 0f) < floatTolerance &&
+                                    Math.Abs(anv.kilocalories - nv.kilocalories) < doubleTolerance &&
+                                    Math.Abs(anv.protein - nv.protein) < doubleTolerance &&
+                                    Math.Abs(anv.carbohydrates - nv.carbohydrates) < doubleTolerance &&
+                                    Math.Abs(anv.totalLipids - nv.totalLipids) < doubleTolerance))
                                 .ToList();
 
             if (newNutrValues.Count > 0)

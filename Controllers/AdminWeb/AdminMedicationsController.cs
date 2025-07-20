@@ -150,57 +150,5 @@ namespace AppVidaSana.Controllers.AdminWeb
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
         }
-
-        /*/// <summary>
-        /// PENDIENTE
-        /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetPeriodMedResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("periods-medications")]
-        [Produces("application/json")]
-        public async Task<IActionResult> GetPeriodMedicationsPerUserAsync([FromQuery] PeriodMedicationsFilterDto filter, [FromQuery] int page)
-        {
-            try
-            {
-                var pMeds = await _MedicationService.GetAllPeriodMedicationsPerUserAsync(filter, page, HttpContext.RequestAborted);
-
-                GetPeriodMedResponse response = new GetPeriodMedResponse
-                {
-                    periodsMed = pMeds
-                };
-
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, periods = response.periodsMed });
-            }
-            catch (UnstoredValuesException ex)
-            {
-                ExceptionMessage response = new ExceptionMessage
-                {
-                    status = ex.Message
-                };
-
-                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
-            }
-        }*/
     }
 }

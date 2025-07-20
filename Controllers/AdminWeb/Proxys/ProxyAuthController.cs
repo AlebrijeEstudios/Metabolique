@@ -1,10 +1,9 @@
-﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+﻿using AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using NuGet.Protocol;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -41,12 +40,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             if (!response.IsSuccessStatusCode)
             {
-                var contentObject = JsonConvert.DeserializeObject(responseBody);
-                return StatusCode((int)response.StatusCode, new
-                {
-                    statusCode = response.StatusCode,
-                    content = contentObject
-                });
+                return this.HandleErrorResponse(response, responseBody);
             }
 
             return Content(responseBody, typeArchive);

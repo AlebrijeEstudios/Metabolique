@@ -7,13 +7,13 @@ using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
-using AppVidaSana.Models.Exercises;
 
 namespace AppVidaSana.Services.AdminWeb
 {
     public class AWFeedingService : IAWFeeding
     {
         private readonly AppDbContext _bd;
+        private const string notDoctorID = "00000000-0000-0000-0000-000000000000";
 
         public AWFeedingService(AppDbContext bd)
         {
@@ -355,7 +355,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<UserFeeds> FilterFeedings(IQueryable<UserFeeds> query, UserFeedFilterDto filter) 
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                         .Where(pd => pd.doctorID == filter.doctorID)
                                         .Select(pd => pd.accountID)
@@ -469,7 +469,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<UserCalories> FilterUserCalories(IQueryable<UserCalories> query, PatientFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
@@ -557,7 +557,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<FoodResults> FilterMFUsFeeding(IQueryable<FoodResults> query, PatientFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)
@@ -713,7 +713,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<CaloriesConsumed>> GetQueryKcalConsumedAsync(CaloriesConsumedFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
-            List<CaloriesConsumed> kcalConsumed = new List<CaloriesConsumed>();
+            List<CaloriesConsumed> kcalConsumed;
 
             var query = _bd.CaloriesConsumed
                             .Include(f => f.account)
@@ -744,7 +744,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<CaloriesConsumed> FilterKcalConsumed(IQueryable<CaloriesConsumed> query, CaloriesConsumedFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
@@ -789,7 +789,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<CaloriesConsumed> FilterKcalConsumedByDates(IQueryable<CaloriesConsumed> query, CaloriesConsumedFilterDto filter) 
+        private static IQueryable<CaloriesConsumed> FilterKcalConsumedByDates(IQueryable<CaloriesConsumed> query, CaloriesConsumedFilterDto filter) 
         {
             if (filter.startDate != null && filter.endDate != null)
             {
@@ -817,7 +817,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private async Task<List<CaloriesRequiredPerDay>> GetQueryKcalRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
-            List<CaloriesRequiredPerDay> kcalReqPerDays = new List<CaloriesRequiredPerDay>();
+            List<CaloriesRequiredPerDay> kcalReqPerDays;
 
             var query = _bd.CaloriesRequiredPerDays
                             .Include(f => f.account)
@@ -848,7 +848,7 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDays(IQueryable<CaloriesRequiredPerDay> query, CaloriesRequiredPerDaysFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
                                           .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
@@ -892,7 +892,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDaysByDates(IQueryable<CaloriesRequiredPerDay> query, CaloriesRequiredPerDaysFilterDto filter) 
+        private static IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDaysByDates(IQueryable<CaloriesRequiredPerDay> query, CaloriesRequiredPerDaysFilterDto filter) 
         {
             if (filter.startDate != null && filter.endDate != null)
             {

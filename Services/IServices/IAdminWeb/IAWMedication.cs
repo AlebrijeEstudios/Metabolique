@@ -16,14 +16,5 @@ namespace AppVidaSana.Services.IServices.IAdminWeb
         Task<byte[]> ExportAllSideEffectsAsync(SideEffectsFilterDto? filter, CancellationToken cancellationToken);
 
         Task<byte[]> ExportAllMFUsMedicationAsync(MFUsMedicationFilterDto? filter, CancellationToken cancellationToken);
-
-
-        /*Task<List<AllPeriodsMedicationsPerUserDto>> GetAllPeriodMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken);
-
-        Task<byte[]> ExportAllPeriodsMedicationsAsync(CancellationToken cancellationToken);
-
-        Task<byte[]> ExportAllDaysConsumedOfMedAsync(CancellationToken cancellationToken);
-
-        Task<byte[]> ExportAllConsumptionTimesAsync(CancellationToken cancellationToken);*/
     }
 }

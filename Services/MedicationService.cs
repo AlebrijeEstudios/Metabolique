@@ -214,16 +214,13 @@ namespace AppVidaSana.Services
             {
                 var dates = DatesInRange.GetDatesInRange(date.AddDays(1), period.finalFrec);
 
-                foreach (var newDate in dates)
+                var firstValidDate = dates.FirstOrDefault(d => !datesExcluded.Contains(d.ToString()));
+                if (firstValidDate != default)
                 {
-                    if (!datesExcluded.Contains(newDate.ToString()))
-                    {
-                        period.initialFrec = newDate;
-                        break;
-                    }
+                    period.initialFrec = firstValidDate;
+                    
+                    if (!Save()) { throw new UnstoredValuesException(); }
                 }
-
-                if (!Save()) { throw new UnstoredValuesException(); }
             }
         }
 
@@ -233,16 +230,13 @@ namespace AppVidaSana.Services
             {
                 var dates = DatesInRange.GetDatesInRange(period.initialFrec, date.AddDays(-1)).OrderDescending();
 
-                foreach (var newDate in dates)
+                var firstValidDate = dates.FirstOrDefault(d => !datesExcluded.Contains(d.ToString()));
+                if (firstValidDate != default)
                 {
-                    if (!datesExcluded.Contains(newDate.ToString()))
-                    {
-                        period.finalFrec = newDate;
-                        break;
-                    }
+                    period.finalFrec = firstValidDate;
+                    
+                    if (!Save()) { throw new UnstoredValuesException(); }
                 }
-
-                if (!Save()) { throw new UnstoredValuesException(); }
             }
         }
 
@@ -586,7 +580,7 @@ namespace AppVidaSana.Services
             {
                 dates = DatesInRange.GetDatesInRange(values.initialFrec, period.initialFrec);
 
-                datesExcluded = UpdateDatesExcluded(datesExcluded ?? [], dates);
+                datesExcluded = UpdateDatesExcluded(datesExcluded, dates);
 
                 period.datesExcluded = string.Join(",", datesExcluded ?? []);
             }
