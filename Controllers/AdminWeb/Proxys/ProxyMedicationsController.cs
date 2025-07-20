@@ -195,7 +195,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
             }
 
-            var response = await client.DeleteAsync($"https://{api}/api/medication?periodID={periodID}&date={date}");
+            var response = await client.DeleteAsync($"https://{api}/api/medication?periodID={periodID}&date={date.ToString(formatDate, CultureInfo.InvariantCulture)}");
 
             var responseBody = await response.Content.ReadAsStringAsync();
 
