@@ -21,7 +21,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [Tags("Proxy - Habits")]
     [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/habits")]
-    [RequestTimeout("CustomPolicy")]
     public class ProxyHabitsController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;

@@ -72,11 +72,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
-        [AllowAnonymous]
         [EnableRateLimiting("write")]
         [HttpPost]
         [Produces("application/json")]
-        [RequestTimeout("CustomPolicy")]
         public async Task<IActionResult> CreateDoctorAsync([FromBody] AWDoctorDto values)
         {
             try

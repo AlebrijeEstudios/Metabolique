@@ -19,7 +19,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [Tags("Proxy - Exercises")]
     [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/exercises")]
-    [RequestTimeout("CustomPolicy")]
     public class ProxyExercisesController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;

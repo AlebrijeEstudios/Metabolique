@@ -25,6 +25,8 @@ using AppVidaSana.Services.AdminWeb;
 using System.Security.Claims;
 using AppVidaSana.KeyToken;
 using AppVidaSana.RateLimitHelpers;
+using AppVidaSana.TESTS;
+using AppVidaSana.TESTS.ServicesTests;
 
 Env.Load();
 
@@ -142,6 +144,9 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHttpContextAccessor();
 
+
+builder.Services.AddScoped<IServicesTests, ServicesTests>();
+
 builder.Services.AddScoped<IAWAuth, AWAuthService>();
 builder.Services.AddScoped<IAWDoctors, AWDoctorService>();
 builder.Services.AddScoped<IAWFeeding, AWFeedingService>();
@@ -228,6 +233,13 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Proxies for Metabolique web administrator."
     });
 
+    c.SwaggerDoc("app_test", new OpenApiInfo
+    {
+        Title = "App TESTS",
+        Version = "v1",
+        Description = "TESTS Endpoints."
+    });
+
     c.DocInclusionPredicate((docName, apiDesc) =>
     {
         if (string.IsNullOrEmpty(apiDesc.GroupName)) { return false; }
@@ -302,6 +314,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/app/swagger.json", "Metabolique API");
     c.SwaggerEndpoint("/swagger/admin/swagger.json", "Metabolique Admin Web APIs");
     c.SwaggerEndpoint("/swagger/proxy/swagger.json", "Metabolique Proxys Admin Web APIs");
+    c.SwaggerEndpoint("/swagger/app_test/swagger.json", "App TESTS");
 });
 
 app.Use(async (context, next) =>
@@ -328,11 +341,11 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseHttpsRedirection();         
-app.UseStaticFiles();              
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("RulesCORS");
 app.UseRequestTimeouts();
+app.UseCors("RulesCORS");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -340,4 +353,4 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllers();
-await app.RunAsync();   
+await app.RunAsync();

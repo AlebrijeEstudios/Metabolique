@@ -25,7 +25,6 @@ namespace AppVidaSana.Services.AdminWeb
 
             var account = await context.Doctors.FirstOrDefaultAsync(u => u.email == login.username, cancellationToken);
 
-
             if (account is null || !BCrypt.Net.BCrypt.Verify(login.password, account.password))
             {
                 throw new FailLoginException();
@@ -34,7 +33,6 @@ namespace AppVidaSana.Services.AdminWeb
             var role = await context.Roles.FirstOrDefaultAsync(e => e.roleID == account.roleID, cancellationToken);
 
             var accessToken = CreateAccessTokenAdminAsync(account, role!.role);
-
 
             TokenAdminDto response = new TokenAdminDto();
 

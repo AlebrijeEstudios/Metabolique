@@ -20,7 +20,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [Tags("Proxy - Medications")]
     [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/medications")]
-    [RequestTimeout("CustomPolicy")]
     public class ProxyMedicationsController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;
