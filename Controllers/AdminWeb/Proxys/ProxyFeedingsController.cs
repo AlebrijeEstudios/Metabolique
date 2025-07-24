@@ -22,7 +22,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [Tags("Proxy - Feedings")]
     [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/feedings")]
-    [RequestTimeout("CustomPolicy")]
     public class ProxyFeedingsController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;

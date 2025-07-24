@@ -2,7 +2,6 @@
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
@@ -12,7 +11,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [Tags("Proxy - Auth")]
     [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin")]
-    [RequestTimeout("CustomPolicy")]
     public class ProxyAuthController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;

@@ -2,7 +2,6 @@
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Doctor_AWDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 
@@ -14,7 +13,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     [Tags("Proxy - Doctors")]
     [ApiExplorerSettings(GroupName = "proxy")]
     [Route("proxy/admin/doctors")]
-    [RequestTimeout("CustomPolicy")]
     public class ProxyDoctorsController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;
