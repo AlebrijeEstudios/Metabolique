@@ -166,7 +166,7 @@ namespace AppVidaSana.TESTS.ServicesTests
                 {
                     accountID = accountID,
                     refreshToken = refreshToken,
-                    dateExpiration = DateTime.Now.AddMinutes(1)
+                    dateExpiration = DateTime.Now.AddMinutes(3)
                 };
 
                 await context.HistorialRefreshTokens.AddAsync(historialRefreshToken, cancellationToken);
@@ -187,7 +187,7 @@ namespace AppVidaSana.TESTS.ServicesTests
 
             historial.refreshToken = refreshToken;
 
-            historial.dateExpiration = DateTime.Now.AddMinutes(1);
+            historial.dateExpiration = DateTime.Now.AddMinutes(3);
 
             try
             {
@@ -214,7 +214,7 @@ namespace AppVidaSana.TESTS.ServicesTests
 
             historial.refreshToken = refreshToken;
 
-            historial.dateExpiration = DateTime.Now.AddMinutes(1);
+            historial.dateExpiration = DateTime.Now.AddMinutes(3);
 
             try
             {
