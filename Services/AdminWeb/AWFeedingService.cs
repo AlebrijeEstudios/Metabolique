@@ -7,6 +7,8 @@ using AppVidaSana.Months_Dates;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
+using Azure.Storage.Sas;
+using Azure.Storage.Blobs;
 
 namespace AppVidaSana.Services.AdminWeb
 {
@@ -14,10 +16,13 @@ namespace AppVidaSana.Services.AdminWeb
     {
         private readonly AppDbContext _bd;
         private const string notDoctorID = "00000000-0000-0000-0000-000000000000";
+        private const string ContainerName = "storageimages";
+        private readonly BlobServiceClient _blobServiceClient;
 
-        public AWFeedingService(AppDbContext bd)
+        public AWFeedingService(AppDbContext bd, BlobServiceClient blobServiceClient)
         {
             _bd = bd;
+            _blobServiceClient = blobServiceClient;
         }
 
         public async Task<List<AllFeedsOfAUserDto>> GetAllFeedsOfAUserAsync(UserFeedFilterDto filter, int page, CancellationToken cancellationToken)
@@ -43,7 +48,7 @@ namespace AppVidaSana.Services.AdminWeb
                                                 .Sum(nv => nv.nutritionalValues?.netWeight ?? 0 * nv.MealFrequency), 2),
                 satietyLevel = feeding.satietyLevel,
                 emotionsLinked = feeding.emotionsLinked,
-                saucerPictureUrl = feeding.saucerPicture?.saucerPictureUrl ?? "N/A",
+                saucerPictureUrl = GetSaucerPictureUrl(feeding.saucerPicture?.saucerPictureUrl) ?? "N/A",
                 foodsConsumed = feeding.userFeedNutritionalValues
                                 .GroupBy(nv => nv.nutritionalValues!.foods!.foodCode)
                                 .Select(group => new FoodsConsumedDto
@@ -915,6 +920,31 @@ namespace AppVidaSana.Services.AdminWeb
             }
 
             return query;
+        }
+
+        private string? GetSaucerPictureUrl(string? saucerPictureUrl)
+        {
+            if (saucerPictureUrl is null) { return saucerPictureUrl; }
+
+            var blobUri = new Uri(saucerPictureUrl);
+            var blobName = Path.GetFileName(blobUri.LocalPath);
+
+            var blobClient = _blobServiceClient.GetBlobContainerClient(ContainerName)
+                                               .GetBlobClient(blobName);
+
+            var sasBuilder = new BlobSasBuilder
+            {
+                BlobContainerName = ContainerName,
+                BlobName = blobName,
+                Resource = "b",
+                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(10)
+            };
+
+            sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+            var sasUri = blobClient.GenerateSasUri(sasBuilder);
+
+            return sasUri.ToString();
         }
     }
 }
