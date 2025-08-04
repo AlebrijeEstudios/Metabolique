@@ -5,11 +5,8 @@ using AppVidaSana.Models.Dtos.Exercise_Dtos;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Exercise_Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System.Globalization;
-using System.Net.Http.Headers;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -25,12 +22,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private const string formatDate = "yyyy-MM-dd";
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
-        private const string apiKeyHeaderName = "ApiKeyHeaderName";
-        private const string apiKey = "API_KEY";
-        private const string bearerScheme = "Bearer";
-        private const string typeArchiveJson = "application/json";
-        private const string typeArchiveZip = "application/zip";
-        private const string defaultNameZip = "default.zip";
 
         public ProxyExercisesController(IHttpClientFactory clientFactory)
         {
@@ -40,16 +31,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpGet]
         public async Task<IActionResult> ProxyExercisesAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] ExerciseFilterDto filter, [FromQuery] int page)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var queryParams = new List<string>();
 
@@ -96,102 +79,48 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"typeExport={typeExport}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/exercises/export-exercises?{queryString}");
+                var url = $"https://{api}/api/admin/exercises/export-exercises";
 
-                var content = await response.Content.ReadAsByteArrayAsync();
-                var contentDisposition = response.Content.Headers.ContentDisposition;
-                var fileName = contentDisposition?.FileName ?? defaultNameZip;
-
-                return new FileContentResult(content, typeArchiveZip)
-                {
-                    FileDownloadName = fileName
-                };
+                return await this.HandleExportRequestAsync(client, url, queryString);
             }
             else
             {
                 queryParams.Add($"page={page}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/exercises?{queryString}");
+                var url = $"https://{api}/api/admin/exercises";
 
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return this.HandleErrorResponse(response, responseBody);
-                }
-
-                return Content(responseBody, typeArchiveJson);
+                return await this.GetHandleRegularRequestAsync(client, url, queryString);
             }
         }
 
         [HttpPut("edit")]
         public async Task<IActionResult> ProxyEditExerciseAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] ExerciseDto values)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var url = $"https://{api}/api/exercises";
 
-            var response = await client.PutAsJsonAsync(url, values);
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchiveJson);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "PUT", url, values);
         }
 
         [HttpDelete("delete")]
         public async Task<IActionResult> ProxyDeleteExerciseAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid exerciseID)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
+            var url = $"https://{api}/api/exercises/{exerciseID}";
 
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
-
-            var response = await client.DeleteAsync($"https://{api}/api/exercises/{exerciseID}");
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchiveJson);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "DELETE", url, null);
         }
 
         [HttpGet("mfu-exercise")]
         public async Task<IActionResult> ProxyMFUsExercisesAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var queryParams = new List<string>();
 
@@ -226,76 +155,37 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"typeExport={typeExport}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/exercises/export-mfu-exercise?{queryString}");
+                var url = $"https://{api}/api/admin/exercises/export-mfu-exercise";
 
-                var content = await response.Content.ReadAsByteArrayAsync();
-                var contentDisposition = response.Content.Headers.ContentDisposition;
-                var fileName = contentDisposition?.FileName ?? defaultNameZip;
-
-                return new FileContentResult(content, typeArchiveZip)
-                {
-                    FileDownloadName = fileName
-                };
+                return await this.HandleExportRequestAsync(client, url, queryString);
             }
             else
             {
                 queryParams.Add($"page={page}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/exercises/mfu-exercise?{queryString}");
+                var url = $"https://{api}/api/admin/exercises/mfu-exercise";
 
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return this.HandleErrorResponse(response, responseBody);
-                }
-
-                return Content(responseBody, typeArchiveJson);
+                return await this.GetHandleRegularRequestAsync(client, url, queryString);
             }
         }
 
         [HttpPut("mfu-exercise/edit")]
         public async Task<IActionResult> ProxyEditMFUsExercisesAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateResponsesExerciseDto values)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var url = $"https://{api}/api/monthly-exercise-monitoring";
 
-            var response = await client.PutAsJsonAsync(url, values);
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchiveJson);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "PUT", url, values);
         }
     
         [HttpGet("active-minutes")]
         public async Task<IActionResult> ProxyActiveMinutesAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] ActiveMinutesFilterDto filter, [FromQuery] int page)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var queryParams = new List<string>();
 
@@ -336,32 +226,18 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"typeExport={typeExport}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/exercises/export-active-minutes?{queryString}");
+                var url = $"https://{api}/api/admin/exercises/export-active-minutes";
 
-                var content = await response.Content.ReadAsByteArrayAsync();
-                var contentDisposition = response.Content.Headers.ContentDisposition;
-                var fileName = contentDisposition?.FileName ?? defaultNameZip;
-
-                return new FileContentResult(content, typeArchiveZip)
-                {
-                    FileDownloadName = fileName
-                };
+                return await this.HandleExportRequestAsync(client, url, queryString);
             }
             else
             {
                 queryParams.Add($"page={page}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/exercises/active-minutes?{queryString}");
+                var url = $"https://{api}/api/admin/exercises/active-minutes";
 
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return this.HandleErrorResponse(response, responseBody);
-                }
-
-                return Content(responseBody, typeArchiveJson);
+                return await this.GetHandleRegularRequestAsync(client, url, queryString);
             }
         }
     }

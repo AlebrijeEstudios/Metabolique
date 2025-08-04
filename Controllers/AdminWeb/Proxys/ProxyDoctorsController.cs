@@ -3,7 +3,6 @@ using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Doctor_AWDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http.Headers;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -18,10 +17,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private readonly IHttpClientFactory _clientFactory;
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
-        private const string apiKeyHeaderName = "ApiKeyHeaderName";
-        private const string apiKey = "API_KEY";
-        private const string bearerScheme = "Bearer";
-        private const string typeArchive = "application/json";
 
         public ProxyDoctorsController(IHttpClientFactory clientFactory)
         {
@@ -31,42 +26,19 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpGet("all")]
         public async Task<IActionResult> ProxyListDoctorsAsync([FromHeader(Name = headerToken)] string authorization)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var response = await client.GetAsync($"https://{api}/api/doctors");
 
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchive);
+            return await this.HandleRegularRequestAsync(response);
         }
 
         [HttpGet]
         public async Task<IActionResult> ProxyDoctorsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] DoctorFilterDto filter, [FromQuery] int page)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var queryParams = new List<string>();
 
@@ -81,89 +53,42 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             queryParams.Add($"page={page}");
             queryString = string.Join("&", queryParams);
 
-            var response = await client.GetAsync($"https://{api}/api/admin/doctors?{queryString}");
+            var url = $"https://{api}/api/admin/doctors";
 
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchive);
+            return await this.GetHandleRegularRequestAsync(client, url, queryString);
         }
 
         [HttpPost]
-        public async Task<IActionResult> ProxyCreateDoctorAsync([FromBody] AWDoctorDto values)
+        public async Task<IActionResult> ProxyCreateDoctorAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] AWDoctorDto values)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
-            var response = await client.PostAsJsonAsync($"https://{api}/api/admin/doctors", values);
+            var url = $"https://{api}/api/admin/doctors";
 
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchive);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "POST", url, values);
         }
 
         [HttpPut("edit")]
         public async Task<IActionResult> ProxyEditDoctorAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] AllDoctorsDto values)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var url = $"https://{api}/api/admin/doctors";
 
-            var response = await client.PutAsJsonAsync(url, values);
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchive);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "PUT", url, values);
         }
 
         [HttpDelete("delete")]
         public async Task<IActionResult> ProxyDeleteDoctorAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid doctorID)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
+            var url = $"https://{api}/api/admin/doctors/{doctorID}";
 
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
-
-            var response = await client.DeleteAsync($"https://{api}/api/admin/doctors/{doctorID}");
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchive);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "DELETE", url, null);
         }
     }
 }
