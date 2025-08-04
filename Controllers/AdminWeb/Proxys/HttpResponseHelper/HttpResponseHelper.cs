@@ -6,7 +6,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
 {
     public static class HttpResponseHelper
     {
-        private const string apiUrl = "SERVER";
         private const string apiKeyHeaderName = "ApiKeyHeaderName";
         private const string apiKey = "API_KEY";
         private const string bearerScheme = "Bearer";
