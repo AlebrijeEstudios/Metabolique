@@ -17,7 +17,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private const string apiUrl = "SERVER";
         private const string apiKeyHeaderName = "ApiKeyHeaderName";
         private const string apiKey = "API_KEY";
-        private const string typeArchive = "application/json";
 
         public ProxyAuthController(IHttpClientFactory clientFactory)
         {
@@ -32,16 +31,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var api = Environment.GetEnvironmentVariable(apiUrl);
             client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
-            var response = await client.PostAsJsonAsync($"https://{api}/api/admin/auth", login);
+            var url = $"https://{api}/api/admin/auth";
 
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchive);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "POST", url, login);
         }
     }
 }

@@ -3,12 +3,10 @@ using AppVidaSana.Models.Dtos.Medication_Dtos;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Medications_Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Globalization;
-using System.Net.Http.Headers;
 using System.Text;
 using AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper;
 
@@ -26,12 +24,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private const string formatDate = "yyyy-MM-dd";
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
-        private const string apiKeyHeaderName = "ApiKeyHeaderName";
-        private const string apiKey = "API_KEY";
-        private const string bearerScheme = "Bearer";
         private const string typeArchiveJson = "application/json";
-        private const string typeArchiveZip = "application/zip";
-        private const string defaultNameZip = "default.zip";
 
         public ProxyMedicationsController(IHttpClientFactory clientFactory)
         {
@@ -41,16 +34,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpGet]
         public async Task<IActionResult> ProxyInfoMedicationsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] PeriodMedicationsFilterDto filter, [FromQuery] int page)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var queryParams = new List<string>();
 
@@ -97,48 +82,26 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"typeExport={typeExport}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/medications/export-periods-medications?{queryString}");
+                var url = $"https://{api}/api/admin/medications/export-periods-medications";
 
-                var content = await response.Content.ReadAsByteArrayAsync();
-                var contentDisposition = response.Content.Headers.ContentDisposition;
-                var fileName = contentDisposition?.FileName ?? defaultNameZip;
-
-                return new FileContentResult(content, typeArchiveZip)
-                {
-                    FileDownloadName = fileName
-                };
+                return await this.HandleExportRequestAsync(client, url, queryString);
             }
             else
             {
                 queryParams.Add($"page={page}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/medications/info-medications?{queryString}");
+                var url = $"https://{api}/api/admin/medications/info-medications";
 
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return this.HandleErrorResponse(response, responseBody);
-                }
-
-                return Content(responseBody, typeArchiveJson);
+                return await this.GetHandleRegularRequestAsync(client, url, queryString);
             }
         }
 
         [HttpPut("edit")]
         public async Task<IActionResult> ProxyEditMedicationAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateMedicationUseDto values)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var url = $"https://{api}/api/medication";
             var dtoToSend = new
@@ -170,55 +133,25 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.PutAsync(url, content);
 
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchiveJson);
+            return await this.HandleRegularRequestAsync(response);
         }
 
         [HttpDelete("delete")]
         public async Task<IActionResult> ProxyDeleteMedicationAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid periodID, [FromQuery] DateOnly date)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
+            var url = $"https://{api}/api/medication?periodID={periodID}&date={date.ToString(formatDate, CultureInfo.InvariantCulture)}";
 
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
-
-            var response = await client.DeleteAsync($"https://{api}/api/medication?periodID={periodID}&date={date.ToString(formatDate, CultureInfo.InvariantCulture)}");
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchiveJson);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "DELETE", url, null);
         }
 
         [HttpGet("side-effects")]
         public async Task<IActionResult> ProxySideEffectsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] SideEffectsFilterDto filter, [FromQuery] int page)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var queryParams = new List<string>();
 
@@ -259,48 +192,26 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"typeExport={typeExport}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/medications/export-side-effects?{queryString}");
+                var url = $"https://{api}/api/admin/medications/export-side-effects";
 
-                var content = await response.Content.ReadAsByteArrayAsync();
-                var contentDisposition = response.Content.Headers.ContentDisposition;
-                var fileName = contentDisposition?.FileName ?? defaultNameZip;
-
-                return new FileContentResult(content, typeArchiveZip)
-                {
-                    FileDownloadName = fileName
-                };
+                return await this.HandleExportRequestAsync(client, url, queryString);
             }
             else
             {
                 queryParams.Add($"page={page}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/medications/side-effects?{queryString}");
+                var url = $"https://{api}/api/admin/medications/side-effects";
 
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return this.HandleErrorResponse(response, responseBody);
-                }
-
-                return Content(responseBody, typeArchiveJson);
+                return await this.GetHandleRegularRequestAsync(client, url, queryString);
             }
         }
 
         [HttpPut("side-effects/edit")]
         public async Task<IActionResult> ProxyEditSideEffectsAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] SideEffectsListDto values)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var url = $"https://{api}/api/medication/side-effects";
 
@@ -322,55 +233,25 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
 
             var response = await client.PutAsync(url, content);
 
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchiveJson);
+            return await this.HandleRegularRequestAsync(response);
         }
 
         [HttpDelete("side-effects/delete")]
         public async Task<IActionResult> ProxyDeleteSideEffectsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid sideEffectID)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
+            var url = $"https://{api}/api/medication/side-effects?sideEffectID={sideEffectID}";
 
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
-
-            var response = await client.DeleteAsync($"https://{api}/api/medication/side-effects?sideEffectID={sideEffectID}");
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchiveJson);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "DELETE", url, null);
         }
 
         [HttpGet("mfu-medication")]
         public async Task<IActionResult> ProxyMFUsMedicationAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] MFUsMedicationFilterDto filter, [FromQuery] int page)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var queryParams = new List<string>();
 
@@ -401,7 +282,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             if (!string.IsNullOrEmpty(filter.statusAdherence))
                 queryParams.Add($"statusAdherence={filter.statusAdherence}");
 
-
             var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
@@ -409,61 +289,30 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"typeExport={typeExport}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/medications/export-mfu-medication?{queryString}");
+                var url = $"https://{api}/api/admin/medications/export-mfu-medication";
 
-                var content = await response.Content.ReadAsByteArrayAsync();
-                var contentDisposition = response.Content.Headers.ContentDisposition;
-                var fileName = contentDisposition?.FileName ?? defaultNameZip;
-
-                return new FileContentResult(content, typeArchiveZip)
-                {
-                    FileDownloadName = fileName
-                };
+                return await this.HandleExportRequestAsync(client, url, queryString);
             }
             else
             {
                 queryParams.Add($"page={page}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/medications/mfu-medication?{queryString}");
+                var url = $"https://{api}/api/admin/medications/mfu-medication";
 
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return this.HandleErrorResponse(response, responseBody);
-                }
-
-                return Content(responseBody, typeArchiveJson);
+                return await this.GetHandleRegularRequestAsync(client, url, queryString);
             }
         }
 
         [HttpPut("mfu-medication/edit")]
         public async Task<IActionResult> ProxyEditMFUsMedicationAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateResponsesMedicationsDto values)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var url = $"https://{api}/api/monthly-medications-monitoring";
 
-            var response = await client.PutAsJsonAsync(url, values);
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchiveJson);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "PUT", url, values);
         }
     }
 }

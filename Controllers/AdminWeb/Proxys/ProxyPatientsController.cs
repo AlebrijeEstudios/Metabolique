@@ -3,9 +3,7 @@ using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http.Headers;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -18,14 +16,10 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     public class ProxyPatientsController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;
+        private const string formatDate = "yyyy-MM-dd";
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
-        private const string apiKeyHeaderName = "ApiKeyHeaderName";
-        private const string apiKey = "API_KEY";
-        private const string bearerScheme = "Bearer";
         private const string typeArchiveJson = "application/json";
-        private const string typeArchiveZip = "application/zip";
-        private const string defaultNameZip = "default.zip";
 
         public ProxyPatientsController(IHttpClientFactory clientFactory)
         {
@@ -35,16 +29,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         [HttpGet]
         public async Task<IActionResult> ProxyPatientsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var queryParams = new List<string>();
 
@@ -79,86 +65,40 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
                 queryParams.Add($"typeExport={typeExport}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/patients/export-patients?{queryString}");
+                var url = $"https://{api}/api/admin/patients/export-patients";
 
-                var content = await response.Content.ReadAsByteArrayAsync();
-                var contentDisposition = response.Content.Headers.ContentDisposition;
-                var fileName = contentDisposition?.FileName ?? defaultNameZip;
-
-                return new FileContentResult(content, typeArchiveZip)
-                {
-                    FileDownloadName = fileName
-                };
+                return await this.HandleExportRequestAsync(client, url, queryString);
             }
             else { 
                 queryParams.Add($"page={page}");
                 queryString = string.Join("&", queryParams);
 
-                var response = await client.GetAsync($"https://{api}/api/admin/patients?{queryString}");
+                var url = $"https://{api}/api/admin/patients";
 
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return this.HandleErrorResponse(response, responseBody);
-                }
-
-                return Content(responseBody, typeArchiveJson);
+                return await this.GetHandleRegularRequestAsync(client, url, queryString);
             }
         }
 
         [HttpPut("edit")]
         public async Task<IActionResult> ProxyEditPatientAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] InfoAccountDto values)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
-
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
-
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
 
             var url = $"https://{api}/api/accounts";
 
-            var response = await client.PutAsJsonAsync(url, values);
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchiveJson);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "PUT", url, values);
         }
 
         [HttpDelete("delete")]
         public async Task<IActionResult> ProxyDeletePatientAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid accountID)
         {
-            var client = _clientFactory.CreateClient();
+            var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
-            client.DefaultRequestHeaders.Add(Environment.GetEnvironmentVariable(apiKeyHeaderName)!, Environment.GetEnvironmentVariable(apiKey));
 
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
-            {
-                var token = headerValue.Parameter;
+            var url = $"https://{api}/api/accounts/{accountID}";
 
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
-            }
-
-            var response = await client.DeleteAsync($"https://{api}/api/accounts/{accountID}");
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return this.HandleErrorResponse(response, responseBody);
-            }
-
-            return Content(responseBody, typeArchiveJson);
+            return await this.PostPutDeleteHandleRegularRequestAsync(client, "DELETE", url, null);
         }
     }
 }
