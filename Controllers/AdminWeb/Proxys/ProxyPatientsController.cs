@@ -16,10 +16,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
     public class ProxyPatientsController : ControllerBase
     {
         private readonly IHttpClientFactory _clientFactory;
-        private const string formatDate = "yyyy-MM-dd";
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
-        private const string typeArchiveJson = "application/json";
 
         public ProxyPatientsController(IHttpClientFactory clientFactory)
         {

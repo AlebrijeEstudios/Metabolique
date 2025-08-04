@@ -28,7 +28,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
         public static HttpClient ConfigureHttpClient(this ControllerBase controller, IHttpClientFactory clientFactory, string authorization)
         {
             var client = clientFactory.CreateClient();
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var apiKeyHeader = Environment.GetEnvironmentVariable(apiKeyHeaderName);
             var apiKeyValue = Environment.GetEnvironmentVariable(apiKey);
@@ -48,7 +47,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
 
         public static async Task<IActionResult> HandleExportRequestAsync(this ControllerBase controller, HttpClient client, string url, string queryString)
         {
-            var api = Environment.GetEnvironmentVariable(apiUrl);
             var response = await client.GetAsync($"{url}?{queryString}");
             var content = await response.Content.ReadAsByteArrayAsync();
             var contentDisposition = response.Content.Headers.ContentDisposition;
