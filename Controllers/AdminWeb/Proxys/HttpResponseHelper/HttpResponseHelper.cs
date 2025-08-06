@@ -31,6 +31,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
             var commonPropertyMappings = new Dictionary<string, string>
             {
                 ["doctorID"] = "doctorID",
+                ["role"] = "role",
                 ["accountID"] = "accountID",
                 ["uiemID"] = "uiemID",
                 ["username"] = "username",
@@ -38,10 +39,16 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
                 ["year"] = "year",
                 ["sex"] = "sex",
                 ["protocolToFollow"] = "protocolToFollow",
+                ["startDate"] = "startDate",
+                ["endDate"] = "endDate",
+                ["dailyMeal"] = "dailyMeal",
                 ["typeExercise"] = "typeExercise",
                 ["intensityExercise"] = "intensityExercise",
-                ["startDate"] = "startDate",
-                ["endDate"] = "endDate"
+                ["predominatEmotionalState"] = "predominatEmotionalState",
+                ["perceptionRelax"] = "perceptionRelax",
+                ["medication"] = "medication",
+                ["status"] = "status",
+                ["statusAdherence"] = "statusAdherence"
             };
 
             foreach (var property in properties)

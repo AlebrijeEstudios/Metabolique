@@ -30,45 +30,20 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
 
-            var queryParams = new List<string>();
-
-            if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
-                queryParams.Add($"doctorID={filter.doctorID}");
-
-            if (!string.IsNullOrEmpty(filter.accountID.ToString()))
-                queryParams.Add($"accountID={filter.accountID}");
-
-            if (!string.IsNullOrEmpty(filter.uiemID))
-                queryParams.Add($"uiemID={filter.uiemID}");
-
-            if (!string.IsNullOrEmpty(filter.username))
-                queryParams.Add($"username={filter.username}");
-
-            if (!string.IsNullOrEmpty(filter.month.ToString()))
-                queryParams.Add($"month={filter.month}");
-
-            if (!string.IsNullOrEmpty(filter.year.ToString()))
-                queryParams.Add($"year={filter.year}");
-
-            if (!string.IsNullOrEmpty(filter.sex))
-                queryParams.Add($"sex={filter.sex}");
-
-            if (!string.IsNullOrEmpty(filter.protocolToFollow))
-                queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
-
             var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                queryParams.Add($"typeExport={typeExport}");
+                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/patients/export-patients";
 
                 return await this.HandleExportRequestAsync(client, url, queryString);
             }
-            else { 
-                queryParams.Add($"page={page}");
+            else 
+            {
+                var queryParams = this.BuildQueryParameters(filter, null, page);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/patients";
