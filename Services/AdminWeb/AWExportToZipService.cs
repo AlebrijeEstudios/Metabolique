@@ -412,7 +412,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
         /*Habit*/
-        public async Task<byte[]> GenerateOnlyHabitsDrinkZipAsync(HabitDrinkFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyHabitsDrinkZipAsync(HabitFilterDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -441,7 +441,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyHabitsDrugsZipAsync(HabitDrugFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyHabitsDrugsZipAsync(HabitFilterDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -470,7 +470,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyHabitsSleepZipAsync(HabitSleepFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyHabitsSleepZipAsync(HabitFilterDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 

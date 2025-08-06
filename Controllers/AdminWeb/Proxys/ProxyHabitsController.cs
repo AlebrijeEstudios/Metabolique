@@ -31,7 +31,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("drink")]
-        public async Task<IActionResult> ProxyHabitDrinkAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] HabitDrinkFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitDrinkAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] HabitFilterDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
@@ -80,7 +80,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("drugs")]
-        public async Task<IActionResult> ProxyHabitDrugsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] HabitDrugFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitDrugsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] HabitFilterDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
@@ -129,7 +129,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("sleep")]
-        public async Task<IActionResult> ProxyHabitSleepAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] HabitSleepFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitSleepAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] HabitFilterDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);

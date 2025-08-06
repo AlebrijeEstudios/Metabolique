@@ -19,7 +19,7 @@ namespace AppVidaSana.Services.AdminWeb
             _bd = bd;
         }
 
-        public async Task<List<AllHabitDrinkPerUserDto>> GetAllHabitsDrinkPerUserAsync(HabitDrinkFilterDto filter, int page, CancellationToken cancellationToken) 
+        public async Task<List<AllHabitDrinkPerUserDto>> GetAllHabitsDrinkPerUserAsync(HabitFilterDto filter, int page, CancellationToken cancellationToken) 
         {
             var hDrink = await GetQueryHabitDrinkAsync(filter, page, false, 0, cancellationToken);
 
@@ -35,7 +35,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allHabitsDrinkPerUser;
         }
 
-        public async Task<List<AllHabitDrugPerUserDto>> GetAllHabitsDrugsPerUserAsync(HabitDrugFilterDto filter, int page, CancellationToken cancellationToken) 
+        public async Task<List<AllHabitDrugPerUserDto>> GetAllHabitsDrugsPerUserAsync(HabitFilterDto filter, int page, CancellationToken cancellationToken) 
         {
             var hDrug = await GetQueryHabitDrugAsync(filter, page, false, 0, cancellationToken);
 
@@ -52,7 +52,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allHabitsDrugPerUser;
         }
 
-        public async Task<List<AllHabitSleepPerUserDto>> GetAllHabitsSleepPerUserAsync(HabitSleepFilterDto filter, int page, CancellationToken cancellationToken) 
+        public async Task<List<AllHabitSleepPerUserDto>> GetAllHabitsSleepPerUserAsync(HabitFilterDto filter, int page, CancellationToken cancellationToken) 
         {
             var hSleep = await GetQueryHabitSleepAsync(filter, page, false, 0, cancellationToken);
 
@@ -112,7 +112,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        public async Task<byte[]> ExportAllHabitsDrinkAsync(HabitDrinkFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllHabitsDrinkAsync(HabitFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<DrinkHabit> hDrink;
@@ -142,7 +142,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        public async Task<byte[]> ExportAllHabitsDrugsAsync(HabitDrugFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllHabitsDrugsAsync(HabitFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<DrugsHabit> hDrugs;
@@ -172,7 +172,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        public async Task<byte[]> ExportAllHabitsSleepAsync(HabitSleepFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllHabitsSleepAsync(HabitFilterDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<SleepHabit> hSleep;
@@ -239,7 +239,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<DrinkHabit>> GetQueryHabitDrinkAsync(HabitDrinkFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
+        private async Task<List<DrinkHabit>> GetQueryHabitDrinkAsync(HabitFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
             List<DrinkHabit> hDrink;
 
@@ -270,7 +270,7 @@ namespace AppVidaSana.Services.AdminWeb
             return hDrink;
         }
 
-        private IQueryable<DrinkHabit> FilterHabitDrink(IQueryable<DrinkHabit> query, HabitDrinkFilterDto filter)
+        private IQueryable<DrinkHabit> FilterHabitDrink(IQueryable<DrinkHabit> query, HabitFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
@@ -294,7 +294,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<DrinkHabit> FilterHabitDrinkByPatient(IQueryable<DrinkHabit> query, HabitDrinkFilterDto filter)
+        private IQueryable<DrinkHabit> FilterHabitDrinkByPatient(IQueryable<DrinkHabit> query, HabitFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
@@ -324,7 +324,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private static IQueryable<DrinkHabit> FilterHabitDrinkByHabit(IQueryable<DrinkHabit> query, HabitDrinkFilterDto filter)
+        private static IQueryable<DrinkHabit> FilterHabitDrinkByHabit(IQueryable<DrinkHabit> query, HabitFilterDto filter)
         {
             if (filter.startDate != null && filter.endDate != null)
             {
@@ -350,7 +350,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<DrugsHabit>> GetQueryHabitDrugAsync(HabitDrugFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<DrugsHabit>> GetQueryHabitDrugAsync(HabitFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<DrugsHabit> hDrugs;
 
@@ -381,7 +381,7 @@ namespace AppVidaSana.Services.AdminWeb
             return hDrugs;
         }
 
-        private IQueryable<DrugsHabit> FilterHabitDrugs(IQueryable<DrugsHabit> query, HabitDrugFilterDto filter)
+        private IQueryable<DrugsHabit> FilterHabitDrugs(IQueryable<DrugsHabit> query, HabitFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
@@ -405,7 +405,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<DrugsHabit> FilterHabitDrugsByPatient(IQueryable<DrugsHabit> query, HabitDrugFilterDto filter)
+        private IQueryable<DrugsHabit> FilterHabitDrugsByPatient(IQueryable<DrugsHabit> query, HabitFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
@@ -436,7 +436,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private static IQueryable<DrugsHabit> FilterHabitDrugsByHabit(IQueryable<DrugsHabit> query, HabitDrugFilterDto filter)
+        private static IQueryable<DrugsHabit> FilterHabitDrugsByHabit(IQueryable<DrugsHabit> query, HabitFilterDto filter)
         {
             if (filter.startDate != null && filter.endDate != null)
             {
@@ -465,7 +465,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<SleepHabit>> GetQueryHabitSleepAsync(HabitSleepFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<SleepHabit>> GetQueryHabitSleepAsync(HabitFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<SleepHabit> hSleep;
 
@@ -496,7 +496,7 @@ namespace AppVidaSana.Services.AdminWeb
             return hSleep;
         }
 
-        private IQueryable<SleepHabit> FilterHabitSleep(IQueryable<SleepHabit> query, HabitSleepFilterDto filter)
+        private IQueryable<SleepHabit> FilterHabitSleep(IQueryable<SleepHabit> query, HabitFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
@@ -519,7 +519,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<SleepHabit> FilterHabitSleepByPatient(IQueryable<SleepHabit> query, HabitSleepFilterDto filter)
+        private IQueryable<SleepHabit> FilterHabitSleepByPatient(IQueryable<SleepHabit> query, HabitFilterDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
@@ -550,7 +550,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private static IQueryable<SleepHabit> FilterHabitSleepByHabit(IQueryable<SleepHabit> query, HabitSleepFilterDto filter)
+        private static IQueryable<SleepHabit> FilterHabitSleepByHabit(IQueryable<SleepHabit> query, HabitFilterDto filter)
         {
             if (filter.startDate != null && filter.endDate != null)
             {
