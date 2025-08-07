@@ -60,7 +60,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("drink")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetHabitsDrinkPerUserAsync([FromQuery] HabitDrinkFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetHabitsDrinkPerUserAsync([FromQuery] HabitFilterDto filter, [FromQuery] int page)
         {
             try
             {
@@ -115,7 +115,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("drugs")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetHabitsDrugsPerUserAsync([FromQuery] HabitDrugFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetHabitsDrugsPerUserAsync([FromQuery] HabitFilterDto filter, [FromQuery] int page)
         {
             try
             {
@@ -170,7 +170,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("sleep")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetHabitsSleepPerUserAsync([FromQuery] HabitSleepFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetHabitsSleepPerUserAsync([FromQuery] HabitFilterDto filter, [FromQuery] int page)
         {
             try
             {

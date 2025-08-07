@@ -40,18 +40,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
 
-            var queryParams = new List<string>();
-
-            if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
-                queryParams.Add($"doctorID={filter.doctorID}");
-
-            if (!string.IsNullOrEmpty(filter.role))
-                queryParams.Add($"role={filter.role}");
-
-            var queryString = "";
-
-            queryParams.Add($"page={page}");
-            queryString = string.Join("&", queryParams);
+            var queryParams = this.BuildQueryParameters(filter, null, page);
+            var queryString = string.Join("&", queryParams);
 
             var url = $"https://{api}/api/admin/doctors";
 

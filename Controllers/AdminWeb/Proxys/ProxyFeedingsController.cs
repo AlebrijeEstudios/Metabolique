@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
-using System.Globalization;
 using System.Text;
 using AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper;
 
@@ -38,46 +37,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
 
-            var queryParams = new List<string>();
-
-            if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
-                queryParams.Add($"doctorID={filter.doctorID}");
-
-            if (!string.IsNullOrEmpty(filter.accountID.ToString()))
-                queryParams.Add($"accountID={filter.accountID}");
-
-            if (!string.IsNullOrEmpty(filter.uiemID))
-                queryParams.Add($"uiemID={filter.uiemID}");
-
-            if (!string.IsNullOrEmpty(filter.username))
-                queryParams.Add($"username={filter.username}");
-
-            if (!string.IsNullOrEmpty(filter.month.ToString()))
-                queryParams.Add($"month={filter.month}");
-
-            if (!string.IsNullOrEmpty(filter.year.ToString()))
-                queryParams.Add($"year={filter.year}");
-
-            if (!string.IsNullOrEmpty(filter.sex))
-                queryParams.Add($"sex={filter.sex}");
-
-            if (!string.IsNullOrEmpty(filter.protocolToFollow))
-                queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
-
-            if (!string.IsNullOrEmpty(filter.dailyMeal))
-                queryParams.Add($"dailyMeal={filter.dailyMeal}");
-
-            if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
-
-            if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
-
             var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                queryParams.Add($"typeExport={typeExport}");
+                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/export-feedings";
@@ -86,7 +50,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
             else
             {
-                queryParams.Add($"page={page}");
+                var queryParams = this.BuildQueryParameters(filter, null, page);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings";
@@ -144,46 +108,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
 
-            var queryParams = new List<string>();
-
-            if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
-                queryParams.Add($"doctorID={filter.doctorID}");
-
-            if (!string.IsNullOrEmpty(filter.accountID.ToString()))
-                queryParams.Add($"accountID={filter.accountID}");
-
-            if (!string.IsNullOrEmpty(filter.uiemID))
-                queryParams.Add($"uiemID={filter.uiemID}");
-
-            if (!string.IsNullOrEmpty(filter.username))
-                queryParams.Add($"username={filter.username}");
-
-            if (!string.IsNullOrEmpty(filter.month.ToString()))
-                queryParams.Add($"month={filter.month}");
-
-            if (!string.IsNullOrEmpty(filter.year.ToString()))
-                queryParams.Add($"year={filter.year}");
-
-            if (!string.IsNullOrEmpty(filter.sex))
-                queryParams.Add($"sex={filter.sex}");
-
-            if (!string.IsNullOrEmpty(filter.protocolToFollow))
-                queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
-
-            if (!string.IsNullOrEmpty(filter.dailyMeal))
-                queryParams.Add($"dailyMeal={filter.dailyMeal}");
-
-            if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
-
-            if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
-
             var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                queryParams.Add($"typeExport={typeExport}");
+                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/export-foods";
@@ -192,7 +121,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
             else
             {
-                queryParams.Add($"page={page}");
+                var queryParams = this.BuildQueryParameters(filter, null, page);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/foods";
@@ -207,37 +136,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
 
-            var queryParams = new List<string>();
-
-            if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
-                queryParams.Add($"doctorID={filter.doctorID}");
-
-            if (!string.IsNullOrEmpty(filter.accountID.ToString()))
-                queryParams.Add($"accountID={filter.accountID}");
-
-            if (!string.IsNullOrEmpty(filter.uiemID))
-                queryParams.Add($"uiemID={filter.uiemID}");
-
-            if (!string.IsNullOrEmpty(filter.username))
-                queryParams.Add($"username={filter.username}");
-
-            if (!string.IsNullOrEmpty(filter.month.ToString()))
-                queryParams.Add($"month={filter.month}");
-
-            if (!string.IsNullOrEmpty(filter.year.ToString()))
-                queryParams.Add($"year={filter.year}");
-
-            if (!string.IsNullOrEmpty(filter.sex))
-                queryParams.Add($"sex={filter.sex}");
-
-            if (!string.IsNullOrEmpty(filter.protocolToFollow))
-                queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
-
             var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                queryParams.Add($"typeExport={typeExport}");
+                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/export-mfu-feeding";
@@ -246,7 +149,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
             else
             {
-                queryParams.Add($"page={page}");
+                var queryParams = this.BuildQueryParameters(filter, null, page);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/mfu-feeding";
@@ -272,37 +175,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
 
-            var queryParams = new List<string>();
-
-            if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
-                queryParams.Add($"doctorID={filter.doctorID}");
-
-            if (!string.IsNullOrEmpty(filter.accountID.ToString()))
-                queryParams.Add($"accountID={filter.accountID}");
-
-            if (!string.IsNullOrEmpty(filter.uiemID))
-                queryParams.Add($"uiemID={filter.uiemID}");
-
-            if (!string.IsNullOrEmpty(filter.username))
-                queryParams.Add($"username={filter.username}");
-
-            if (!string.IsNullOrEmpty(filter.month.ToString()))
-                queryParams.Add($"month={filter.month}");
-
-            if (!string.IsNullOrEmpty(filter.year.ToString()))
-                queryParams.Add($"year={filter.year}");
-
-            if (!string.IsNullOrEmpty(filter.sex))
-                queryParams.Add($"sex={filter.sex}");
-
-            if (!string.IsNullOrEmpty(filter.protocolToFollow))
-                queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
-
             var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                queryParams.Add($"typeExport={typeExport}");
+                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/export-calories-needed-per-user";
@@ -311,7 +188,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
             else
             {
-                queryParams.Add($"page={page}");
+                var queryParams = this.BuildQueryParameters(filter, null, page);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/calories-needed-per-user";
@@ -326,37 +203,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
 
-            var queryParams = new List<string>();
-
-            if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
-                queryParams.Add($"doctorID={filter.doctorID}");
-
-            if (!string.IsNullOrEmpty(filter.accountID.ToString()))
-                queryParams.Add($"accountID={filter.accountID}");
-
-            if (!string.IsNullOrEmpty(filter.uiemID))
-                queryParams.Add($"uiemID={filter.uiemID}");
-
-            if (!string.IsNullOrEmpty(filter.username))
-                queryParams.Add($"username={filter.username}");
-
-            if (!string.IsNullOrEmpty(filter.sex))
-                queryParams.Add($"sex={filter.sex}");
-
-            if (!string.IsNullOrEmpty(filter.protocolToFollow))
-                queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
-
-            if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
-
-            if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
-
             var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                queryParams.Add($"typeExport={typeExport}");
+                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/export-calories-consumed-per-day";
@@ -365,7 +216,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
             else
             {
-                queryParams.Add($"page={page}");
+                var queryParams = this.BuildQueryParameters(filter, null, page);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/calories-consumed-per-day";
@@ -380,37 +231,11 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
             var api = Environment.GetEnvironmentVariable(apiUrl);
 
-            var queryParams = new List<string>();
-
-            if (!string.IsNullOrEmpty(filter.doctorID.ToString()))
-                queryParams.Add($"doctorID={filter.doctorID}");
-
-            if (!string.IsNullOrEmpty(filter.accountID.ToString()))
-                queryParams.Add($"accountID={filter.accountID}");
-
-            if (!string.IsNullOrEmpty(filter.uiemID))
-                queryParams.Add($"uiemID={filter.uiemID}");
-
-            if (!string.IsNullOrEmpty(filter.username))
-                queryParams.Add($"username={filter.username}");
-
-            if (!string.IsNullOrEmpty(filter.sex))
-                queryParams.Add($"sex={filter.sex}");
-
-            if (!string.IsNullOrEmpty(filter.protocolToFollow))
-                queryParams.Add($"protocolToFollow={filter.protocolToFollow}");
-
-            if (filter.startDate != null)
-                queryParams.Add($"startDate={filter.startDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
-
-            if (filter.endDate != null)
-                queryParams.Add($"endDate={filter.endDate?.ToString(formatDate, CultureInfo.InvariantCulture)}");
-
             var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                queryParams.Add($"typeExport={typeExport}");
+                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/export-calories-required-per-days";
@@ -419,7 +244,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
             }
             else
             {
-                queryParams.Add($"page={page}");
+                var queryParams = this.BuildQueryParameters(filter, null, page);
                 queryString = string.Join("&", queryParams);
 
                 var url = $"https://{api}/api/admin/feedings/calories-required-per-days";

@@ -63,7 +63,7 @@ namespace AppVidaSana.Services
             PacientDoctor pd = new PacientDoctor
             {
                 accountID = account.accountID,
-                doctorID = Guid.Parse("f7f8fb3a-8018-4f35-a6b4-181947d447b7")
+                doctorID = values.doctorID
             };
 
             _bd.Accounts.Add(account);

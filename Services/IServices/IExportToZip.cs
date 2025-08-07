@@ -25,9 +25,9 @@ namespace AppVidaSana.Services.IServices
         Task<byte[]> GenerateOnlyMFUsExerciseZipAsync(PatientFilterDto? filter, string typeExport, CancellationToken cancellationToken);
 
 
-        Task<byte[]> GenerateOnlyHabitsDrinkZipAsync(HabitDrinkFilterDto? filter, string typeExport, CancellationToken cancellationToken);
-        Task<byte[]> GenerateOnlyHabitsDrugsZipAsync(HabitDrugFilterDto? filter, string typeExport, CancellationToken cancellationToken);
-        Task<byte[]> GenerateOnlyHabitsSleepZipAsync(HabitSleepFilterDto? filter, string typeExport, CancellationToken cancellationToken);
+        Task<byte[]> GenerateOnlyHabitsDrinkZipAsync(HabitFilterDto? filter, string typeExport, CancellationToken cancellationToken);
+        Task<byte[]> GenerateOnlyHabitsDrugsZipAsync(HabitFilterDto? filter, string typeExport, CancellationToken cancellationToken);
+        Task<byte[]> GenerateOnlyHabitsSleepZipAsync(HabitFilterDto? filter, string typeExport, CancellationToken cancellationToken);
         Task<byte[]> GenerateOnlyMFUsHabitsZipAsync(PatientFilterDto? filter, string typeExport, CancellationToken cancellationToken);
 
         Task<byte[]> GenerateOnlyCaloriesConsumedZipAsync(CaloriesConsumedFilterDto? filter, string typeExport, CancellationToken cancellationToken);
