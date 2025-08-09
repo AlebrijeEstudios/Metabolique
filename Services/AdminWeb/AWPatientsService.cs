@@ -115,46 +115,46 @@ namespace AppVidaSana.Services.AdminWeb
 
         private IQueryable<Profiles> FilterPatientsByPatient(IQueryable<Profiles> query, PatientFilterDto filter) 
         {
-            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.doctorID.ToString()) && filter.patientFilter!.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
             {
                 query = query.Where(p => _bd.PacientDoctor
-                                    .Where(pd => pd.doctorID == filter.doctorID)
+                                    .Where(pd => pd.doctorID == filter.patientFilter!.doctorID)
                                     .Select(pd => pd.accountID)
                                     .Contains(p.account!.accountID));
             }
 
-            if (filter.doctorID == Guid.Empty) {
+            if (filter.patientFilter!.doctorID == Guid.Empty) {
                 query = query.Where(p => _bd.PacientDoctor
                                     .Where(pd => pd.doctorID == null)
                                     .Select(pd => pd.accountID)
                                     .Contains(p.account!.accountID));
             }
 
-            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
-                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.patientFilter!.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.username))
-                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.username))
+                query = query.Where(f => f.account!.username.Contains(filter.patientFilter!.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.uiemID))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
+                                .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.patientFilter!.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.monthYearFilter!.month.ToString()))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
+                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.monthYearFilter!.month));
 
-            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.monthYearFilter!.year.ToString()))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
+                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.monthYearFilter!.year));
 
-            if (!string.IsNullOrWhiteSpace(filter.sex))
+            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.sex))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
+                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.patientFilter!.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
+                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.patientFilter!.protocolToFollow));
 
             return query;
         }

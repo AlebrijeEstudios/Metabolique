@@ -1,21 +1,11 @@
-﻿namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos
+﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.GeneralFilters_AWDtos;
+
+namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos
 {
     public class PatientFilterDto
     {
-        public Guid? doctorID { get; set; }
+        public GeneralPatientFilterDto? patientFilter { get; set; }
 
-        public Guid? accountID { get; set; }
-
-        public string? uiemID { get; set; }
-
-        public string? username { get; set; }
-
-        public int? month { get; set; }
-
-        public int? year { get; set; }
-
-        public string? sex { get; set; }
-
-        public string? protocolToFollow { get; set; }
+        public GeneralMonthYearFilterDto? monthYearFilter { get; set; }
     }
 }
