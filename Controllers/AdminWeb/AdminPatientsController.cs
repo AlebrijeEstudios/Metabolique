@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.Services.IServices.IAdminWeb;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -51,7 +51,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> GetPatientsAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetPatientsAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var patients = await _PatientsService.GetPatientsAsync(filter, page, HttpContext.RequestAborted);
 

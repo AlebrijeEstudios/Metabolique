@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Globalization;
 using System.Net.Http.Headers;
@@ -15,8 +16,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
         private const string typeArchiveZip = "application/zip";
         private const string defaultNameZip = "default.zip";
 
-        public static List<string> BuildQueryParameters(this ControllerBase controller, 
-            object filter, string? typeExport, int page)
+        public static List<string> BuildQueryParameters(this ControllerBase controller,
+            FilterAdminDto filter, string? typeExport, int page)
         {
             var queryParams = new List<string>();
 

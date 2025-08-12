@@ -6,10 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.AdminWeb.Exercise;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Exercise_AWDtos;
 using AppVidaSana.Exceptions;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -46,7 +45,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> GetExercisesPerUserAsync([FromQuery] ExerciseFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetExercisesPerUserAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -87,7 +86,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("mfu-exercise")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetMFUsExerciseAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetMFUsExerciseAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -128,7 +127,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("active-minutes")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetActiveMinutesPerExerciseAsync([FromQuery] ActiveMinutesFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetActiveMinutesPerExerciseAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {

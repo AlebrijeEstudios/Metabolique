@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
 using AppVidaSana.Models.Feeding;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
@@ -9,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using Azure.Storage.Sas;
 using Azure.Storage.Blobs;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Services.AdminWeb
 {
@@ -25,7 +25,7 @@ namespace AppVidaSana.Services.AdminWeb
             _blobServiceClient = blobServiceClient;
         }
 
-        public async Task<List<AllFeedsOfAUserDto>> GetAllFeedsOfAUserAsync(UserFeedFilterDto filter, int page, CancellationToken cancellationToken)
+        public async Task<List<AllFeedsOfAUserDto>> GetAllFeedsOfAUserAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var feedings = await GetQueryFeedingsAsync(filter, page, false, 0, cancellationToken);
 
@@ -44,7 +44,7 @@ namespace AppVidaSana.Services.AdminWeb
                 totalLipids = Math.Round(feeding.userFeedNutritionalValues
                                                 .Sum(nv => nv.nutritionalValues?.totalLipids ?? 0 * nv.MealFrequency), 2),
                 totalCalories = Math.Round(feeding.totalCalories, 2),
-                totalNetWeight = Math.Round((double) feeding.userFeedNutritionalValues
+                totalNetWeight = Math.Round((double)feeding.userFeedNutritionalValues
                                                 .Sum(nv => nv.nutritionalValues?.netWeight ?? 0 * nv.MealFrequency), 2),
                 satietyLevel = feeding.satietyLevel,
                 emotionsLinked = feeding.emotionsLinked,
@@ -75,7 +75,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allFeedsOfAUser;
         }
 
-        public async Task<List<AllFoodsConsumedPerUserFeedDto>> GetAllFoodsConsumedPerUserFeedAsync(UserFeedFilterDto filter, int page, CancellationToken cancellationToken) 
+        public async Task<List<AllFoodsConsumedPerUserFeedDto>> GetAllFoodsConsumedPerUserFeedAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var feedings = await GetQueryFeedingsAsync(filter, page, false, 0, cancellationToken);
 
@@ -107,7 +107,7 @@ namespace AppVidaSana.Services.AdminWeb
             return foodsConsumedPerUserFeeds;
         }
 
-        public async Task<List<AllUserCaloriesDto>> GetAllUserCaloriesAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken) 
+        public async Task<List<AllUserCaloriesDto>> GetAllUserCaloriesAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var kcalUsers = await GetQueryUserCaloriesAsync(filter, page, false, 0, cancellationToken);
 
@@ -122,7 +122,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allKcalRequiredPerUser;
         }
 
-        public async Task<List<AllMFUsFeedingPerUserDto>> GetMFUsFeedingAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken) 
+        public async Task<List<AllMFUsFeedingPerUserDto>> GetMFUsFeedingAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var mfus = await GetQueryMFUsFeedingAsync(filter, page, false, 0, cancellationToken);
 
@@ -150,7 +150,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        public async Task<byte[]> ExportAllFeedingsAsync(UserFeedFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllFeedingsAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<UserFeeds> feedings;
@@ -204,7 +204,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        public async Task<byte[]> ExportAllFoodsConsumedPerFeedingAsync(UserFeedFilterDto? filter, CancellationToken cancellationToken) 
+        public async Task<byte[]> ExportAllFoodsConsumedPerFeedingAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<UserFeeds> feedings;
@@ -252,7 +252,7 @@ namespace AppVidaSana.Services.AdminWeb
                 }
 
                 currentPage++;
-                
+
             } while (feedings.Count > 0);
 
             await streamWriter.FlushAsync(cancellationToken);
@@ -260,7 +260,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        public async Task<byte[]> ExportAllUserCaloriesAsync(PatientFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllUserCaloriesAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<UserCalories> calNeeded;
@@ -290,7 +290,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        public async Task<byte[]> ExportAllMFUsFeedingAsync(PatientFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllMFUsFeedingAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<FoodResults> mfus;
@@ -322,7 +322,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<UserFeeds>> GetQueryFeedingsAsync(UserFeedFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
+        private async Task<List<UserFeeds>> GetQueryFeedingsAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<UserFeeds> feedings;
 
@@ -335,7 +335,7 @@ namespace AppVidaSana.Services.AdminWeb
                                 .ThenInclude(nv => nv!.foods)
                         .AsQueryable();
 
-            if (filter != null) 
+            if (filter != null)
             {
                 query = FilterFeedings(query, filter);
             }
@@ -358,15 +358,15 @@ namespace AppVidaSana.Services.AdminWeb
             return feedings;
         }
 
-        private IQueryable<UserFeeds> FilterFeedings(IQueryable<UserFeeds> query, UserFeedFilterDto filter) 
+        private IQueryable<UserFeeds> FilterFeedings(IQueryable<UserFeeds> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.doctorID.ToString()) && filter.patientFilter!.doctorID.ToString() != notDoctorID)
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
-                                        .Where(pd => pd.doctorID == filter.patientFilter!.doctorID)
+                                        .Where(pd => pd.doctorID == filter.doctorID)
                                         .Select(pd => pd.accountID)
                                         .Contains(p.account!.accountID));
 
-            if (filter.patientFilter!.doctorID == Guid.Empty)
+            if (filter.doctorID == Guid.Empty)
             {
                 query = query.Where(p => _bd.PacientDoctor
                                     .Where(pd => pd.doctorID == null)
@@ -381,56 +381,56 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<UserFeeds> FilterFeedingsByPatient(IQueryable<UserFeeds> query, UserFeedFilterDto filter) 
+        private IQueryable<UserFeeds> FilterFeedingsByPatient(IQueryable<UserFeeds> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.accountID.ToString()))
-                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.patientFilter!.accountID.ToString() ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.username))
-                query = query.Where(f => f.account!.username.Contains(filter.patientFilter!.username ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.patientFilter!.uiemID));
+                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter.monthYearFilter!.month.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.monthYearFilter!.month));
+                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
 
-            if (!string.IsNullOrWhiteSpace(filter.monthYearFilter!.year.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.monthYearFilter!.year));
+                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.sex))
+            if (!string.IsNullOrWhiteSpace(filter.sex))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.patientFilter!.sex));
+                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.patientFilter!.protocolToFollow));
+                             .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
 
-        private static IQueryable<UserFeeds> FilterFeedingsByFeeding(IQueryable<UserFeeds> query, UserFeedFilterDto filter)
+        private static IQueryable<UserFeeds> FilterFeedingsByFeeding(IQueryable<UserFeeds> query, FilterAdminDto filter)
         {
-            if (filter.datesFilter!.startDate != null && filter.datesFilter!.endDate != null)
+            if (filter.startDate != null && filter.endDate != null)
             {
                 query = query.Where(f =>
-                    f.userFeedDate <= filter.datesFilter!.endDate &&
-                    f.userFeedDate >= filter.datesFilter!.startDate
+                    f.userFeedDate <= filter.endDate &&
+                    f.userFeedDate >= filter.startDate
                 );
             }
-            else if (filter.datesFilter!.startDate != null)
+            else if (filter.startDate != null)
             {
                 query = query.Where(f =>
-                    f.userFeedDate >= filter.datesFilter!.startDate
+                    f.userFeedDate >= filter.startDate
                 );
             }
-            else if (filter.datesFilter!.endDate != null)
+            else if (filter.endDate != null)
             {
                 query = query.Where(f =>
-                    f.userFeedDate <= filter.datesFilter!.endDate
+                    f.userFeedDate <= filter.endDate
                 );
             }
 
@@ -441,7 +441,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<UserCalories>> GetQueryUserCaloriesAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
+        private async Task<List<UserCalories>> GetQueryUserCaloriesAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<UserCalories> kcalNeeded;
 
@@ -449,7 +449,7 @@ namespace AppVidaSana.Services.AdminWeb
                             .Include(f => f.account)
                             .AsQueryable();
 
-            if (filter != null) 
+            if (filter != null)
             {
                 query = FilterUserCalories(query, filter);
             }
@@ -472,15 +472,15 @@ namespace AppVidaSana.Services.AdminWeb
             return kcalNeeded;
         }
 
-        private IQueryable<UserCalories> FilterUserCalories(IQueryable<UserCalories> query, PatientFilterDto filter)
+        private IQueryable<UserCalories> FilterUserCalories(IQueryable<UserCalories> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.doctorID.ToString()) && filter.patientFilter!.doctorID.ToString() != notDoctorID)
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter.patientFilter!.doctorID)
+                                          .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
-            if (filter.patientFilter!.doctorID == Guid.Empty)
+            if (filter.doctorID == Guid.Empty)
             {
                 query = query.Where(p => _bd.PacientDoctor
                                     .Where(pd => pd.doctorID == null)
@@ -493,53 +493,53 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<UserCalories> FilterUserCaloriesByPatient(IQueryable<UserCalories> query, PatientFilterDto filter)
+        private IQueryable<UserCalories> FilterUserCaloriesByPatient(IQueryable<UserCalories> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.accountID.ToString()))
-                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.patientFilter!.accountID.ToString() ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.username))
-                query = query.Where(f => f.account!.username.Contains(filter.patientFilter!.username ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.patientFilter!.uiemID));
+                                .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter.monthYearFilter!.month.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.monthYearFilter!.month));
+                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
 
-            if (!string.IsNullOrWhiteSpace(filter.monthYearFilter!.year.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.monthYearFilter!.year));
+                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.sex))
+            if (!string.IsNullOrWhiteSpace(filter.sex))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.patientFilter!.sex));
+                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.patientFilter!.protocolToFollow));
+                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
 
 
-        private async Task<List<FoodResults>> GetQueryMFUsFeedingAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
+        private async Task<List<FoodResults>> GetQueryMFUsFeedingAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<FoodResults> mfu;
 
             var query = _bd.ResultsFood
-                        .Include(rf => rf.MFUsFood)                       
-                            .ThenInclude(mf => mf!.account)                
-                        .Include(rf => rf.MFUsFood)                      
-                            .ThenInclude(mf => mf!.months)                
+                        .Include(rf => rf.MFUsFood)
+                            .ThenInclude(mf => mf!.account)
+                        .Include(rf => rf.MFUsFood)
+                            .ThenInclude(mf => mf!.months)
                         .AsQueryable();
 
-            if (filter != null) 
+            if (filter != null)
             {
                 query = FilterMFUsFeeding(query, filter);
-            
+
             }
 
             if (!export)
@@ -560,15 +560,15 @@ namespace AppVidaSana.Services.AdminWeb
             return mfu;
         }
 
-        private IQueryable<FoodResults> FilterMFUsFeeding(IQueryable<FoodResults> query, PatientFilterDto filter)
+        private IQueryable<FoodResults> FilterMFUsFeeding(IQueryable<FoodResults> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.doctorID.ToString()) && filter.patientFilter!.doctorID.ToString() != notDoctorID)
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter!.patientFilter!.doctorID)
+                                          .Where(pd => pd.doctorID == filter!.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.MFUsFood!.account!.accountID));
-            
-            if (filter.patientFilter!.doctorID == Guid.Empty)
+
+            if (filter.doctorID == Guid.Empty)
             {
                 query = query.Where(p => _bd.PacientDoctor
                                     .Where(pd => pd.doctorID == null)
@@ -583,45 +583,45 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<FoodResults> FilterMFUsFeedingByPatient(IQueryable<FoodResults> query, PatientFilterDto filter)
+        private IQueryable<FoodResults> FilterMFUsFeedingByPatient(IQueryable<FoodResults> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter!.patientFilter!.accountID.ToString()))
-                query = query.Where(f => f.MFUsFood!.account!.accountID.ToString().Contains(filter.patientFilter!.accountID.ToString() ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter!.accountID.ToString()))
+                query = query.Where(f => f.MFUsFood!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter!.patientFilter!.username))
-                query = query.Where(f => f.MFUsFood!.account!.username.Contains(filter.patientFilter!.username ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter!.username))
+                query = query.Where(f => f.MFUsFood!.account!.username.Contains(filter.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter!.patientFilter!.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter!.uiemID))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsFood!.account!.accountID && p.uiemID == filter.patientFilter!.uiemID));
+                                .Any(p => p.accountID == f.MFUsFood!.account!.accountID && p.uiemID == filter.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter!.patientFilter!.sex))
+            if (!string.IsNullOrWhiteSpace(filter!.sex))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsFood!.account!.accountID && p.sex == filter.patientFilter!.sex));
+                                .Any(p => p.accountID == f.MFUsFood!.account!.accountID && p.sex == filter.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter!.patientFilter!.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.MFUsFood!.account!.accountID && p.protocol!.protocolToFollow == filter.patientFilter!.protocolToFollow));
+                             .Any(p => p.accountID == f.MFUsFood!.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
 
-        private static IQueryable<FoodResults> FilterMFUsFeedingByMonthAndYear(IQueryable<FoodResults> query, PatientFilterDto filter)
+        private static IQueryable<FoodResults> FilterMFUsFeedingByMonthAndYear(IQueryable<FoodResults> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter!.monthYearFilter!.month.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
             {
-                var monthStr = Months.VerifyExistMonth(filter?.monthYearFilter!.month ?? 0);
+                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
                 query = query.Where(f => f.MFUsFood!.months!.month.Contains(monthStr));
             }
 
-            if (!string.IsNullOrWhiteSpace(filter!.monthYearFilter!.year.ToString()))
-                query = query.Where(f => f.MFUsFood!.months!.year == filter.monthYearFilter!.year);
+            if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
+                query = query.Where(f => f.MFUsFood!.months!.year == filter.year);
 
             return query;
         }
 
-       
-        public async Task<List<AllCaloriesConsumedPerUserDto>> GetAllCaloriesConsumedPerUserAsync(CaloriesConsumedFilterDto filter, int page, CancellationToken cancellationToken)
+
+        public async Task<List<AllCaloriesConsumedPerUserDto>> GetAllCaloriesConsumedPerUserAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var kcalConsumed = await GetQueryKcalConsumedAsync(filter, page, false, 0, cancellationToken);
 
@@ -637,7 +637,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allKcalConsumedPerUser;
         }
 
-        public async Task<List<AllCaloriesRequiredPerDaysDto>> GetAllCaloriesRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto filter, int page, CancellationToken cancellationToken)
+        public async Task<List<AllCaloriesRequiredPerDaysDto>> GetAllCaloriesRequiredPerDaysAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var kcalReq = await GetQueryKcalRequiredPerDaysAsync(filter, page, false, 0, cancellationToken);
 
@@ -655,7 +655,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        public async Task<byte[]> ExportAllCaloriesConsumedAsync(CaloriesConsumedFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllCaloriesConsumedAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<CaloriesConsumed> calConsumed;
@@ -685,7 +685,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        public async Task<byte[]> ExportAllCaloriesRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllCaloriesRequiredPerDaysAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<CaloriesRequiredPerDay> calReq;
@@ -716,7 +716,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<CaloriesConsumed>> GetQueryKcalConsumedAsync(CaloriesConsumedFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<CaloriesConsumed>> GetQueryKcalConsumedAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<CaloriesConsumed> kcalConsumed;
 
@@ -747,15 +747,15 @@ namespace AppVidaSana.Services.AdminWeb
             return kcalConsumed;
         }
 
-        private IQueryable<CaloriesConsumed> FilterKcalConsumed(IQueryable<CaloriesConsumed> query, CaloriesConsumedFilterDto filter)
+        private IQueryable<CaloriesConsumed> FilterKcalConsumed(IQueryable<CaloriesConsumed> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.doctorID.ToString()) && filter.patientFilter!.doctorID.ToString() != notDoctorID)
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter.patientFilter!.doctorID)
+                                          .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
-            if (filter.patientFilter!.doctorID == Guid.Empty)
+            if (filter.doctorID == Guid.Empty)
             {
                 query = query.Where(p => _bd.PacientDoctor
                                     .Where(pd => pd.doctorID == null)
@@ -771,48 +771,48 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<CaloriesConsumed> FilterKcalConsumedByPatient(IQueryable<CaloriesConsumed> query, CaloriesConsumedFilterDto filter) 
+        private IQueryable<CaloriesConsumed> FilterKcalConsumedByPatient(IQueryable<CaloriesConsumed> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.accountID.ToString()))
-                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.patientFilter!.accountID.ToString() ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.username))
-                query = query.Where(f => f.account!.username.Contains(filter.patientFilter!.username ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.patientFilter!.uiemID));
+                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.sex))
+            if (!string.IsNullOrWhiteSpace(filter.sex))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.patientFilter!.sex));
+                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.patientFilter!.protocolToFollow));
+                             .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
 
-        private static IQueryable<CaloriesConsumed> FilterKcalConsumedByDates(IQueryable<CaloriesConsumed> query, CaloriesConsumedFilterDto filter) 
+        private static IQueryable<CaloriesConsumed> FilterKcalConsumedByDates(IQueryable<CaloriesConsumed> query, FilterAdminDto filter)
         {
-            if (filter.datesFilter!.startDate != null && filter.datesFilter!.endDate != null)
+            if (filter.startDate != null && filter.endDate != null)
             {
                 query = query.Where(f =>
-                    f.dateCaloriesConsumed <= filter.datesFilter!.endDate &&
-                    f.dateCaloriesConsumed >= filter.datesFilter!.startDate
+                    f.dateCaloriesConsumed <= filter.endDate &&
+                    f.dateCaloriesConsumed >= filter.startDate
                 );
             }
-            else if (filter.datesFilter!.startDate != null)
+            else if (filter.startDate != null)
             {
                 query = query.Where(f =>
-                    f.dateCaloriesConsumed >= filter.datesFilter!.startDate
+                    f.dateCaloriesConsumed >= filter.startDate
                 );
             }
-            else if (filter.datesFilter!.endDate != null)
+            else if (filter.endDate != null)
             {
                 query = query.Where(f =>
-                    f.dateCaloriesConsumed <= filter.datesFilter!.endDate
+                    f.dateCaloriesConsumed <= filter.endDate
                 );
             }
 
@@ -820,7 +820,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<CaloriesRequiredPerDay>> GetQueryKcalRequiredPerDaysAsync(CaloriesRequiredPerDaysFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<CaloriesRequiredPerDay>> GetQueryKcalRequiredPerDaysAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<CaloriesRequiredPerDay> kcalReqPerDays;
 
@@ -851,15 +851,15 @@ namespace AppVidaSana.Services.AdminWeb
             return kcalReqPerDays;
         }
 
-        private IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDays(IQueryable<CaloriesRequiredPerDay> query, CaloriesRequiredPerDaysFilterDto filter)
+        private IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDays(IQueryable<CaloriesRequiredPerDay> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.doctorID.ToString()) && filter.patientFilter!.doctorID.ToString() != notDoctorID)
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter.patientFilter!.doctorID)
+                                          .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
-            if (filter.patientFilter!.doctorID == Guid.Empty)
+            if (filter.doctorID == Guid.Empty)
             {
                 query = query.Where(p => _bd.PacientDoctor
                                     .Where(pd => pd.doctorID == null)
@@ -874,48 +874,48 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDaysByPatient(IQueryable<CaloriesRequiredPerDay> query, CaloriesRequiredPerDaysFilterDto filter) 
+        private IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDaysByPatient(IQueryable<CaloriesRequiredPerDay> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.accountID.ToString()))
-                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.patientFilter!.accountID.ToString() ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.username))
-                query = query.Where(f => f.account!.username.Contains(filter.patientFilter!.username ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.patientFilter!.uiemID));
+                             .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.sex))
+            if (!string.IsNullOrWhiteSpace(filter.sex))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.patientFilter!.sex));
+                             .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.patientFilter!.protocolToFollow));
+                             .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
 
-        private static IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDaysByDates(IQueryable<CaloriesRequiredPerDay> query, CaloriesRequiredPerDaysFilterDto filter) 
+        private static IQueryable<CaloriesRequiredPerDay> FilterKcalRequiredPerDaysByDates(IQueryable<CaloriesRequiredPerDay> query, FilterAdminDto filter)
         {
-            if (filter.datesFilter!.startDate != null && filter.datesFilter!.endDate != null)
+            if (filter.startDate != null && filter.endDate != null)
             {
                 query = query.Where(f =>
-                    f.dateInitial <= filter.datesFilter!.endDate &&
-                    f.dateFinal >= filter.datesFilter!.startDate
+                    f.dateInitial <= filter.endDate &&
+                    f.dateFinal >= filter.startDate
                 );
             }
-            else if (filter.datesFilter!.startDate != null)
+            else if (filter.startDate != null)
             {
                 query = query.Where(f =>
-                    f.dateFinal >= filter.datesFilter!.startDate
+                    f.dateFinal >= filter.startDate
                 );
             }
-            else if (filter.datesFilter!.endDate != null)
+            else if (filter.endDate != null)
             {
                 query = query.Where(f =>
-                    f.dateInitial <= filter.datesFilter!.endDate
+                    f.dateInitial <= filter.endDate
                 );
             }
 

@@ -1,6 +1,6 @@
 ﻿using AppVidaSana.Data;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Exercise_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using AppVidaSana.Months_Dates;
@@ -19,7 +19,7 @@ namespace AppVidaSana.Services.AdminWeb
             _bd = bd;
         }
 
-        public async Task<List<AllExercisesPerUserDto>> GetAllExercisesPerUserAsync(ExerciseFilterDto filter, int page, CancellationToken cancellationToken) 
+        public async Task<List<AllExercisesPerUserDto>> GetAllExercisesPerUserAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken) 
         {
             var exercises = await GetQueryExercisesAsync(filter, page, false, 0, cancellationToken);
 
@@ -37,7 +37,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allExercisesPerUser;
         }
 
-        public async Task<byte[]> ExportAllExercisesAsync(ExerciseFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllExercisesAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<Exercise> exercises;
@@ -66,7 +66,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
     
-        private async Task<List<Exercise>> GetQueryExercisesAsync(ExerciseFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
+        private async Task<List<Exercise>> GetQueryExercisesAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
             List<Exercise> exercises;
 
@@ -97,15 +97,15 @@ namespace AppVidaSana.Services.AdminWeb
             return exercises;
         }
 
-        private IQueryable<Exercise> FilterExercises(IQueryable<Exercise> query, ExerciseFilterDto filter)
+        private IQueryable<Exercise> FilterExercises(IQueryable<Exercise> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.doctorID.ToString()) && filter.patientFilter!.doctorID.ToString() != notDoctorID)
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter.patientFilter!.doctorID)
+                                          .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
-            if (filter.patientFilter!.doctorID == Guid.Empty)
+            if (filter.doctorID == Guid.Empty)
             {
                 query = query.Where(p => _bd.PacientDoctor
                                     .Where(pd => pd.doctorID == null)
@@ -120,38 +120,38 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<Exercise> FilterExercisesByPatient(IQueryable<Exercise> query, ExerciseFilterDto filter)
+        private IQueryable<Exercise> FilterExercisesByPatient(IQueryable<Exercise> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.accountID.ToString()))
-                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.patientFilter!.accountID.ToString() ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.username))
-                query = query.Where(f => f.account!.username.Contains(filter.patientFilter!.username ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.patientFilter!.uiemID));
+                                .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter.monthYearFilter!.month.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.monthYearFilter!.month));
+                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
 
-            if (!string.IsNullOrWhiteSpace(filter.monthYearFilter!.year.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.monthYearFilter!.year));
+                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.sex))
+            if (!string.IsNullOrWhiteSpace(filter.sex))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.patientFilter!.sex));
+                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.patientFilter!.protocolToFollow));
+                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
 
-        private static IQueryable<Exercise> FilterExercisesByExercise(IQueryable<Exercise> query, ExerciseFilterDto filter)
+        private static IQueryable<Exercise> FilterExercisesByExercise(IQueryable<Exercise> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.typeExercise))
                 query = query.Where(f => f.typeExercise == filter.typeExercise);
@@ -159,23 +159,23 @@ namespace AppVidaSana.Services.AdminWeb
             if (!string.IsNullOrWhiteSpace(filter.intensityExercise))
                 query = query.Where(f => f.intensityExercise == filter.intensityExercise);
 
-            if (filter.datesFilter!.startDate != null && filter.datesFilter!.endDate != null)
+            if (filter.startDate != null && filter.endDate != null)
             {
                 query = query.Where(f =>
-                    f.dateExercise <= filter.datesFilter!.endDate &&
-                    f.dateExercise >= filter.datesFilter!.startDate
+                    f.dateExercise <= filter.endDate &&
+                    f.dateExercise >= filter.startDate
                 );
             }
-            else if (filter.datesFilter!.startDate != null)
+            else if (filter.startDate != null)
             {
                 query = query.Where(f =>
-                    f.dateExercise >= filter.datesFilter!.startDate
+                    f.dateExercise >= filter.startDate
                 );
             }
-            else if (filter.datesFilter!.endDate != null)
+            else if (filter.endDate != null)
             {
                 query = query.Where(f =>
-                    f.dateExercise <= filter.datesFilter!.endDate
+                    f.dateExercise <= filter.endDate
                 );
             }
 
@@ -184,7 +184,7 @@ namespace AppVidaSana.Services.AdminWeb
 
 
 
-        public async Task<List<AllMFUsExercisePerUserDto>> GetMFUsExerciseAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken)
+        public async Task<List<AllMFUsExercisePerUserDto>> GetMFUsExerciseAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var mfus = await GetQueryMFUsExerciseAsync(filter, page, false, 0, cancellationToken);
 
@@ -213,7 +213,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allMFUsPerUser;
         }
 
-        public async Task<byte[]> ExportAllMFUsExerciseAsync(PatientFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllMFUsExerciseAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<ExerciseResults> mfus;
@@ -246,7 +246,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        private async Task<List<ExerciseResults>> GetQueryMFUsExerciseAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<ExerciseResults>> GetQueryMFUsExerciseAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<ExerciseResults> mfu;
 
@@ -280,15 +280,15 @@ namespace AppVidaSana.Services.AdminWeb
             return mfu;
         }
 
-        private IQueryable<ExerciseResults> FilterMFUsExercise(IQueryable<ExerciseResults> query, PatientFilterDto filter)
+        private IQueryable<ExerciseResults> FilterMFUsExercise(IQueryable<ExerciseResults> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.doctorID.ToString()) && filter.patientFilter!.doctorID.ToString() != notDoctorID)
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter!.patientFilter!.doctorID)
+                                          .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.MFUsExercise!.account!.accountID));
 
-            if (filter.patientFilter!.doctorID == Guid.Empty)
+            if (filter.doctorID == Guid.Empty)
             {
                 query = query.Where(p => _bd.PacientDoctor
                                     .Where(pd => pd.doctorID == null)
@@ -303,46 +303,46 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<ExerciseResults> FilterMFUsExerciseByPatient(IQueryable<ExerciseResults> query, PatientFilterDto filter)
+        private IQueryable<ExerciseResults> FilterMFUsExerciseByPatient(IQueryable<ExerciseResults> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter!.patientFilter!.accountID.ToString()))
-                query = query.Where(f => f.MFUsExercise!.account!.accountID.ToString().Contains(filter.patientFilter!.accountID.ToString() ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.MFUsExercise!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter!.patientFilter!.username))
-                query = query.Where(f => f.MFUsExercise!.account!.username.Contains(filter.patientFilter!.username ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.MFUsExercise!.account!.username.Contains(filter.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter!.patientFilter!.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.uiemID == filter.patientFilter!.uiemID));
+                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.uiemID == filter.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter!.patientFilter!.sex))
+            if (!string.IsNullOrWhiteSpace(filter.sex))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.sex == filter.patientFilter!.sex));
+                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.sex == filter.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter!.patientFilter!.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.protocol!.protocolToFollow == filter.patientFilter!.protocolToFollow));
+                                .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
 
-        private static IQueryable<ExerciseResults> FilterMFUsExerciseByMonthAndYear(IQueryable<ExerciseResults> query, PatientFilterDto filter)
+        private static IQueryable<ExerciseResults> FilterMFUsExerciseByMonthAndYear(IQueryable<ExerciseResults> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter!.monthYearFilter!.month.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
             {
-                var monthStr = Months.VerifyExistMonth(filter?.monthYearFilter!.month ?? 0);
+                var monthStr = Months.VerifyExistMonth(filter.month ?? 0);
                 query = query.Where(f => f.MFUsExercise!.months!.month.Contains(monthStr));
             }
 
-            if (!string.IsNullOrWhiteSpace(filter!.monthYearFilter!.year.ToString()))
-                query = query.Where(f => f.MFUsExercise!.months!.year == filter.monthYearFilter!.year);
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
+                query = query.Where(f => f.MFUsExercise!.months!.year == filter.year);
 
             return query;
         }
 
 
 
-        public async Task<List<AllActiveMinutesPerExerciseDto>> GetAllActiveMinutesPerExerciseAsync(ActiveMinutesFilterDto filter, int page, CancellationToken cancellationToken)
+        public async Task<List<AllActiveMinutesPerExerciseDto>> GetAllActiveMinutesPerExerciseAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var actM = await GetQueryActiveMinutesAsync(filter, page, false, 0, cancellationToken);
 
@@ -358,7 +358,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allActMinPerExercise;
         }
 
-        public async Task<byte[]> ExportAllActivesMinutesAsync(ActiveMinutesFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllActivesMinutesAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<ActiveMinutes> actMin;
@@ -388,7 +388,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        private async Task<List<ActiveMinutes>> GetQueryActiveMinutesAsync(ActiveMinutesFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<ActiveMinutes>> GetQueryActiveMinutesAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<ActiveMinutes> actM;
 
@@ -419,15 +419,15 @@ namespace AppVidaSana.Services.AdminWeb
             return actM;
         }
 
-        private IQueryable<ActiveMinutes> FilterActiveMinutes(IQueryable<ActiveMinutes> query, ActiveMinutesFilterDto filter)
+        private IQueryable<ActiveMinutes> FilterActiveMinutes(IQueryable<ActiveMinutes> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.doctorID.ToString()) && filter.patientFilter!.doctorID.ToString() != notDoctorID)
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter.patientFilter!.doctorID)
+                                          .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.account!.accountID));
 
-            if (filter.patientFilter!.doctorID == Guid.Empty)
+            if (filter.doctorID == Guid.Empty)
             {
                 query = query.Where(p => _bd.PacientDoctor
                                     .Where(pd => pd.doctorID == null)
@@ -442,56 +442,56 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<ActiveMinutes> FilterActiveMinutesByPatient(IQueryable<ActiveMinutes> query, ActiveMinutesFilterDto filter)
+        private IQueryable<ActiveMinutes> FilterActiveMinutesByPatient(IQueryable<ActiveMinutes> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.accountID.ToString()))
-                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.patientFilter!.accountID.ToString() ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.username))
-                query = query.Where(f => f.account!.username.Contains(filter.patientFilter!.username ?? ""));
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.patientFilter!.uiemID));
+                                .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter.monthYearFilter!.month.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.monthYearFilter!.month));
+                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
 
-            if (!string.IsNullOrWhiteSpace(filter.monthYearFilter!.year.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
                 query = query.Where(f => _bd.Profiles
-                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.monthYearFilter!.year));
+                             .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.sex))
+            if (!string.IsNullOrWhiteSpace(filter.sex))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.patientFilter!.sex));
+                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter.patientFilter!.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
-                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.patientFilter!.protocolToFollow));
+                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
 
-        private static IQueryable<ActiveMinutes> FilterActiveMinutesByDates(IQueryable<ActiveMinutes> query, ActiveMinutesFilterDto filter)
+        private static IQueryable<ActiveMinutes> FilterActiveMinutesByDates(IQueryable<ActiveMinutes> query, FilterAdminDto filter)
         {
-            if (filter.datesFilter!.startDate != null && filter.datesFilter!.endDate != null)
+            if (filter.startDate != null && filter.endDate != null)
             {
                 query = query.Where(f =>
-                    f.dateExercise <= filter.datesFilter!.endDate &&
-                    f.dateExercise >= filter.datesFilter!.startDate
+                    f.dateExercise <= filter.endDate &&
+                    f.dateExercise >= filter.startDate
                 );
             }
-            else if (filter.datesFilter!.startDate != null)
+            else if (filter.startDate != null)
             {
                 query = query.Where(f =>
-                    f.dateExercise >= filter.datesFilter!.startDate
+                    f.dateExercise >= filter.startDate
                 );
             }
-            else if (filter.datesFilter!.endDate != null)
+            else if (filter.endDate != null)
             {
                 query = query.Where(f =>
-                    f.dateExercise <= filter.datesFilter!.endDate
+                    f.dateExercise <= filter.endDate
                 );
             }
 

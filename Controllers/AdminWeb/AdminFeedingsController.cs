@@ -5,11 +5,10 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Services.IServices.IAdminWeb;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
 using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType.AdminWeb.Feeding;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -60,7 +59,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> GetFeedsOfAUserAsync([FromQuery] UserFeedFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetFeedsOfAUserAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try 
             {
@@ -115,7 +114,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("foods")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetFoodsConsumedPerUserFeedAsync([FromQuery] UserFeedFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetFoodsConsumedPerUserFeedAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try 
             { 
@@ -157,7 +156,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("calories-needed-per-user")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetUserCaloriesAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetUserCaloriesAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -199,7 +198,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("mfu-feeding")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetMFUsFeedingAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetMFUsFeedingAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -240,7 +239,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("calories-consumed-per-day")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetCaloriesConsumedPerUserAsync([FromQuery] CaloriesConsumedFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetCaloriesConsumedPerUserAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -282,7 +281,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("calories-required-per-days")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetCaloriesRequiredPerDaysAsync([FromQuery] CaloriesRequiredPerDaysFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetCaloriesRequiredPerDaysAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {

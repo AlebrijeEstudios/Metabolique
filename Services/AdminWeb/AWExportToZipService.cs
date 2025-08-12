@@ -1,8 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Exercise_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Habits_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using System.IO.Compression;
@@ -31,7 +27,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
         /*Patients*/
-        public async Task<byte[]> GenerateOnlyPatientsZipAsync(PatientFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyPatientsZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -61,7 +57,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
         /*Feeding*/
-        public async Task<byte[]> GenerateOnlyFeedingsZipAsync(UserFeedFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyFeedingsZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -90,7 +86,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyFoodsConsumedPerFeedingZipAsync(UserFeedFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyFoodsConsumedPerFeedingZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -119,7 +115,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyUserCaloriesZipAsync(PatientFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyUserCaloriesZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -148,7 +144,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyMFUsFeedingZipAsync(PatientFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyMFUsFeedingZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -177,7 +173,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyCaloriesConsumedZipAsync(CaloriesConsumedFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyCaloriesConsumedZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -206,7 +202,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyCaloriesRequiredPerDaysZipAsync(CaloriesRequiredPerDaysFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyCaloriesRequiredPerDaysZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -236,7 +232,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
         /*Medication*/
-        public async Task<byte[]> GenerateOnlyPeriodMedicationsZipAsync(PeriodMedicationsFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyPeriodMedicationsZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -265,7 +261,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlySideEffectsZipAsync(SideEffectsFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlySideEffectsZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -294,7 +290,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyMFUsMedicationZipAsync(MFUsMedicationFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyMFUsMedicationZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -324,7 +320,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
         /*Exercise*/
-        public async Task<byte[]> GenerateOnlyExercisesZipAsync(ExerciseFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyExercisesZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -353,7 +349,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyMFUsExerciseZipAsync(PatientFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyMFUsExerciseZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -382,7 +378,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyActivesMinutesZipAsync(ActiveMinutesFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyActivesMinutesZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -412,7 +408,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
         /*Habit*/
-        public async Task<byte[]> GenerateOnlyHabitsDrinkZipAsync(HabitFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyHabitsDrinkZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -441,7 +437,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyHabitsDrugsZipAsync(HabitFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyHabitsDrugsZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -470,7 +466,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyHabitsSleepZipAsync(HabitFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyHabitsSleepZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 
@@ -499,7 +495,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mainMemoryStream.ToArray();
         }
 
-        public async Task<byte[]> GenerateOnlyMFUsHabitsZipAsync(PatientFilterDto? filter, string typeExport, CancellationToken cancellationToken)
+        public async Task<byte[]> GenerateOnlyMFUsHabitsZipAsync(FilterAdminDto? filter, string typeExport, CancellationToken cancellationToken)
         {
             using var mainMemoryStream = new MemoryStream();
 

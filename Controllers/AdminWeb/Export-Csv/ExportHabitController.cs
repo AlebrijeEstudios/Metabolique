@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Habits_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
@@ -46,7 +45,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-drink")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyHabitsDrinkToCsvAsync([FromQuery] string typeExport, [FromQuery] HabitFilterDto filter)
+        public async Task<IActionResult> ExportOnlyHabitsDrinkToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);
@@ -82,7 +81,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-drugs")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyHabitsDrugsToCsvAsync([FromQuery] string typeExport, [FromQuery] HabitFilterDto filter)
+        public async Task<IActionResult> ExportOnlyHabitsDrugsToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);
@@ -118,7 +117,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-sleep")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyHabitsSleepToCsvAsync([FromQuery] string typeExport, [FromQuery] HabitFilterDto filter)
+        public async Task<IActionResult> ExportOnlyHabitsSleepToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);
@@ -154,7 +153,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-habit")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyMFUsHabitsToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
+        public async Task<IActionResult> ExportOnlyMFUsHabitsToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);
