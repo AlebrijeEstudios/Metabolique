@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Azure;
 
 namespace AppVidaSana.Controllers
 {

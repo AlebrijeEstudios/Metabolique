@@ -1,0 +1,329 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar Cuenta | Metabolique</title>
+
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="@Url.Content("~/css/headerStyle.css")" />
+</head>
+<body>
+    <nav class="custom-navbar">
+        <div class="navbar-container">
+            <a href="#" class="navbar-logo-link">
+                <div class="navbar-logo-wrapper">
+                    <img src="@Url.Content("~/images/logoMetabolique.png")" alt="Logo Metabolique" class="navbar-logo" />
+                </div>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <h2 class="text-center">Eliminar cuenta</h2>
+        <form id="deleteAccountForm" class="form-signin pt-6">
+            <p>¿Desea eliminar su cuenta?, coloque su correo electrónico con el que inicia sesión.</p>
+            <div class="form-group mb-3">
+                <label for="email" class="form-label">Correo electrónico:</label>
+                <input type="email" id="email" name="email" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Eliminar cuenta</button>
+
+            <div id="loadingSpinner" style="display: none; margin-top: 10px; text-align: center;">
+                <div class="spinner-border text-primary" aria-live="polite" aria-label="Cargando">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2" id="loadingText">Procesando...</p>
+            </div>
+        </form>
+
+        <div id="loginMessage" class="alert mt-3" role="alert" style="display: none;"></div>
+        <div id="deleteMessage" class="alert mt-3" role="alert" style="display: none;"></div>
+
+        <div id="successMessage" class="text-center" style="display: none;">
+            <div class="alert alert-success">
+                <h4><i class="fa fa-check-circle"></i> ¡Cuenta eliminada exitosamente!</h4>
+                <p>Tu cuenta ha sido eliminada permanentemente de nuestros sistemas.</p>
+                <p>Gracias por haber usado Metabolique. ¡Esperamos verte de nuevo pronto!</p>
+                <div class="mt-4">
+                    <p><small>Esta página se recargará automáticamente en <span id="countdown">5</span> segundos...</small></p>
+                    <button type="button" class="btn btn-outline-primary" onclick="location.reload()">
+                        Recargar página ahora
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar eliminación</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3"><strong>¿En serio vas a eliminar tu cuenta?</strong></p>
+                    <p>Esta acción no se puede deshacer. Se eliminarán todos tus datos permanentemente:</p>
+                    <ul class="text-danger">
+                        <li>Tu perfil y configuración</li>
+                        <li>Tus registros de consumo de medicamentos</li>
+                        <li>Tu historial de actividades físicas</li>
+                        <li>Todos tus registros alimenticios guardados</li>
+                        <li>Todos tus registros de hábitos</li>
+                    </ul>
+                    <form id="passwordForm">
+                        <div class="form-group mt-4">
+                            <label for="confirmPassword" class="form-label"><strong>Confirma tu contraseña para continuar:</strong></label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="Escribe tu contraseña" required />
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" id="confirmDeleteBtn" class="btn btn-danger">
+                        <i class="fa fa-trash"></i> Sí, eliminar cuenta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            window.addEventListener("keydown", function (e) {
+                if (e.key === "Backspace" && !["INPUT", "TEXTAREA"].includes(e.target.tagName)) {
+                    e.preventDefault();
+                }
+
+                if ((e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight"))) {
+                    e.preventDefault();
+                }
+            });
+
+            const deleteForm = document.getElementById('deleteAccountForm');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const confirmModal = document.getElementById('confirmDeleteModal');
+
+            if (typeof $ === 'undefined') {
+                console.error('jQuery no se ha cargado correctamente.');
+                alert('Error: jQuery no se cargó. Revisa las rutas de tus archivos.');
+                return;
+            }
+
+            if (typeof $.fn.modal === 'undefined') {
+                console.error('Bootstrap JavaScript no se ha cargado correctamente.');
+                alert('Error: Bootstrap JavaScript no se cargó. Revisa las rutas de tus archivos.');
+                return;
+            }
+
+            deleteForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const email = document.getElementById('email').value.trim();
+                if (!email) {
+                    showLoginMessage('Por favor ingresa tu correo electrónico', 'danger');
+                    return;
+                }
+
+                hideAllMessages();
+
+                try {
+                    $(confirmModal).modal('show');
+                } catch (error) {
+                    console.error('Error al abrir modal:', error);
+                    alert('Error al abrir el modal de confirmación. Verifica que Bootstrap esté cargado correctamente.');
+                }
+            });
+
+            confirmDeleteBtn.addEventListener('click', async function () {
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('confirmPassword').value;
+
+                if (!password) {
+                    showLoginMessage('Por favor ingresa tu contraseña', 'danger');
+                    return;
+                }
+
+                const form = document.getElementById("deleteAccountForm");
+                const loadingSpinner = document.getElementById("loadingSpinner");
+                const loadingText = document.getElementById("loadingText");
+
+                try {
+                    $(confirmModal).modal('hide');
+                } catch (error) {
+                    console.error('Error al cerrar modal:', error);
+                }
+
+                hideAllMessages();
+                loadingSpinner.style.display = "block";
+                confirmDeleteBtn.disabled = true;
+
+                try {
+                    loadingText.textContent = "Verificando credenciales...";
+
+                    const loginResponse = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Metabolique_API_KEY': '@Environment.GetEnvironmentVariable("API_KEY")'
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password
+                        })
+                    });
+
+                    const loginData = await loginResponse.json();
+
+                    if (!loginResponse.ok) {
+                        let loginError = "Error de autenticación";
+
+                        switch (loginResponse.status) {
+                            case 400:
+                                loginError = loginData.status || loginData.message || "Datos de login inválidos";
+                                break;
+                            case 401:
+                                loginError = loginData.status || loginData.message || "Credenciales incorrectas";
+                                break;
+                            case 404:
+                                loginError = loginData.message || "Cuenta no encontrada";
+                                break;
+                            case 429:
+                                loginError = loginData.message || "Demasiados intentos de login, intenta más tarde";
+                                break;
+                            case 500:
+                                loginError = loginData.status || loginData.message || "Error del servidor en login";
+                                break;
+                            case 503:
+                                loginError = loginData.message || "Servicio de login no disponible";
+                                break;
+                        }
+
+                        showLoginMessage(`Error de Login: ${loginError}`, 'danger');
+                        return;
+                    }
+
+                    const token = loginData.auth.accessToken;
+                    const userId = loginData.auth.accountID;
+
+                    if (!token) {
+                        showLoginMessage('Error: No se pudo obtener el token de autenticación', 'danger');
+                        return;
+                    }
+
+                    showLoginMessage('Login exitoso. Procediendo a eliminar la cuenta...', 'success');
+
+                    loadingText.textContent = "Eliminando cuenta...";
+
+                    const deleteResponse = await fetch(`/api/accounts/${userId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'Metabolique_API_KEY': '@Environment.GetEnvironmentVariable("API_KEY")'
+                        }
+                    });
+
+                    if (deleteResponse.ok) {
+                        form.style.display = "none";
+                        hideAllMessages();
+                        showSuccessMessage();
+                    } else {
+                        const deleteData = await deleteResponse.json();
+                        let deleteError = "Error al eliminar la cuenta";
+
+                        switch (deleteResponse.status) {
+                            case 400:
+                                deleteError = deleteData.status || deleteData.message || "Datos de eliminación inválidos";
+                                break;
+                            case 401:
+                                deleteError = deleteData.message || "Token de autenticación inválido";
+                                break;
+                            case 403:
+                                deleteError = deleteData.message || "No tienes permisos para eliminar esta cuenta";
+                                break;
+                            case 404:
+                                deleteError = deleteData.message || "Cuenta no encontrada para eliminar";
+                                break;
+                            case 409:
+                                deleteError = deleteData.status || deleteData.message || "Conflicto al eliminar la cuenta";
+                                break;
+                            case 429:
+                                deleteError = deleteData.message || "Demasiados intentos de eliminación, intenta más tarde";
+                                break;
+                            case 500:
+                                deleteError = deleteData.status || deleteData.message || "Error del servidor al eliminar";
+                                break;
+                            case 503:
+                                deleteError = deleteData.message || "Servicio de eliminación no disponible";
+                                break;
+                        }
+
+                        showDeleteMessage(`Error de Eliminación: ${deleteError}`, 'danger');
+                        showLoginMessage('Login fue exitoso, pero hubo un problema eliminando la cuenta', 'warning');
+                    }
+
+                } catch (error) {
+                    console.error('Error de red:', error);
+                    showDeleteMessage('Error de red. Verifica tu conexión e intenta nuevamente.', 'danger');
+                }
+                finally {
+                    loadingSpinner.style.display = "none";
+                    loadingText.textContent = "Procesando...";
+                    confirmDeleteBtn.disabled = false;
+                    document.getElementById('confirmPassword').value = '';
+                }
+            });
+
+            $(confirmModal).on('hidden.bs.modal', function () {
+                document.getElementById('confirmPassword').value = '';
+            });
+        });
+
+        function showLoginMessage(message, type) {
+            const messageDiv = document.getElementById('loginMessage');
+            messageDiv.style.display = "block";
+            messageDiv.className = `alert alert-${type} mt-3`;
+            messageDiv.innerHTML = `<strong>Login:</strong> ${message}`;
+        }
+
+        function showDeleteMessage(message, type) {
+            const messageDiv = document.getElementById('deleteMessage');
+            messageDiv.style.display = "block";
+            messageDiv.className = `alert alert-${type} mt-3`;
+            messageDiv.innerHTML = `<strong>Eliminación:</strong> ${message}`;
+        }
+
+        function hideAllMessages() {
+            document.getElementById('loginMessage').style.display = "none";
+            document.getElementById('deleteMessage').style.display = "none";
+            document.getElementById('successMessage').style.display = "none";
+        }
+
+        function showSuccessMessage() {
+            const successMessage = document.getElementById("successMessage");
+            successMessage.style.display = "block";
+
+            let countdown = 5;
+            const countdownElement = document.getElementById('countdown');
+
+            const timer = setInterval(() => {
+                countdown--;
+                countdownElement.textContent = countdown;
+
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    location.reload();
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
