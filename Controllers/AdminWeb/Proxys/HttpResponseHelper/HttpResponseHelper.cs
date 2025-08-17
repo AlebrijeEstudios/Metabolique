@@ -11,10 +11,32 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
         private const string formatDate = "yyyy-MM-dd";
         private const string apiKeyHeaderName = "ApiKeyHeaderName";
         private const string apiKey = "API_KEY";
+        private const string apiUrl = "SERVER";
         private const string bearerScheme = "Bearer";
         private const string typeArchiveJson = "application/json";
         private const string typeArchiveZip = "application/zip";
         private const string defaultNameZip = "default.zip";
+
+        public static async Task<IActionResult> HandleRequestAsync(this ControllerBase controller, HttpClient client,
+            FilterAdminDto filter, string url, string? typeExport, int page)
+        {
+            var queryString = "";
+
+            if (!string.IsNullOrEmpty(typeExport))
+            {
+                var queryParams = controller.BuildQueryParameters(filter, typeExport, 0);
+                queryString = string.Join("&", queryParams);
+
+                return await controller.HandleExportRequestAsync(client, url, queryString);
+            }
+            else
+            {
+                var queryParams = controller.BuildQueryParameters(filter, null, page);
+                queryString = string.Join("&", queryParams);
+
+                return await controller.GetHandleRegularRequestAsync(client, url, queryString);
+            }
+        }
 
         public static List<string> BuildQueryParameters(this ControllerBase controller,
             FilterAdminDto filter, string? typeExport, int page)

@@ -19,6 +19,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private readonly IHttpClientFactory _clientFactory;
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
+        private string api = Environment.GetEnvironmentVariable(apiUrl)!;
 
         public ProxyExercisesController(IHttpClientFactory clientFactory)
         {
@@ -29,28 +30,18 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyExercisesAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/exercises/export-exercises";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/exercises";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
@@ -58,7 +49,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyEditExerciseAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] ExerciseDto values)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/exercises";
 
@@ -69,7 +59,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyDeleteExerciseAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid exerciseID)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/exercises/{exerciseID}";
 
@@ -80,27 +69,18 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyMFUsExercisesAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/exercises/export-mfu-exercise";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/exercises/mfu-exercise";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
@@ -108,7 +88,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyEditMFUsExercisesAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateResponsesExerciseDto values)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/monthly-exercise-monitoring";
 
@@ -119,27 +98,18 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyActiveMinutesAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/exercises/export-active-minutes";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/exercises/active-minutes";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
     }

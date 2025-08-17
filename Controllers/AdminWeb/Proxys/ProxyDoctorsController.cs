@@ -18,6 +18,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private readonly IHttpClientFactory _clientFactory;
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
+        private string api = Environment.GetEnvironmentVariable(apiUrl)!;
 
         public ProxyDoctorsController(IHttpClientFactory clientFactory)
         {
@@ -28,7 +29,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyListDoctorsAsync([FromHeader(Name = headerToken)] string authorization)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var response = await client.GetAsync($"https://{api}/api/doctors");
 
@@ -39,7 +39,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyDoctorsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var queryParams = this.BuildQueryParameters(filter, null, page);
             var queryString = string.Join("&", queryParams);
@@ -53,7 +52,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyCreateDoctorAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] AWDoctorDto values)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/admin/doctors";
 
@@ -64,7 +62,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyEditDoctorAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] AllDoctorsDto values)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/admin/doctors";
 
@@ -75,7 +72,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyDeleteDoctorAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid doctorID)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/admin/doctors/{doctorID}";
 

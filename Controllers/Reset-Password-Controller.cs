@@ -98,7 +98,6 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [AllowAnonymous]
         [HttpGet]
-        [Produces("application/json")]
         public IActionResult ViewResetPassword(string token, string email)
         {
             try
