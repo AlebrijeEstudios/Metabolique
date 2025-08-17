@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Azure;
 
 namespace AppVidaSana.Controllers
 {
@@ -99,7 +98,6 @@ namespace AppVidaSana.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [AllowAnonymous]
         [HttpGet]
-        [Produces("application/json")]
         public IActionResult ViewResetPassword(string token, string email)
         {
             try

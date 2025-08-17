@@ -11,6 +11,7 @@ using Azure;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using AppVidaSana.ValidationValues;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Services.AdminWeb
 {
@@ -74,7 +75,7 @@ namespace AppVidaSana.Services.AdminWeb
             return doctor;
         }
 
-        public async Task<List<AllDoctorsDto>> GetDoctorsAsync(DoctorFilterDto filter, int page, CancellationToken cancellationToken)
+        public async Task<List<AllDoctorsDto>> GetDoctorsAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var doctors = await GetQueryDoctorsAsync(filter, page, cancellationToken);
 
@@ -218,7 +219,7 @@ namespace AppVidaSana.Services.AdminWeb
             if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
         }
 
-        private async Task<List<Doctors>> GetQueryDoctorsAsync(DoctorFilterDto? filter, int page, CancellationToken cancellationToken)
+        private async Task<List<Doctors>> GetQueryDoctorsAsync(FilterAdminDto? filter, int page, CancellationToken cancellationToken)
         {
             var query = _bd.Doctors
                            .Include(f => f.roles)

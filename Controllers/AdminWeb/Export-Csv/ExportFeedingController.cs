@@ -4,10 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
     [Authorize(Roles = "Admin,User")]
@@ -45,7 +44,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-feedings")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyFeedsOfAUserToCsvAsync([FromQuery] string typeExport, [FromQuery] UserFeedFilterDto filter)
+        public async Task<IActionResult> ExportOnlyFeedsOfAUserToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);
@@ -81,7 +80,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-foods")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyFoodsConsumedPerFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] UserFeedFilterDto filter)
+        public async Task<IActionResult> ExportOnlyFoodsConsumedPerFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);
@@ -117,7 +116,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-calories-needed-per-user")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyUserCaloriesToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
+        public async Task<IActionResult> ExportOnlyUserCaloriesToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);
@@ -153,7 +152,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-feeding")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyMFUsFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
+        public async Task<IActionResult> ExportOnlyMFUsFeedingToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);
@@ -190,7 +189,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-calories-consumed-per-day")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyCaloriesConsumedToCsvAsync([FromQuery] string typeExport, [FromQuery] CaloriesConsumedFilterDto filter)
+        public async Task<IActionResult> ExportOnlyCaloriesConsumedToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);
@@ -226,7 +225,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-calories-required-per-days")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyCaloriesRequiredPerDaysToCsvAsync([FromQuery] string typeExport, [FromQuery] CaloriesRequiredPerDaysFilterDto filter)
+        public async Task<IActionResult> ExportOnlyCaloriesRequiredPerDaysToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);

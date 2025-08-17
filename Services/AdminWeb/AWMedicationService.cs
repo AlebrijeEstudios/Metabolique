@@ -1,4 +1,5 @@
 ﻿using AppVidaSana.Data;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
 using AppVidaSana.Models.Dtos.Medication_Dtos;
 using AppVidaSana.Models.Medications;
@@ -19,14 +20,14 @@ namespace AppVidaSana.Services.AdminWeb
             _bd = bd;
         }
 
-        public async Task<List<InfoMedicationDto>> GetAllInfoMedicationsPerUserAsync(PeriodMedicationsFilterDto filter, int page, CancellationToken cancellationToken)
+        public async Task<List<InfoMedicationDto>> GetAllInfoMedicationsPerUserAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var meds = await GetQueryInfoMedicationsAsync(filter, page, cancellationToken);
 
             return meds;
         }
 
-        public async Task<List<AllSideEffectsPerUserDto>> GetAllSideEffectsAsync(SideEffectsFilterDto filter, int page, CancellationToken cancellationToken) 
+        public async Task<List<AllSideEffectsPerUserDto>> GetAllSideEffectsAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken) 
         {
             var sf = await GetQuerySideEffectsAsync(filter, page, false, 0, cancellationToken);
 
@@ -44,7 +45,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allSideEffectsPerUser;
         }
 
-        public async Task<List<AllMFUsMedicationsPerUserDto>> GetMFUsMedicationsAsync(MFUsMedicationFilterDto filter, int page, CancellationToken cancellationToken)
+        public async Task<List<AllMFUsMedicationsPerUserDto>> GetMFUsMedicationsAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var mfus = await GetQueryMFUsMedicationsAsync(filter, page, false, 0, cancellationToken);
 
@@ -66,7 +67,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        public async Task<byte[]> ExportAllPeriodMedicationsAsync(PeriodMedicationsFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllPeriodMedicationsAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<Times> pMeds;
@@ -100,7 +101,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        public async Task<byte[]> ExportAllSideEffectsAsync(SideEffectsFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllSideEffectsAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<SideEffects> sideEffects;
@@ -130,7 +131,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        public async Task<byte[]> ExportAllMFUsMedicationAsync(MFUsMedicationFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllMFUsMedicationAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<MFUsMedication> mfus;
@@ -162,7 +163,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<InfoMedicationDto>> GetQueryInfoMedicationsAsync(PeriodMedicationsFilterDto? filter, int page, CancellationToken cancellationToken)
+        private async Task<List<InfoMedicationDto>> GetQueryInfoMedicationsAsync(FilterAdminDto? filter, int page, CancellationToken cancellationToken)
         {
             List<InfoMedicationDto> meds;
 
@@ -213,7 +214,7 @@ namespace AppVidaSana.Services.AdminWeb
             return meds;
         }
         
-        private async Task<List<Times>> GetQueryPeriodMedicationsAsync(PeriodMedicationsFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
+        private async Task<List<Times>> GetQueryPeriodMedicationsAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
             List<Times> pMed;
 
@@ -249,7 +250,7 @@ namespace AppVidaSana.Services.AdminWeb
             return pMed;
         }
 
-        private IQueryable<Times> FilterInfoMedications(IQueryable<Times> query, PeriodMedicationsFilterDto filter)
+        private IQueryable<Times> FilterInfoMedications(IQueryable<Times> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
@@ -272,7 +273,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<Times> FilterInfoMedicationsByPatient(IQueryable<Times> query, PeriodMedicationsFilterDto filter)
+        private IQueryable<Times> FilterInfoMedicationsByPatient(IQueryable<Times> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.daysConsumedOfMedications!.periodMedication!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
@@ -303,7 +304,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private static IQueryable<Times> FilterInfoMedicationsByMedication(IQueryable<Times> query, PeriodMedicationsFilterDto filter)
+        private static IQueryable<Times> FilterInfoMedicationsByMedication(IQueryable<Times> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.nameMedication))
                 query = query.Where(f => f.daysConsumedOfMedications!.periodMedication!.medication!.nameMedication == filter.nameMedication);
@@ -335,7 +336,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<SideEffects>> GetQuerySideEffectsAsync(SideEffectsFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
+        private async Task<List<SideEffects>> GetQuerySideEffectsAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
             List<SideEffects> sideEffects;
 
@@ -366,7 +367,7 @@ namespace AppVidaSana.Services.AdminWeb
             return sideEffects;
         }
 
-        private IQueryable<SideEffects> FilterSideEffects(IQueryable<SideEffects> query, SideEffectsFilterDto filter)
+        private IQueryable<SideEffects> FilterSideEffects(IQueryable<SideEffects> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
@@ -389,7 +390,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<SideEffects> FilterSideEffectsByPatient(IQueryable<SideEffects> query, SideEffectsFilterDto filter)
+        private IQueryable<SideEffects> FilterSideEffectsByPatient(IQueryable<SideEffects> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
@@ -420,7 +421,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private static IQueryable<SideEffects> FilterSideEffectsByDates(IQueryable<SideEffects> query, SideEffectsFilterDto filter)
+        private static IQueryable<SideEffects> FilterSideEffectsByDates(IQueryable<SideEffects> query, FilterAdminDto filter)
         {
             if (filter.startDate != null && filter.endDate != null)
             {
@@ -446,7 +447,7 @@ namespace AppVidaSana.Services.AdminWeb
         }
 
 
-        private async Task<List<MFUsMedication>> GetQueryMFUsMedicationsAsync(MFUsMedicationFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<MFUsMedication>> GetQueryMFUsMedicationsAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<MFUsMedication> mfu;
 
@@ -479,7 +480,7 @@ namespace AppVidaSana.Services.AdminWeb
             return mfu;
         }
 
-        private IQueryable<MFUsMedication> FilterMFUsMedications(IQueryable<MFUsMedication> query, MFUsMedicationFilterDto filter)
+        private IQueryable<MFUsMedication> FilterMFUsMedications(IQueryable<MFUsMedication> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
@@ -503,41 +504,41 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<MFUsMedication> FilterMFUsMedicationsByPatient(IQueryable<MFUsMedication> query, MFUsMedicationFilterDto filter)
+        private IQueryable<MFUsMedication> FilterMFUsMedicationsByPatient(IQueryable<MFUsMedication> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter!.accountID.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter!.username))
+            if (!string.IsNullOrWhiteSpace(filter.username))
                 query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter!.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter!.sex))
+            if (!string.IsNullOrWhiteSpace(filter.sex))
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
 
-        private static IQueryable<MFUsMedication> FilterMFUsMedicationsByMonthAndYear(IQueryable<MFUsMedication> query, MFUsMedicationFilterDto filter)
+        private static IQueryable<MFUsMedication> FilterMFUsMedicationsByMonthAndYear(IQueryable<MFUsMedication> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
             {
-                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
+                var monthStr = Months.VerifyExistMonth(filter.month ?? 0);
                 query = query.Where(f => f.months!.month.Contains(monthStr));
             }
 
-            if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
                 query = query.Where(f => f.months!.year == filter.year);
 
-            if (!string.IsNullOrWhiteSpace(filter!.statusAdherence))
+            if (!string.IsNullOrWhiteSpace(filter.statusAdherence))
                 query = query.Where(f => f.status!.statusAdherence.Contains(filter.statusAdherence));
 
             return query;

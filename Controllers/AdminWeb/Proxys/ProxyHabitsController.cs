@@ -1,6 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Habits_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.JsonPatch;
@@ -9,6 +7,7 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Text;
 using AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -24,6 +23,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
         private const string typeArchiveJson = "application/json";
+        private string api = Environment.GetEnvironmentVariable(apiUrl)!;
 
         public ProxyHabitsController(IHttpClientFactory clientFactory)
         {
@@ -31,30 +31,21 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("drink")]
-        public async Task<IActionResult> ProxyHabitDrinkAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] HabitFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitDrinkAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/habits/export-habits-drink";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/habits/drink";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
@@ -62,7 +53,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyEditHabitDrinkAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid drinkHabitID, [FromBody] JsonPatchDocument values)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/habits-drink?drinkHabitID={drinkHabitID}";
 
@@ -80,30 +70,21 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("drugs")]
-        public async Task<IActionResult> ProxyHabitDrugsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] HabitFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitDrugsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/habits/export-habits-drugs";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/habits/drugs";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
@@ -111,7 +92,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyEditHabitDrugsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid drugsHabitID, [FromBody] JsonPatchDocument values)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/habits-drugs?drugsHabitID={drugsHabitID}";
 
@@ -129,30 +109,21 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("sleep")]
-        public async Task<IActionResult> ProxyHabitSleepAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] HabitFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitSleepAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/habits/export-habits-sleep";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/habits/sleep";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
@@ -160,7 +131,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyEditHabitSleepAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid sleepHabitID, [FromBody] JsonPatchDocument values)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/habits-sleep?sleepHabitID={sleepHabitID}";
 
@@ -178,30 +148,21 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("mfu-habit")]
-        public async Task<IActionResult> ProxyMFUsHabitsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyMFUsHabitsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/habits/export-mfu-habit";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/habits/mfu-habit";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
@@ -209,7 +170,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyEditMFUsHabitsAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateResponsesHabitsDto values)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/monthly-habits-monitoring";
             var dtoToSend = new

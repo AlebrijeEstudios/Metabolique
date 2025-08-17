@@ -1,6 +1,4 @@
-﻿using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Feeding_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
-using AppVidaSana.Models.Dtos.Feeding_Dtos;
+﻿using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Models.Dtos.Monthly_Follow_Ups_Dtos.Food_Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -9,6 +7,7 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Text;
 using AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -25,6 +24,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
         private const string typeArchiveJson = "application/json";
+        private string api = Environment.GetEnvironmentVariable(apiUrl)!;
 
         public ProxyFeedingsController(IHttpClientFactory clientFactory)
         {
@@ -32,30 +32,21 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet]
-        public async Task<IActionResult> ProxyFeedingsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] UserFeedFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyFeedingsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/export-feedings";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
@@ -63,7 +54,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyEditFeedingAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateFeedingDto values)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/feeding";
             var dtoToSend = new
@@ -95,7 +85,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyDeleteFeedingAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid userFeedID)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/feeding/{userFeedID}";
 
@@ -103,58 +92,40 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("foods")]
-        public async Task<IActionResult> ProxyFoodsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] UserFeedFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyFoodsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/export-foods";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/foods";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
         [HttpGet("mfu-feeding")]
-        public async Task<IActionResult> ProxyMFUsFeedingAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyMFUsFeedingAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/export-mfu-feeding";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/mfu-feeding";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
@@ -162,7 +133,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         public async Task<IActionResult> ProxyEditMFUsFeedingAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateAnswersMFUsFoodDto values)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
 
             var url = $"https://{api}/api/monthly-food-monitoring";
 
@@ -170,86 +140,59 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("calories-needed-per-user")]
-        public async Task<IActionResult> ProxyUserCaloriesAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyUserCaloriesAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/export-calories-needed-per-user";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/calories-needed-per-user";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
         [HttpGet("calories-consumed-per-day")]
-        public async Task<IActionResult> ProxyCaloriesConsumedPerUserAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] CaloriesConsumedFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyCaloriesConsumedPerUserAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/export-calories-consumed-per-day";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/calories-consumed-per-day";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
 
         [HttpGet("calories-required-per-days")]
-        public async Task<IActionResult> ProxyCaloriesRequiredPerDaysAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] CaloriesRequiredPerDaysFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyCaloriesRequiredPerDaysAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var client = this.ConfigureHttpClient(_clientFactory, authorization);
-            var api = Environment.GetEnvironmentVariable(apiUrl);
-
-            var queryString = "";
 
             if (!string.IsNullOrEmpty(typeExport))
             {
-                var queryParams = this.BuildQueryParameters(filter, typeExport, 0);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/export-calories-required-per-days";
 
-                return await this.HandleExportRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, typeExport, 0);
             }
             else
             {
-                var queryParams = this.BuildQueryParameters(filter, null, page);
-                queryString = string.Join("&", queryParams);
-
                 var url = $"https://{api}/api/admin/feedings/calories-required-per-days";
 
-                return await this.GetHandleRegularRequestAsync(client, url, queryString);
+                return await this.HandleRequestAsync(client, filter, url, null, page);
             }
         }
     }

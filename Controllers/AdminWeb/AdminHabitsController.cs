@@ -6,10 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Habits_AWDtos;
 using AppVidaSana.ProducesResponseType.AdminWeb.Habit;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -60,7 +59,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("drink")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetHabitsDrinkPerUserAsync([FromQuery] HabitFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetHabitsDrinkPerUserAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -115,7 +114,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("drugs")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetHabitsDrugsPerUserAsync([FromQuery] HabitFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetHabitsDrugsPerUserAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -170,7 +169,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("sleep")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetHabitsSleepPerUserAsync([FromQuery] HabitFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetHabitsSleepPerUserAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -225,7 +224,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("mfu-habit")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetMFUsHabitsAsync([FromQuery] PatientFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetMFUsHabitsAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {

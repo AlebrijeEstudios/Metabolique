@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
 using AppVidaSana.ProducesResponseType.AdminWeb.Medication;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -45,7 +45,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("info-medications")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetInfoMedicationsPerUserAsync([FromQuery] PeriodMedicationsFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetInfoMedicationsPerUserAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -86,7 +86,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("side-effects")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetSideEffectsAAsync([FromQuery] SideEffectsFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetSideEffectsAAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -127,7 +127,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet("mfu-medication")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetMFUsMedicationsAsync([FromQuery] MFUsMedicationFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetMFUsMedicationsAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {

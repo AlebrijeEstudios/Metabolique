@@ -1,6 +1,6 @@
 ﻿using AppVidaSana.Data;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Exercise_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Models.Exercises;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using AppVidaSana.Months_Dates;
@@ -19,7 +19,7 @@ namespace AppVidaSana.Services.AdminWeb
             _bd = bd;
         }
 
-        public async Task<List<AllExercisesPerUserDto>> GetAllExercisesPerUserAsync(ExerciseFilterDto filter, int page, CancellationToken cancellationToken) 
+        public async Task<List<AllExercisesPerUserDto>> GetAllExercisesPerUserAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken) 
         {
             var exercises = await GetQueryExercisesAsync(filter, page, false, 0, cancellationToken);
 
@@ -37,7 +37,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allExercisesPerUser;
         }
 
-        public async Task<byte[]> ExportAllExercisesAsync(ExerciseFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllExercisesAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<Exercise> exercises;
@@ -66,7 +66,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
     
-        private async Task<List<Exercise>> GetQueryExercisesAsync(ExerciseFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
+        private async Task<List<Exercise>> GetQueryExercisesAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken) 
         {
             List<Exercise> exercises;
 
@@ -97,7 +97,7 @@ namespace AppVidaSana.Services.AdminWeb
             return exercises;
         }
 
-        private IQueryable<Exercise> FilterExercises(IQueryable<Exercise> query, ExerciseFilterDto filter)
+        private IQueryable<Exercise> FilterExercises(IQueryable<Exercise> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
@@ -120,7 +120,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<Exercise> FilterExercisesByPatient(IQueryable<Exercise> query, ExerciseFilterDto filter)
+        private IQueryable<Exercise> FilterExercisesByPatient(IQueryable<Exercise> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
@@ -151,7 +151,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private static IQueryable<Exercise> FilterExercisesByExercise(IQueryable<Exercise> query, ExerciseFilterDto filter)
+        private static IQueryable<Exercise> FilterExercisesByExercise(IQueryable<Exercise> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.typeExercise))
                 query = query.Where(f => f.typeExercise == filter.typeExercise);
@@ -184,7 +184,7 @@ namespace AppVidaSana.Services.AdminWeb
 
 
 
-        public async Task<List<AllMFUsExercisePerUserDto>> GetMFUsExerciseAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken)
+        public async Task<List<AllMFUsExercisePerUserDto>> GetMFUsExerciseAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var mfus = await GetQueryMFUsExerciseAsync(filter, page, false, 0, cancellationToken);
 
@@ -213,7 +213,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allMFUsPerUser;
         }
 
-        public async Task<byte[]> ExportAllMFUsExerciseAsync(PatientFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllMFUsExerciseAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<ExerciseResults> mfus;
@@ -246,7 +246,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        private async Task<List<ExerciseResults>> GetQueryMFUsExerciseAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<ExerciseResults>> GetQueryMFUsExerciseAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<ExerciseResults> mfu;
 
@@ -280,11 +280,11 @@ namespace AppVidaSana.Services.AdminWeb
             return mfu;
         }
 
-        private IQueryable<ExerciseResults> FilterMFUsExercise(IQueryable<ExerciseResults> query, PatientFilterDto filter)
+        private IQueryable<ExerciseResults> FilterMFUsExercise(IQueryable<ExerciseResults> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
-                                          .Where(pd => pd.doctorID == filter!.doctorID)
+                                          .Where(pd => pd.doctorID == filter.doctorID)
                                           .Select(pd => pd.accountID)
                                           .Contains(p.MFUsExercise!.account!.accountID));
 
@@ -303,38 +303,38 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<ExerciseResults> FilterMFUsExerciseByPatient(IQueryable<ExerciseResults> query, PatientFilterDto filter)
+        private IQueryable<ExerciseResults> FilterMFUsExerciseByPatient(IQueryable<ExerciseResults> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter!.accountID.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.MFUsExercise!.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter!.username))
+            if (!string.IsNullOrWhiteSpace(filter.username))
                 query = query.Where(f => f.MFUsExercise!.account!.username.Contains(filter.username ?? ""));
 
-            if (!string.IsNullOrWhiteSpace(filter!.uiemID))
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.uiemID == filter.uiemID));
 
-            if (!string.IsNullOrWhiteSpace(filter!.sex))
+            if (!string.IsNullOrWhiteSpace(filter.sex))
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.sex == filter.sex));
 
-            if (!string.IsNullOrWhiteSpace(filter!.protocolToFollow))
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
                 query = query.Where(f => _bd.Profiles
                                 .Any(p => p.accountID == f.MFUsExercise!.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
 
             return query;
         }
 
-        private static IQueryable<ExerciseResults> FilterMFUsExerciseByMonthAndYear(IQueryable<ExerciseResults> query, PatientFilterDto filter)
+        private static IQueryable<ExerciseResults> FilterMFUsExerciseByMonthAndYear(IQueryable<ExerciseResults> query, FilterAdminDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter!.month.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
             {
-                var monthStr = Months.VerifyExistMonth(filter?.month ?? 0);
+                var monthStr = Months.VerifyExistMonth(filter.month ?? 0);
                 query = query.Where(f => f.MFUsExercise!.months!.month.Contains(monthStr));
             }
 
-            if (!string.IsNullOrWhiteSpace(filter!.year.ToString()))
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
                 query = query.Where(f => f.MFUsExercise!.months!.year == filter.year);
 
             return query;
@@ -342,7 +342,7 @@ namespace AppVidaSana.Services.AdminWeb
 
 
 
-        public async Task<List<AllActiveMinutesPerExerciseDto>> GetAllActiveMinutesPerExerciseAsync(ActiveMinutesFilterDto filter, int page, CancellationToken cancellationToken)
+        public async Task<List<AllActiveMinutesPerExerciseDto>> GetAllActiveMinutesPerExerciseAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
             var actM = await GetQueryActiveMinutesAsync(filter, page, false, 0, cancellationToken);
 
@@ -358,7 +358,7 @@ namespace AppVidaSana.Services.AdminWeb
             return allActMinPerExercise;
         }
 
-        public async Task<byte[]> ExportAllActivesMinutesAsync(ActiveMinutesFilterDto? filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllActivesMinutesAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<ActiveMinutes> actMin;
@@ -388,7 +388,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        private async Task<List<ActiveMinutes>> GetQueryActiveMinutesAsync(ActiveMinutesFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<ActiveMinutes>> GetQueryActiveMinutesAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
             List<ActiveMinutes> actM;
 
@@ -419,7 +419,7 @@ namespace AppVidaSana.Services.AdminWeb
             return actM;
         }
 
-        private IQueryable<ActiveMinutes> FilterActiveMinutes(IQueryable<ActiveMinutes> query, ActiveMinutesFilterDto filter)
+        private IQueryable<ActiveMinutes> FilterActiveMinutes(IQueryable<ActiveMinutes> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != notDoctorID)
                 query = query.Where(p => _bd.PacientDoctor
@@ -442,7 +442,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private IQueryable<ActiveMinutes> FilterActiveMinutesByPatient(IQueryable<ActiveMinutes> query, ActiveMinutesFilterDto filter)
+        private IQueryable<ActiveMinutes> FilterActiveMinutesByPatient(IQueryable<ActiveMinutes> query, FilterAdminDto filter)
         {
             if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
                 query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
@@ -473,7 +473,7 @@ namespace AppVidaSana.Services.AdminWeb
             return query;
         }
 
-        private static IQueryable<ActiveMinutes> FilterActiveMinutesByDates(IQueryable<ActiveMinutes> query, ActiveMinutesFilterDto filter)
+        private static IQueryable<ActiveMinutes> FilterActiveMinutesByDates(IQueryable<ActiveMinutes> query, FilterAdminDto filter)
         {
             if (filter.startDate != null && filter.endDate != null)
             {

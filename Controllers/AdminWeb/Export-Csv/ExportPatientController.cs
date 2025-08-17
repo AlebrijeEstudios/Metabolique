@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
@@ -45,7 +45,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         [EnableRateLimiting("read-only")]
         [HttpGet("export-patients")]
         [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyPatientsToCsvAsync([FromQuery] string typeExport, [FromQuery] PatientFilterDto filter)
+        public async Task<IActionResult> ExportOnlyPatientsToCsvAsync([FromQuery] string typeExport, [FromQuery] FilterAdminDto filter)
         {
             string fileName = "";
             string dateSuffix = DateTime.Today.ToString(formatDate);

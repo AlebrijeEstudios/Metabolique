@@ -10,6 +10,7 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.ProducesResponseType.AdminWeb.Doctor;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -44,7 +45,7 @@ namespace AppVidaSana.Controllers.AdminWeb
         [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> GetDoctorsAsync([FromQuery] DoctorFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetDoctorsAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             var doctors = await _DoctorService.GetDoctorsAsync(filter, page, HttpContext.RequestAborted);
 
