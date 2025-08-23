@@ -18,7 +18,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         private readonly IHttpClientFactory _clientFactory;
         private const string headerToken = "Authorization";
         private const string apiUrl = "SERVER";
-        private string api = Environment.GetEnvironmentVariable(apiUrl)!;
+        private readonly string api = Environment.GetEnvironmentVariable(apiUrl)!;
 
         public ProxyDoctorsController(IHttpClientFactory clientFactory)
         {

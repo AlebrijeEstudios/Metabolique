@@ -704,7 +704,7 @@ namespace AppVidaSana.Services
                                     .Where(nv => allNutrValues.Any(anv =>
                                         anv.foodID == nv.foodID &&
                                         anv.portion == nv.portion &&
-                                        anv.netWeight == nv.netWeight &&
+                                        Math.Abs((anv.netWeight ?? 0) - (nv.netWeight ?? 0)) < tolerance &&
                                         Math.Abs(anv.kilocalories - nv.kilocalories) < tolerance &&
                                         Math.Abs(anv.protein - nv.protein) < tolerance &&
                                         Math.Abs(anv.carbohydrates - nv.carbohydrates) < tolerance &&
@@ -715,7 +715,7 @@ namespace AppVidaSana.Services
                                 .Where(nv => !existingNutrValues.Any(anv =>
                                     anv.foodID == nv.foodID &&
                                     anv.portion == nv.portion &&
-                                    anv.netWeight == nv.netWeight &&
+                                    Math.Abs((anv.netWeight ?? 0) - (nv.netWeight ?? 0)) < tolerance &&
                                     Math.Abs(anv.kilocalories - nv.kilocalories) < tolerance &&
                                     Math.Abs(anv.protein - nv.protein) < tolerance &&
                                     Math.Abs(anv.carbohydrates - nv.carbohydrates) < tolerance &&

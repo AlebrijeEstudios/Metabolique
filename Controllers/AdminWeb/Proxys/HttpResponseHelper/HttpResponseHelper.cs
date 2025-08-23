@@ -11,7 +11,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
         private const string formatDate = "yyyy-MM-dd";
         private const string apiKeyHeaderName = "ApiKeyHeaderName";
         private const string apiKey = "API_KEY";
-        private const string apiUrl = "SERVER";
         private const string bearerScheme = "Bearer";
         private const string typeArchiveJson = "application/json";
         private const string typeArchiveZip = "application/zip";
@@ -51,41 +50,14 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
 
             var properties = filter.GetType().GetProperties();
 
-            var commonPropertyMappings = new Dictionary<string, string>
-            {
-                ["doctorID"] = "doctorID",
-                ["role"] = "role",
-                ["accountID"] = "accountID",
-                ["uiemID"] = "uiemID",
-                ["username"] = "username",
-                ["month"] = "month",
-                ["year"] = "year",
-                ["sex"] = "sex",
-                ["protocolToFollow"] = "protocolToFollow",
-                ["startDate"] = "startDate",
-                ["endDate"] = "endDate",
-                ["dailyMeal"] = "dailyMeal",
-                ["typeExercise"] = "typeExercise",
-                ["intensityExercise"] = "intensityExercise",
-                ["predominatEmotionalState"] = "predominatEmotionalState",
-                ["perceptionRelax"] = "perceptionRelax",
-                ["medication"] = "medication",
-                ["status"] = "status",
-                ["statusAdherence"] = "statusAdherence"
-            };
-
             foreach (var property in properties)
             {
                 var value = property.GetValue(filter);
                 if (value == null) continue;
 
-                string parameterName = "";
-                if (commonPropertyMappings.ContainsKey(property.Name))
-                {
-                    parameterName = commonPropertyMappings[property.Name];
-                }
+                string parameterName = property.Name;
 
-                string parameterValue = FormatValue(value, property.Name);
+                string parameterValue = FormatValue(value);
 
                 if (!string.IsNullOrEmpty(parameterValue))
                 {
@@ -97,7 +69,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
             return queryParams;
         }
 
-        private static string FormatValue(object value, string propertyName)
+        private static string FormatValue(object value)
         {
             if (value is DateTime dateValue)
             {

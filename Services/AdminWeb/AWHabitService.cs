@@ -1,7 +1,6 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Habits_AWDtos;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
 using AppVidaSana.Models.Habits;
 using AppVidaSana.Models.Monthly_Follow_Ups.Results;
 using AppVidaSana.Months_Dates;
@@ -173,7 +172,7 @@ namespace AppVidaSana.Services.AdminWeb
             return memoryStream.ToArray();
         }
 
-        public async Task<byte[]> ExportAllHabitsSleepAsync(FilterAdminDto filter, CancellationToken cancellationToken)
+        public async Task<byte[]> ExportAllHabitsSleepAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
             List<SleepHabit> hSleep;
