@@ -285,8 +285,7 @@ namespace AppVidaSana.Services
 
                 var blobClient = GetContainerClient().GetBlobClient(blobUriBuilder.BlobName);
 
-                var deleteResponse = await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
-
+                await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
             }
             catch (Exception)
             {
