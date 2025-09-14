@@ -32,9 +32,9 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var adminWeb = Environment.GetEnvironmentVariable("ADMIN_WEB");
+var adminWeb = Environment.GetEnvironmentVariable("ADMIN_WEB_TEST");
 
-var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
+var connectionString = Environment.GetEnvironmentVariable("DB_LOCAL");
 
 var storageAccount = Environment.GetEnvironmentVariable("STORAGE");
 
