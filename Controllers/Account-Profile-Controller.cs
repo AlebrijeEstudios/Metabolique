@@ -21,13 +21,8 @@ namespace AppVidaSana.Controllers
     [EnableRateLimiting("general")]
     [Route("api/accounts")]
     [RequestTimeout("CustomPolicy")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
-    [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
     public class AccountProfileController : ControllerBase
     {
         private readonly IAccount _AccountService;
@@ -56,8 +51,7 @@ namespace AppVidaSana.Controllers
         /// <response code="200">Returns account information if found.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="404">Return an error message if the user is not found.</response>
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -104,10 +98,11 @@ namespace AppVidaSana.Controllers
         /// <response code="401">Returns a message that you were unable to log in.</response>        
         /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AuthResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [AllowAnonymous]
         [EnableRateLimiting("write")]
@@ -192,8 +187,10 @@ namespace AppVidaSana.Controllers
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>     
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("write")]
         [HttpPut]
@@ -258,8 +255,9 @@ namespace AppVidaSana.Controllers
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response>
         /// <response code="404">Return a message that the user does not exist in the Accounts table.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("write")]
         [HttpDelete("{accountID:guid}")]
