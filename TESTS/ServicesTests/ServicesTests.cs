@@ -272,12 +272,12 @@ namespace AppVidaSana.TESTS.ServicesTests
             return "";
         }
 
-        public async Task<string> DeleteAccountAsync(Guid accountID, CancellationToken cancellationToken)
+        public Task<string> DeleteAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken)
+        public Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

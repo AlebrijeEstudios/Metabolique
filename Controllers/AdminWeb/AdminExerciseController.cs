@@ -19,6 +19,8 @@ namespace AppVidaSana.Controllers.AdminWeb
     [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/exercises")]
     [RequestTimeout("CustomPolicy")]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class AdminExerciseController : ControllerBase
     {
         private readonly IAWExercise _ExerciseService;
@@ -34,13 +36,8 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200">Returns a message that the update has been successful</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetExercisesResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet]
@@ -75,13 +72,8 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200">Returns a message that the update has been successful</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsExerciseResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("mfu-exercise")]
@@ -116,13 +108,8 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200">Returns a message that the update has been successful</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetActiveMinutesResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("active-minutes")]

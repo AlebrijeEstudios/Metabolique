@@ -19,6 +19,8 @@ namespace AppVidaSana.Controllers.AdminWeb
     [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/habits")]
     [RequestTimeout("CustomPolicy")]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class AdminHabitsController : ControllerBase
     {
         private readonly IAWHabits _HabitService;
@@ -48,13 +50,8 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200"></response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetHabitDrinkResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("drink")]
@@ -103,13 +100,8 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200"></response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetHabitDrugsResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("drugs")]
@@ -158,13 +150,8 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200"></response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetHabitSleepResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("sleep")]
@@ -213,13 +200,8 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// <response code="200"></response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsHabitsResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("mfu-habit")]

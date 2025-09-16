@@ -9,9 +9,9 @@ namespace AppVidaSana.ProducesResponseType
         {
             var hasCommonResponses = context.MethodInfo
                 .GetCustomAttributes(typeof(CommonApiResponsesAttribute), false)
-                .Any();
+                .Length;
 
-            if (hasCommonResponses)
+            if (hasCommonResponses > 0)
             {
                 if (!operation.Responses.ContainsKey("429"))
                 {

@@ -19,6 +19,8 @@ namespace AppVidaSana.Controllers.Habits
     [Tags("App - HabitsSleep")]
     [ApiExplorerSettings(GroupName = "app")]
     [Route("api/habits-sleep")]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class HabitSleepController : ControllerBase
     {
         private readonly ISleepHabit _SleepHabitService;
@@ -44,14 +46,9 @@ namespace AppVidaSana.Controllers.Habits
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ResponseSleepHabit))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("write")]
         [HttpPost]
@@ -117,14 +114,9 @@ namespace AppVidaSana.Controllers.Habits
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response>
         /// <response code="404">Returns a message indicating that no information about sleeping hours has been found.</response>
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponses]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseSleepHabit))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))] 
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("write")]
         [HttpPatch]

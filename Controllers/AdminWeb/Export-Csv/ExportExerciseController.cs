@@ -17,6 +17,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
     [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/exercises")]
     [RequestTimeout("CustomPolicy")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class ExportExerciseController : ControllerBase
     { 
         private readonly IExportToZip _ExportService;
@@ -35,12 +37,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
+        [CommonApiResponses]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-exercises")]
@@ -71,12 +68,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
+        [CommonApiResponses]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-exercise")]
@@ -107,12 +99,7 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
         /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
+        [CommonApiResponses]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-active-minutes")]
