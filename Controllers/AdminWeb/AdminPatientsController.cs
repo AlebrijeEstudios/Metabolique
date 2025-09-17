@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.ProducesResponseType;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -8,6 +7,7 @@ using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -40,13 +40,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         ///     
         /// </remarks>
         /// <response code="200">Returns account information if found.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetPatientsResponse))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet]

@@ -4,6 +4,7 @@ using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Account_Profile;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -21,7 +22,6 @@ namespace AppVidaSana.Controllers
     [EnableRateLimiting("general")]
     [Route("api/accounts")]
     [RequestTimeout("CustomPolicy")]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
     public class AccountProfileController : ControllerBase
     {
@@ -49,9 +49,9 @@ namespace AppVidaSana.Controllers
         ///     
         /// </remarks>
         /// <response code="200">Returns account information if found.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="404">Return an error message if the user is not found.</response>
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -94,15 +94,13 @@ namespace AppVidaSana.Controllers
         ///     
         /// </remarks>
         /// <response code="201">Returns a token to validate in the app.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
         /// <response code="401">Returns a message that you were unable to log in.</response>        
         /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [ConflictApiResponse]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AuthResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [AllowAnonymous]
         [EnableRateLimiting("write")]
@@ -183,14 +181,12 @@ namespace AppVidaSana.Controllers
         ///     
         /// </remarks>
         /// <response code="200">Returns a message that the update has been successful.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
         /// <response code="404">Return a message that the user does not exist in the Accounts table.</response>     
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
+        [ConflictApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("write")]
         [HttpPut]
@@ -252,12 +248,11 @@ namespace AppVidaSana.Controllers
         /// This driver deletes the user's account and everything related to it.
         /// </summary>
         /// <response code="200">Returns a message that the elimination has been successful.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response>
         /// <response code="404">Return a message that the user does not exist in the Accounts table.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("write")]
         [HttpDelete("{accountID:guid}")]

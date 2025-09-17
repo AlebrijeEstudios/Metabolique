@@ -9,6 +9,7 @@ using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType.AdminWeb.Feeding;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -19,8 +20,6 @@ namespace AppVidaSana.Controllers.AdminWeb
     [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/feedings")]
     [RequestTimeout("CustomPolicy")]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class AdminFeedingsController : ControllerBase
     {
         private readonly IAWFeeding _FeedingService;
@@ -48,9 +47,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         ///     
         /// </remarks>
         /// <response code="200">Returns information from the user's feed.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetFeedingsResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -98,9 +97,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         ///     
         /// </remarks>
         /// <response code="200">Returns information from the food consumed by the user.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetFoodsResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -135,9 +134,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// The required calories per patient are obtained.
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetUserCaloriesResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -172,9 +171,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// The monthly dietary follow-ups of the patients are obtained.
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsFeedingResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -208,9 +207,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// This driver gets calories consumed per day per patient.
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetCalConsumedResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -245,9 +244,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// This driver gets calories required per days per patient.
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetCalRequiredResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]

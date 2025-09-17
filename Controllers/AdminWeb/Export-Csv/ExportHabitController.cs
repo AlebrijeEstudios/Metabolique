@@ -7,6 +7,7 @@ using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
@@ -18,7 +19,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
     [Route("api/admin/habits")]
     [RequestTimeout("CustomPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class ExportHabitController : ControllerBase
     {
         private readonly IExportToZip _ExportService;
@@ -36,8 +36,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports the water drinking habits records per patient in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-drink")]
@@ -67,8 +67,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports the drug habit records per patient in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-drugs")]
@@ -98,8 +98,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports the sleep habits records per patient in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-habits-sleep")]
@@ -129,8 +129,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports the patients' monthly habit tracking records in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-habit")]

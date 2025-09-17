@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers.Habits
 {
@@ -19,8 +20,6 @@ namespace AppVidaSana.Controllers.Habits
     [Tags("App - HabitsDrink")]
     [ApiExplorerSettings(GroupName = "app")]
     [Route("api/habits-drink")]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class HabitDrinkController : ControllerBase
     {
         private readonly IDrinkHabit _DrinkHabitService;
@@ -43,12 +42,11 @@ namespace AppVidaSana.Controllers.Habits
         ///   
         /// </remarks>
         /// <response code="201">Returns a message that the information has been successfully stored.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response>
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
+        [ConflictApiResponse]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ResponseDrinkHabit))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("write")]
         [HttpPost]
@@ -111,10 +109,10 @@ namespace AppVidaSana.Controllers.Habits
         ///   
         /// </remarks>
         /// <response code="200">Returns a message that the update has been successful.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response>
         /// <response code="404">Returns a message indicating that no records were found for certain beverages consumed.</response>
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseDrinkHabit))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]

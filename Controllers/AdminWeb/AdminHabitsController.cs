@@ -9,6 +9,7 @@ using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.AdminWeb.Habit;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -19,8 +20,6 @@ namespace AppVidaSana.Controllers.AdminWeb
     [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/habits")]
     [RequestTimeout("CustomPolicy")]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class AdminHabitsController : ControllerBase
     {
         private readonly IAWHabits _HabitService;
@@ -48,9 +47,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         ///     
         /// </remarks>
         /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetHabitDrinkResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -98,9 +97,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         ///     
         /// </remarks>
         /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetHabitDrugsResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -148,9 +147,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         ///     
         /// </remarks>
         /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetHabitSleepResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -198,9 +197,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         ///     
         /// </remarks>
         /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsHabitsResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]

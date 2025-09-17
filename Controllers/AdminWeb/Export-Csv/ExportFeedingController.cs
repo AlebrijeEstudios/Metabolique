@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Api;
-using AppVidaSana.ProducesResponseType;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
@@ -7,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
     [Authorize(Roles = "Admin,User")]
@@ -17,7 +17,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
     [Route("api/admin/feedings")]
     [RequestTimeout("CustomPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class ExportFeedingController : ControllerBase
     {
         private readonly IExportToZip _ExportService;
@@ -35,8 +34,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports patient feeding records in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-feedings")]
@@ -66,8 +65,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports the food consumed per feeding record in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-foods")]
@@ -97,8 +96,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports the calories needed per patient in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-calories-needed-per-user")]
@@ -128,8 +127,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports the monthly patient feeding tracking records in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-feeding")]
@@ -160,8 +159,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports the calories consumed per patient in csv a records.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-calories-consumed-per-day")]
@@ -191,8 +190,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports the calories required per days per patient in csv a records.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-calories-required-per-days")]

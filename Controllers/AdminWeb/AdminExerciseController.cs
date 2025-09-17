@@ -9,6 +9,7 @@ using AppVidaSana.ProducesResponseType.AdminWeb.Exercise;
 using AppVidaSana.Exceptions;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -19,8 +20,6 @@ namespace AppVidaSana.Controllers.AdminWeb
     [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/exercises")]
     [RequestTimeout("CustomPolicy")]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class AdminExerciseController : ControllerBase
     {
         private readonly IAWExercise _ExerciseService;
@@ -34,9 +33,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// Patients' physical activity records are obtained.
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetExercisesResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -70,9 +69,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// Monthly follow-ups of patients' physical activity are obtained.
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsExerciseResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
@@ -106,9 +105,9 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// Total active minutes per exercises realizaded per patient.
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetActiveMinutesResponse))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]

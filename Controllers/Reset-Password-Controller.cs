@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers
 {
@@ -33,14 +34,11 @@ namespace AppVidaSana.Controllers
         /// This driver performs password reset.
         /// </summary>
         /// <response code="200">Returns a message indicating that the email has been sent correctly or on the contrary it was not sent because there is no account associated to that email and/or the email could not be sent due to external factors.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response> 
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="500">Returns a message indicating internal server errors.</response>
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [ConflictApiResponse]
+        [InternalServerErrorApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("forgot-password")]
         [HttpPost]
@@ -120,16 +118,12 @@ namespace AppVidaSana.Controllers
         /// This controller performs the password reset action.
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response> 
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="500">Returns a message indicating internal server errors.</response>
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
+        [ConflictApiResponse]
+        [InternalServerErrorApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResetPasswordResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("reset-password")]
         [HttpPut("reset-password")]

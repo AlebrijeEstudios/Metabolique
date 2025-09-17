@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Api;
-using AppVidaSana.ProducesResponseType;
 using Microsoft.AspNetCore.RateLimiting;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
 {
@@ -18,7 +18,6 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
     [Route("api/admin/exercises")]
     [RequestTimeout("CustomPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
     public class ExportExerciseController : ControllerBase
     { 
         private readonly IExportToZip _ExportService;
@@ -36,8 +35,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This controller exports patients' physical activity records in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-exercises")]
@@ -67,8 +66,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports patients' monthly physical activity tracking records in a csv file.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-mfu-exercise")]
@@ -98,8 +97,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Export_Csv
         /// This driver exports active minutes in csv records.
         /// </summary>
         /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        [CommonApiResponses]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet("export-active-minutes")]

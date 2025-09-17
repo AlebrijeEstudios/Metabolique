@@ -1,14 +1,15 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace AppVidaSana.ProducesResponseType
+namespace AppVidaSana.ProducesResponseType.ResponseOperationsFilters
 {
     public class CommonResponsesOperationFilter : IOperationFilter
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
             var hasCommonResponses = context.MethodInfo
-                .GetCustomAttributes(typeof(CommonApiResponsesAttribute), false)
+                .GetCustomAttributes(typeof(CommonApiResponseAttribute), false)
                 .Length;
 
             if (hasCommonResponses > 0)

@@ -27,6 +27,7 @@ using AppVidaSana.KeyToken;
 using AppVidaSana.RateLimitHelpers;
 using AppVidaSana.TESTS;
 using AppVidaSana.TESTS.ServicesTests;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters;
 
 Env.Load();
 
@@ -304,6 +305,10 @@ builder.Services.AddSwaggerGen(c =>
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     c.OperationFilter<CommonResponsesOperationFilter>();
+    c.OperationFilter<BadRequestResponseOperationFilter>();
+    c.OperationFilter<UnauthorizedResponseOperationFilter>();
+    c.OperationFilter<ConflictResponseOperationFilter>();
+    c.OperationFilter<InternalServerErrorResponseOperationFilter>();
 });
 
 var app = builder.Build();
