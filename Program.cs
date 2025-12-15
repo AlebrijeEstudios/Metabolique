@@ -205,6 +205,16 @@ builder.Services.AddAuthentication(options =>
             if (context.Exception is SecurityTokenExpiredException) { throw new TokenExpiredException(); }
 
             return Task.CompletedTask;
+        },
+
+        OnTokenValidated = context =>
+        {
+            var typ = context.Principal?.FindFirst("typ")?.Value;
+
+            if (typ != "access")
+                context.Fail("Invalid token type");
+
+            return Task.CompletedTask;
         }
     };
 });

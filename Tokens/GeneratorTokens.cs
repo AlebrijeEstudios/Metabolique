@@ -29,7 +29,7 @@ namespace AppVidaSana.Tokens
             return accessToken;
         }
 
-        public static ClaimsPrincipal GetPrincipalFromExpiredToken(string token, string keyToken)
+        public static ClaimsPrincipal GetPrincipalFromToken(string token, string keyToken)
         {
             var key = Encoding.ASCII.GetBytes(keyToken);
             var tokenValidationParameters = new TokenValidationParameters
@@ -38,7 +38,8 @@ namespace AppVidaSana.Tokens
                 ValidateAudience = false,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateLifetime = false
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

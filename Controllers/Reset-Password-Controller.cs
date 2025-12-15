@@ -15,6 +15,7 @@ using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAtt
 
 namespace AppVidaSana.Controllers
 {
+    [AllowAnonymous]
     [EnableCors("RulesCORS")]
     [ApiController]
     [Tags("App - Forgot_Password")]
@@ -49,13 +50,14 @@ namespace AppVidaSana.Controllers
             {
                 var token = await _resetPasswordService.PasswordResetTokenAsync(email, HttpContext.RequestAborted);
 
-                var resetLink = Url.Action("ViewResetPassword", "ResetPassword", new { token = token, email = email.email }, Request.Scheme);
+                var resetLink = Url.Action("ViewResetPassword", "ResetPassword", new { token = token }, Request.Scheme);
 
                 if (resetLink == null) { throw new EmailNotSendException(); }
 
                 _resetPasswordService.SendEmailAsync(email.email, resetLink);
 
-                return StatusCode(StatusCodes.Status200OK );
+                return StatusCode(StatusCodes.Status200OK);
+
             }
             catch (EmailNotSendException ex)
             {
@@ -91,13 +93,12 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="404">Returns a message indicating that the page could not be loaded correctly.</response>
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-        [AllowAnonymous]
         [HttpGet]
-        public IActionResult ViewResetPassword(string token, string email)
+        public IActionResult ViewResetPassword(string token)
         {
             try
             {
-                var model = new ResetPasswordDto { token = token, email = email };
+                var model = new ResetPasswordDto { token = token };
 
                 return View(model);
             }
@@ -127,7 +128,6 @@ namespace AppVidaSana.Controllers
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("reset-password")]
         [HttpPut("reset-password")]
-        [Authorize]
         [Produces("application/json")]
         public async Task<IActionResult> UpdatePassword([FromBody] ResetPasswordDto values)
         {
