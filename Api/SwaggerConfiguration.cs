@@ -112,7 +112,7 @@ namespace AppVidaSana.Api
                     .Where(t => !string.IsNullOrWhiteSpace(t))
                     .ToList();
 
-                if (tags.Any())
+                if (tags.Count > 0)
                     return tags;
 
                 return new List<string>
