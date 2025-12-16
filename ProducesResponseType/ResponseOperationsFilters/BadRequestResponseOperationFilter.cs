@@ -12,22 +12,19 @@ namespace AppVidaSana.ProducesResponseType.ResponseOperationsFilters
                 .GetCustomAttributes(typeof(BadRequestApiResponseAttribute), false)
                 .Length;
 
-            if (hasCommonResponses > 0)
+            if (hasCommonResponses > 0 && !operation.Responses.ContainsKey("400"))
             {
-                if (!operation.Responses.ContainsKey("400"))
+                operation.Responses.Add("400", new OpenApiResponse
                 {
-                    operation.Responses.Add("400", new OpenApiResponse
+                    Description = "Returns a message that the requested action could not be performed.",
+                    Content = new Dictionary<string, OpenApiMediaType>
                     {
-                        Description = "Returns a message that the requested action could not be performed.",
-                        Content = new Dictionary<string, OpenApiMediaType>
+                        ["application/json"] = new OpenApiMediaType
                         {
-                            ["application/json"] = new OpenApiMediaType
-                            {
-                                Schema = context.SchemaGenerator.GenerateSchema(typeof(ExceptionMessage), context.SchemaRepository)
-                            }
+                            Schema = context.SchemaGenerator.GenerateSchema(typeof(ExceptionMessage), context.SchemaRepository)
                         }
-                    });
-                }
+                    }
+                });
             }
         }
     }

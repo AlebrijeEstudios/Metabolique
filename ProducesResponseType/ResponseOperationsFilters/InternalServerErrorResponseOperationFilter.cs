@@ -12,22 +12,19 @@ namespace AppVidaSana.ProducesResponseType.ResponseOperationsFilters
                 .GetCustomAttributes(typeof(InternalServerErrorApiResponseAttribute), false)
                 .Length;
 
-            if (hasCommonResponses > 0)
+            if (hasCommonResponses > 0 && !operation.Responses.ContainsKey("500"))
             {
-                if (!operation.Responses.ContainsKey("500"))
+                operation.Responses.Add("500", new OpenApiResponse
                 {
-                    operation.Responses.Add("500", new OpenApiResponse
+                    Description = "Returns a message indicating internal server errors.",
+                    Content = new Dictionary<string, OpenApiMediaType>
                     {
-                        Description = "Returns a message indicating internal server errors.",
-                        Content = new Dictionary<string, OpenApiMediaType>
+                        ["application/json"] = new OpenApiMediaType
                         {
-                            ["application/json"] = new OpenApiMediaType
-                            {
-                                Schema = context.SchemaGenerator.GenerateSchema(typeof(ExceptionMessage), context.SchemaRepository)
-                            }
+                            Schema = context.SchemaGenerator.GenerateSchema(typeof(ExceptionMessage), context.SchemaRepository)
                         }
-                    });
-                }
+                    }
+                });
             }
         }
     }

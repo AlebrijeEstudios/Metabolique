@@ -12,22 +12,19 @@ namespace AppVidaSana.ProducesResponseType.ResponseOperationsFilters
                 .GetCustomAttributes(typeof(UnauthorizedApiResponseAttribute), false)
                 .Length;
 
-            if (hasCommonResponses > 0)
+            if (hasCommonResponses > 0 && !operation.Responses.ContainsKey("401"))
             {
-                if (!operation.Responses.ContainsKey("401"))
+                operation.Responses.Add("401", new OpenApiResponse
                 {
-                    operation.Responses.Add("401", new OpenApiResponse
+                    Description = "Returns a message indicating that the token has expired.",
+                    Content = new Dictionary<string, OpenApiMediaType>
                     {
-                        Description = "Returns a message indicating that the token has expired.",
-                        Content = new Dictionary<string, OpenApiMediaType>
+                        ["application/json"] = new OpenApiMediaType
                         {
-                            ["application/json"] = new OpenApiMediaType
-                            {
-                                Schema = context.SchemaGenerator.GenerateSchema(typeof(ExceptionExpiredTokenMessage), context.SchemaRepository)
-                            }
+                            Schema = context.SchemaGenerator.GenerateSchema(typeof(ExceptionExpiredTokenMessage), context.SchemaRepository)
                         }
-                    });
-                }
+                    }
+                });
             }
         }
     }

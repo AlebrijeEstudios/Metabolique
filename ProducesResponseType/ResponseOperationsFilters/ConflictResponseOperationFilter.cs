@@ -12,22 +12,19 @@ namespace AppVidaSana.ProducesResponseType.ResponseOperationsFilters
                 .GetCustomAttributes(typeof(ConflictApiResponseAttribute), false)
                 .Length;
 
-            if (hasCommonResponses > 0)
+            if (hasCommonResponses > 0 && !operation.Responses.ContainsKey("409"))
             {
-                if (!operation.Responses.ContainsKey("409"))
+                operation.Responses.Add("409", new OpenApiResponse
                 {
-                    operation.Responses.Add("409", new OpenApiResponse
+                    Description = "Returns a series of messages indicating that some values are invalid.",
+                    Content = new Dictionary<string, OpenApiMediaType>
                     {
-                        Description = "Returns a series of messages indicating that some values are invalid.",
-                        Content = new Dictionary<string, OpenApiMediaType>
+                        ["application/json"] = new OpenApiMediaType
                         {
-                            ["application/json"] = new OpenApiMediaType
-                            {
-                                Schema = context.SchemaGenerator.GenerateSchema(typeof(ExceptionListMessages), context.SchemaRepository)
-                            }
+                            Schema = context.SchemaGenerator.GenerateSchema(typeof(ExceptionListMessages), context.SchemaRepository)
                         }
-                    });
-                }
+                    }
+                });
             }
         }
     }
