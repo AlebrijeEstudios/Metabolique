@@ -9,6 +9,7 @@ using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.ProducesResponseType.AdminWeb;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
@@ -32,14 +33,10 @@ namespace AppVidaSana.Controllers.AdminWeb
         /// </summary>
         /// <response code="200">The start of the session was successful.</response>
         /// <response code="401">Returns a message that you were unable to log in.</response>  
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="500">Returns a message indicating internal server errors.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetAuthResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
+        [CommonApiResponse]
+        [InternalServerErrorApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("login")]
         [HttpPost]

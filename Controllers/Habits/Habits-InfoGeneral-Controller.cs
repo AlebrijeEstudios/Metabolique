@@ -1,6 +1,7 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Habits;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 using AppVidaSana.Services.IServices.IHabits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -39,13 +40,9 @@ namespace AppVidaSana.Controllers.Habits
         ///     
         /// </remarks>
         /// <response code="200">Returns all the information from the Habits section for a given day and the hours of sleep for the last 7 days.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="429">Returns a series of messages indicating too many requests.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnHabitsInfo))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(RequestGeneralExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestGeneralExceptionMessage))]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
         [EnableRateLimiting("read-only")]
         [HttpGet]
