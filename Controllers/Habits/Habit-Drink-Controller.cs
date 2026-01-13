@@ -9,12 +9,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers.Habits
 {
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - HabitsDrink")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/habits-drink")]
     public class HabitDrinkController : ControllerBase
     {
@@ -38,16 +42,13 @@ namespace AppVidaSana.Controllers.Habits
         ///   
         /// </remarks>
         /// <response code="201">Returns a message that the information has been successfully stored.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
+        [ConflictApiResponse]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ResponseDrinkHabit))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPost]
         [Produces("application/json")]
         public async Task<IActionResult> AddDrinksConsumedAsync([FromBody] DrinkHabitDto values)
@@ -108,16 +109,14 @@ namespace AppVidaSana.Controllers.Habits
         ///   
         /// </remarks>
         /// <response code="200">Returns a message that the update has been successful.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response>
-        /// <response code="404">Returns a message indicating that no records were found for certain beverages consumed.</response>     
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        /// <response code="404">Returns a message indicating that no records were found for certain beverages consumed.</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseDrinkHabit))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpPatch]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateDrinksConsumedAsync([FromQuery] Guid drinkHabitID, [FromBody] JsonPatchDocument values)

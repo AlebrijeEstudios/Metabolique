@@ -10,11 +10,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers
 {
+    [AllowAnonymous]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - Forgot_Password")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/forgot-password")]
     [RequestTimeout("CustomPolicy")]
     public class ResetPasswordController : Controller
@@ -30,16 +35,13 @@ namespace AppVidaSana.Controllers
         /// This driver performs password reset.
         /// </summary>
         /// <response code="200">Returns a message indicating that the email has been sent correctly or on the contrary it was not sent because there is no account associated to that email and/or the email could not be sent due to external factors.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response> 
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="500">Returns a message indicating internal server errors.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [ConflictApiResponse]
+        [InternalServerErrorApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("forgot-password")]
         [HttpPost]
         [Produces("application/json")]
         public async Task<IActionResult> ForgotPassword([FromBody] EmailDto email)
@@ -48,13 +50,14 @@ namespace AppVidaSana.Controllers
             {
                 var token = await _resetPasswordService.PasswordResetTokenAsync(email, HttpContext.RequestAborted);
 
-                var resetLink = Url.Action("ViewResetPassword", "ResetPassword", new { token = token, email = email.email }, Request.Scheme);
+                var resetLink = Url.Action("ViewResetPassword", "ResetPassword", new { token = token }, Request.Scheme);
 
                 if (resetLink == null) { throw new EmailNotSendException(); }
 
                 _resetPasswordService.SendEmailAsync(email.email, resetLink);
 
                 return StatusCode(StatusCodes.Status200OK);
+
             }
             catch (EmailNotSendException ex)
             {
@@ -90,14 +93,12 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="404">Returns a message indicating that the page could not be loaded correctly.</response>
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ExceptionMessage))]
-        [AllowAnonymous]
         [HttpGet]
-        [Produces("application/json")]
-        public IActionResult ViewResetPassword(string token, string email)
+        public IActionResult ViewResetPassword(string token)
         {
             try
             {
-                var model = new ResetPasswordDto { token = token, email = email };
+                var model = new ResetPasswordDto { token = token };
 
                 return View(model);
             }
@@ -118,18 +119,14 @@ namespace AppVidaSana.Controllers
         /// This controller performs the password reset action.
         /// </summary>
         /// <response code="200">Returns a message that the update has been successful.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response> 
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="409">Returns a series of messages indicating that some values are invalid.</response>
-        /// <response code="500">Returns a message indicating internal server errors.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
+        [ConflictApiResponse]
+        [InternalServerErrorApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResetPasswordResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ExceptionListMessages))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("reset-password")]
         [HttpPut("reset-password")]
         [Produces("application/json")]
         public async Task<IActionResult> UpdatePassword([FromBody] ResetPasswordDto values)

@@ -23,10 +23,19 @@ using AppVidaSana.ProducesResponseType;
 using Newtonsoft.Json;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using AppVidaSana.Services.AdminWeb;
+using System.Security.Claims;
+using AppVidaSana.KeyToken;
+using AppVidaSana.RateLimitHelpers;
+using AppVidaSana.TESTS;
+using AppVidaSana.TESTS.ServicesTests;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters;
+using AppVidaSana.Api;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+var adminWeb = Environment.GetEnvironmentVariable("ADMIN_WEB");
 
 var connectionString = Environment.GetEnvironmentVariable("DB_REMOTE");
 
@@ -40,13 +49,55 @@ builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServ
 
 builder.Services.AddSingleton(x => new BlobServiceClient(storageAccount));
 
-var myrulesCORS = "RulesCORS";
-builder.Services.AddCors(opt =>
+builder.Services.AddCors(options =>
 {
-    opt.AddPolicy(name: myrulesCORS, builder =>
+    options.AddPolicy("RulesCORS", policy =>
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition"); ;
+        policy.WithOrigins(adminWeb!)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .WithExposedHeaders("Content-Disposition");
     });
+});
+
+builder.Logging.AddDebug();
+
+builder.Services.AddRateLimiter(opt =>
+{
+    opt.AddPolicy("login", httpContext =>
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetIpPartitionKey(httpContext), 10, TimeSpan.FromMinutes(5)));
+
+    opt.AddPolicy("refresh", httpContext =>
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetUserOrIpPartitionKey(httpContext), 5, TimeSpan.FromMinutes(1)));
+
+    opt.AddPolicy("forgot-password", httpContext =>
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetIpPartitionKey(httpContext), 3, TimeSpan.FromMinutes(15)));
+
+    opt.AddPolicy("reset-password", httpContext =>
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetIpPartitionKey(httpContext), 5, TimeSpan.FromMinutes(5)));
+
+    opt.AddPolicy("read-only", httpContext =>
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetUserOrIpPartitionKey(httpContext), 300, TimeSpan.FromMinutes(1)));
+
+    opt.AddPolicy("write", httpContext =>
+        RateLimitHelpers.CreateFixedWindowLimiter(RateLimitHelpers.GetUserOrIpPartitionKey(httpContext), 50, TimeSpan.FromMinutes(1)));
+
+    opt.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+        var errorResponse = new RequestGeneralExceptionMessage
+        {
+            status = StatusCodes.Status429TooManyRequests,
+            error = "Too Many Requests",
+            message = "La petici&oacute;n ha tenido muchos intentos, int&eacute;ntelo de nuevo",
+            timestamp = DateTime.UtcNow.ToString("o"),
+            path = context.HttpContext.Request.Path
+        };
+
+        var jsonResponse = JsonConvert.SerializeObject(errorResponse);
+        await context.HttpContext.Response.WriteAsync(jsonResponse, token);
+    };
 });
 
 builder.Services.AddRequestTimeouts(options =>
@@ -58,7 +109,7 @@ builder.Services.AddRequestTimeouts(options =>
             TimeoutStatusCode = 503,
             WriteTimeoutResponse = async (HttpContext context) => {
                 context.Response.ContentType = "application/json";
-                var errorResponse = new RequestTimeoutExceptionMessage
+                var errorResponse = new RequestGeneralExceptionMessage
                 {
                     status = StatusCodes.Status503ServiceUnavailable,
                     error = "Service Unavailable",
@@ -88,12 +139,19 @@ builder.Services.AddControllers(options =>
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddHttpClient();
+
 builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHttpContextAccessor();
 
+
+builder.Services.AddScoped<IServicesTests, ServicesTests>();
+
+builder.Services.AddScoped<IAWAuth, AWAuthService>();
+builder.Services.AddScoped<IAWDoctors, AWDoctorService>();
 builder.Services.AddScoped<IAWFeeding, AWFeedingService>();
 builder.Services.AddScoped<IAWExercise, AWExerciseService>();
 builder.Services.AddScoped<IAWHabits, AWHabitService>();
@@ -105,6 +163,7 @@ builder.Services.AddScoped<IUserDaySummary, UserDaySummaryService>();
 builder.Services.AddScoped<ICalories, CaloriesService>();
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IProfile, ProfileService>();
+builder.Services.AddScoped<IDoctor, DoctorService>();
 builder.Services.AddScoped<IAuthenticationAuthorization, AuthenticationAuthorizationService>();
 builder.Services.AddScoped<IResetPassword, ResetPassswordService>();
 builder.Services.AddScoped<IFeeding, FeedingService>();
@@ -131,21 +190,31 @@ builder.Services.AddAuthentication(options =>
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidIssuer = KeyTokenEnv.GetTokenIssuerEnv(),
+        ValidateAudience = true,
+        ValidAudience = KeyTokenEnv.GetTokenAudienceEnv(),
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-        ClockSkew = TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = ClaimTypes.Role
     };
     options.Events = new JwtBearerEvents
     {
         OnAuthenticationFailed = context =>
         {
-            if (context.Exception is SecurityTokenExpiredException)
-            {
-                throw new TokenExpiredException();
-            }
+            if (context.Exception is SecurityTokenExpiredException) { throw new TokenExpiredException(); }
+
+            return Task.CompletedTask;
+        },
+
+        OnTokenValidated = context =>
+        {
+            var typ = context.Principal?.FindFirst("typ")?.Value;
+
+            if (typ != "access")
+                context.Fail("Invalid token type");
 
             return Task.CompletedTask;
         }
@@ -154,60 +223,17 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Metabolique_API",
-        Version = "v1",
-        Description = "An ASP.NET Core web API to manage medical tracking elements of a user's medical record."
-    });
-
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        In = ParameterLocation.Header,
-        Description = "Please enter into field the word 'Bearer' followed by a space and the JWT value",
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-    c.MapType<DateOnly>(() => new OpenApiSchema
-    {
-        Type = "string",
-        Format = "date",
-        Example = new OpenApiString(DateTime.Today.ToString("yyyy-MM-dd"))
-    });
-    c.MapType<TimeOnly>(() => new OpenApiSchema
-    {
-        Type = "string",
-        Format = "time",
-        Example = new OpenApiString(DateTime.Today.ToString("HH:mm"))
-    });
-
-    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-
-});
+SwaggerConfiguration.AddSwagger(builder.Services);
 
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "DeveloperTest V1");
+    c.SwaggerEndpoint("/swagger/app/swagger.json", "Metabolique API");
+    c.SwaggerEndpoint("/swagger/admin/swagger.json", "Metabolique Admin Web APIs");
+    c.SwaggerEndpoint("/swagger/proxy/swagger.json", "Metabolique Proxys Admin Web APIs");
+    c.SwaggerEndpoint("/swagger/app_test/swagger.json", "App TESTS");
 });
 
 app.Use(async (context, next) =>
@@ -216,23 +242,7 @@ app.Use(async (context, next) =>
     {
         await next(); 
     }
-    catch (TokenExpiredException ex)
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        context.Response.ContentType = "application/json";
-
-        var errorResponse = new ExceptionExpiredTokenMessage
-        {
-            status = StatusCodes.Status401Unauthorized,
-            error = "Unauthorized",
-            message = ex.Message,
-            timestamp = DateTime.UtcNow.ToString("o"),
-            path = context.Request.Path
-        };
-
-        await context.Response.WriteAsJsonAsync(errorResponse);
-    }
-    catch (ApiKeyException ex)
+    catch (Exception ex) when (ex is TokenExpiredException || ex is ApiKeyException)
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         context.Response.ContentType = "application/json";
@@ -253,13 +263,13 @@ app.Use(async (context, next) =>
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors(myrulesCORS);
 app.UseRequestTimeouts();
+app.UseCors("RulesCORS");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllers();
-
 await app.RunAsync();

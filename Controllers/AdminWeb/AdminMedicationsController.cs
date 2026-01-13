@@ -1,5 +1,4 @@
 ﻿using AppVidaSana.Services.IServices.IAdminWeb;
-using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
@@ -7,67 +6,53 @@ using Microsoft.AspNetCore.Mvc;
 using AppVidaSana.Api;
 using AppVidaSana.Exceptions;
 using AppVidaSana.ProducesResponseType;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Medication_AWDtos;
 using AppVidaSana.ProducesResponseType.AdminWeb.Medication;
+using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 
 namespace AppVidaSana.Controllers.AdminWeb
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,User")]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("Admin - Medications")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Route("api/admin/medications")]
     [RequestTimeout("CustomPolicy")]
     public class AdminMedicationsController : ControllerBase
     {
         private readonly IAWMedication _MedicationService;
-        private readonly IExportToZip _ExportService;
 
-        public AdminMedicationsController(IAWMedication MedicationService, IExportToZip exportService)
+        public AdminMedicationsController(IAWMedication MedicationService)
         {
             _MedicationService = MedicationService;
-            _ExportService = exportService;
         }
 
         /// <summary>
-        /// PENDIENTE
+        /// This driver obtains the medication consumption records per patient.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetPeriodMedResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        /// <response code="200">Returns a message that the update has been successful</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetInfoMedResponse))]
         [ApiKeyAuthorizationFilter]
-        [HttpGet("periods-medications")]
+        [EnableRateLimiting("read-only")]
+        [HttpGet("info-medications")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetPeriodMedicationsPerUserAsync([FromQuery] PeriodMedicationsFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetInfoMedicationsPerUserAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
-                var pMeds = await _MedicationService.GetAllPeriodMedicationsPerUserAsync(filter, page, HttpContext.RequestAborted);
+                var meds = await _MedicationService.GetAllInfoMedicationsPerUserAsync(filter, page, HttpContext.RequestAborted);
 
-                GetPeriodMedResponse response = new GetPeriodMedResponse
+                GetInfoMedResponse response = new GetInfoMedResponse
                 {
-                    periodsMed = pMeds
+                    meds = meds
                 };
 
-                return StatusCode(StatusCodes.Status200OK, new { message = response.message, periods = response.periodsMed });
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, meds = response.meds});
             }
             catch (UnstoredValuesException ex)
             {
@@ -81,34 +66,18 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// PENDIENTE
+        /// This driver obtains the side effect records per patient.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        /// <response code="200">Returns a message that the update has been successful</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetSideEffectsResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("side-effects")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetSideEffectsAAsync([FromQuery] SideEffectsFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetSideEffectsAAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -133,34 +102,18 @@ namespace AppVidaSana.Controllers.AdminWeb
         }
 
         /// <summary>
-        /// PENDIENTE
+        /// This driver obtains the monthly medication tracking records per patient.
         /// </summary>
-        /// <remarks>
-        /// Sample Request:
-        /// 
-        ///     The userFeedDate property must have the following structure:   
-        ///     {
-        ///        "userFeedDate": "0000-00-00" (YEAR-MOUNTH-DAY)
-        ///     }
-        /// 
-        ///     The userFeedTime property must have the following structure:
-        ///     {
-        ///         "userFeedTime": "HH:MM" (HOURS:MINUTES) 24 HOURS FORMAT
-        ///     }
-        ///     
-        /// </remarks>
-        /// <response code="200"></response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetSideEffectsResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        /// <response code="200">Returns a message that the update has been successful</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetMFUsMedicationResponse))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet("mfu-medication")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetMFUsMedicationsAsync([FromQuery] MFUsMedicationFilterDto filter, [FromQuery] int page)
+        public async Task<IActionResult> GetMFUsMedicationsAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
             try
             {
@@ -182,105 +135,6 @@ namespace AppVidaSana.Controllers.AdminWeb
 
                 return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
             }
-        }
-
-        /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-periods-medications")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyPeriodMedicationsToCsvAsync([FromQuery] string typeExport, [FromQuery] PeriodMedicationsFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"PeriodsMedications_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyPeriodMedicationsZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_PeriodsMedications_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyPeriodMedicationsZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
-        }
-
-        /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-side-effects")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlySideEffectsToCsvAsync([FromQuery] string typeExport, [FromQuery] SideEffectsFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"SideEffects_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlySideEffectsZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_SideEffects_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlySideEffectsZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
-        }
-
-        /// <summary>
-        /// This driver exports in csv records.
-        /// </summary>
-        /// <response code="200">Returns information succesfully.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
-        [ApiKeyAuthorizationFilter]
-        [HttpGet("export-mfu-medication")]
-        [Produces("application/zip")]
-        public async Task<IActionResult> ExportOnlyMFUsMedicationToCsvAsync([FromQuery] string typeExport, [FromQuery] MFUsMedicationFilterDto filter)
-        {
-            string fileName = "";
-            string dateSuffix = DateTime.Today.ToString("yyyy-MM-dd");
-            byte[] zipBytes = [];
-
-            if (typeExport == "with_filter")
-            {
-                fileName = $"MFUsMedication_With_Filters_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyMFUsMedicationZipAsync(filter, typeExport, HttpContext.RequestAborted);
-            }
-
-            if (typeExport == "all")
-            {
-                fileName = $"All_MFUsMedication_{dateSuffix}.zip";
-                zipBytes = await _ExportService.GenerateOnlyMFUsMedicationZipAsync(null, typeExport, HttpContext.RequestAborted);
-            }
-
-            return File(zipBytes, "application/zip", fileName);
         }
     }
 }

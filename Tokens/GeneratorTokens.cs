@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using AppVidaSana.KeyToken;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -16,6 +17,8 @@ namespace AppVidaSana.Tokens
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = durationToken,
+                Issuer = KeyTokenEnv.GetTokenIssuerEnv(),
+                Audience = KeyTokenEnv.GetTokenAudienceEnv(),
                 SigningCredentials = new(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -26,7 +29,7 @@ namespace AppVidaSana.Tokens
             return accessToken;
         }
 
-        public static ClaimsPrincipal GetPrincipalFromExpiredToken(string token, string keyToken)
+        public static ClaimsPrincipal GetPrincipalFromToken(string token, string keyToken)
         {
             var key = Encoding.ASCII.GetBytes(keyToken);
             var tokenValidationParameters = new TokenValidationParameters
@@ -35,7 +38,8 @@ namespace AppVidaSana.Tokens
                 ValidateAudience = false,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateLifetime = false
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

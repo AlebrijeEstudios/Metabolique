@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppVidaSana.Models
@@ -26,10 +25,11 @@ namespace AppVidaSana.Models
         [Required(ErrorMessage = "El campo peso es obligatorio.")]
         public float weight { get; set; }
 
-        [Required(ErrorMessage = "El campo protocolo es obligatorio.")]
-        public string protocolToFollow { get; set; } = null!;
+        [ForeignKey("Protocols")]
+        public Guid? protocolID { get; set; }
 
         public Account? account { get; set; }
 
+        public Protocols? protocol { get; set; }
     }
 }

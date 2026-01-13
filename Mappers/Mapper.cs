@@ -34,7 +34,8 @@ namespace AppVidaSana.Mappers
             CreateMap<Profiles, InfoAccountDto>()
                 .ForMember(dest => dest.accountID, opt => opt.Ignore())
                 .ForMember(dest => dest.username, opt => opt.Ignore())
-                .ForMember(dest => dest.email, opt => opt.Ignore()).ReverseMap();
+                .ForMember(dest => dest.email, opt => opt.Ignore())
+                .ForMember(dest => dest.protocolToFollow, opt => opt.Ignore()).ReverseMap();
 
             //FEEDING
             CreateMap<AddFeedingDto, UserFeedsDto>()

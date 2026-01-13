@@ -1,7 +1,6 @@
 ﻿using AppVidaSana.Data;
 using AppVidaSana.Exceptions;
 using AppVidaSana.Exceptions.Feeding;
-using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Models.Dtos.Feeding_Dtos;
 using AppVidaSana.Models.Feeding;
 using AppVidaSana.Months_Dates;
@@ -10,6 +9,7 @@ using AppVidaSana.ValidationValues;
 using AutoMapper;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -200,6 +200,13 @@ namespace AppVidaSana.Services
 
             var userFeedToDelete = await _bd.UserFeeds.FindAsync(new object[] { userFeedID }, cancellationToken);
 
+            if (userFeedToDelete == null) 
+            {
+                throw new UnstoredValuesException();
+            }
+
+            var saucerPictureIDToCheck = userFeedToDelete.saucerPictureID;
+
             var totalKcalToDate = await _bd.CaloriesConsumed
                                         .FirstOrDefaultAsync(e => e.accountID == userFeedToDelete!.accountID
                                                              && e.dateCaloriesConsumed == userFeedToDelete.userFeedDate,
@@ -221,6 +228,11 @@ namespace AppVidaSana.Services
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
+            if (saucerPictureIDToCheck.HasValue)
+            {
+                await CheckAndDeleteImageIfUnusedAsync(saucerPictureIDToCheck.Value, cancellationToken);
+            }
+
             return true;
         }
 
@@ -234,6 +246,50 @@ namespace AppVidaSana.Services
             {
                 return false;
 
+            }
+        }
+
+        private async Task CheckAndDeleteImageIfUnusedAsync(Guid saucerPictureID, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var hasOtherReferences = await _bd.UserFeeds
+                    .AnyAsync(uf => uf.saucerPictureID == saucerPictureID, cancellationToken);
+
+                if (!hasOtherReferences)
+                {
+                    var imageRecord = await _bd.SaucerPictures
+                        .FirstOrDefaultAsync(sp => sp.saucerPictureID == saucerPictureID, cancellationToken);
+
+                    if (imageRecord != null && !string.IsNullOrEmpty(imageRecord.saucerPictureUrl))
+                    {
+                        await DeleteImageFromAzureStorageAsync(imageRecord.saucerPictureUrl);
+
+                        _bd.SaucerPictures.Remove(imageRecord);
+                        Save();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw new UnstoredValuesException();
+            }
+        }
+
+        private async Task DeleteImageFromAzureStorageAsync(string saucerPictureUrl)
+        {
+            try
+            {
+                var uri = new Uri(saucerPictureUrl);
+                var blobUriBuilder = new BlobUriBuilder(uri);
+
+                var blobClient = GetContainerClient().GetBlobClient(blobUriBuilder.BlobName);
+
+                await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+            }
+            catch (Exception)
+            {
+                throw new UnstoredValuesException();
             }
         }
 
@@ -422,13 +478,29 @@ namespace AppVidaSana.Services
 
         private async Task<string?> GetSaucerPictureUrlAsync(Guid? saucerPictureID, CancellationToken cancellationToken)
         {
-            if (saucerPictureID is null)
-            {
-                return null;
-            }
+            if (saucerPictureID is null) { return null; }
 
-            var suacerPictureUrl = await _bd.SaucerPictures.FindAsync(new object[] { saucerPictureID }, cancellationToken);
-            return suacerPictureUrl!.saucerPictureUrl;
+            var saucerPictureUrl = await _bd.SaucerPictures.FindAsync(new object[] { saucerPictureID }, cancellationToken);
+
+            var blobUri = new Uri(saucerPictureUrl!.saucerPictureUrl);
+            var blobName = Path.GetFileName(blobUri.LocalPath);
+
+            var blobClient = _blobServiceClient.GetBlobContainerClient(ContainerName)
+                                               .GetBlobClient(blobName);
+
+            var sasBuilder = new BlobSasBuilder
+            {
+                BlobContainerName = ContainerName,
+                BlobName = blobName,
+                Resource = "b",
+                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(1)
+            };
+
+            sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+            var sasUri = blobClient.GenerateSasUri(sasBuilder);
+
+            return sasUri.ToString();
         }
 
         private static double TotalKcal(List<FoodsConsumedDto> foods)
@@ -671,7 +743,7 @@ namespace AppVidaSana.Services
                                 {
                                     foodID = existingFoods[food.foodCode],
                                     portion = nutrValue.portion,
-                                    netWeight = nutrValue?.netWeight,
+                                    netWeight = nutrValue.netWeight,
                                     kilocalories = nutrValue.kilocalories,
                                     protein = nutrValue.protein,
                                     carbohydrates = nutrValue.carbohydrates,
@@ -687,7 +759,7 @@ namespace AppVidaSana.Services
                                     .Where(nv => allNutrValues.Any(anv =>
                                         anv.foodID == nv.foodID &&
                                         anv.portion == nv.portion &&
-                                        anv.netWeight == nv.netWeight &&
+                                        Math.Abs((anv.netWeight ?? 0) - (nv.netWeight ?? 0)) < tolerance &&
                                         Math.Abs(anv.kilocalories - nv.kilocalories) < tolerance &&
                                         Math.Abs(anv.protein - nv.protein) < tolerance &&
                                         Math.Abs(anv.carbohydrates - nv.carbohydrates) < tolerance &&
@@ -698,7 +770,7 @@ namespace AppVidaSana.Services
                                 .Where(nv => !existingNutrValues.Any(anv =>
                                     anv.foodID == nv.foodID &&
                                     anv.portion == nv.portion &&
-                                    anv.netWeight == nv.netWeight &&
+                                    Math.Abs((anv.netWeight ?? 0) - (nv.netWeight ?? 0)) < tolerance &&
                                     Math.Abs(anv.kilocalories - nv.kilocalories) < tolerance &&
                                     Math.Abs(anv.protein - nv.protein) < tolerance &&
                                     Math.Abs(anv.carbohydrates - nv.carbohydrates) < tolerance &&

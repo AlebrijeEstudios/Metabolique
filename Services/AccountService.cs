@@ -4,6 +4,7 @@ using AppVidaSana.Exceptions.Account_Profile;
 using AppVidaSana.Exceptions.Account_Profile.ValidationTimeoutException;
 using AppVidaSana.Models;
 using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
+using AppVidaSana.Models.Dtos.Doctor_Dtos;
 using AppVidaSana.Services.IServices;
 using AppVidaSana.ValidationValues;
 using AutoMapper;
@@ -50,12 +51,6 @@ namespace AppVidaSana.Services
 
             if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
 
-            var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == "User", cancellationToken);
-
-            if (role is null) { throw new NoRoleAssignmentException(); }
-
-            var doctor = await _bd.Doctors.FirstOrDefaultAsync(e => e.username == "Mario Pablo Gonzalez", cancellationToken);
-
             Account account = new Account
             {
                 username = values.username,
@@ -68,7 +63,7 @@ namespace AppVidaSana.Services
             PacientDoctor pd = new PacientDoctor
             {
                 accountID = account.accountID,
-                doctorID = doctor.doctorID
+                doctorID = values.doctorID
             };
 
             _bd.Accounts.Add(account);
@@ -83,6 +78,8 @@ namespace AppVidaSana.Services
 
         public async Task<InfoAccountDto> GetAccountAsync(Guid accountID, CancellationToken cancellationToken)
         {
+            DoctorDto? doctorDto = new DoctorDto();
+
             var account = await _bd.Accounts.FindAsync(new object[] { accountID }, cancellationToken);
             var profile = await _bd.Profiles.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
 
@@ -91,9 +88,27 @@ namespace AppVidaSana.Services
             InfoAccountDto infoUser = _mapper.Map<InfoAccountDto>(account);
             _mapper.Map(profile, infoUser);
 
+            var protocol = await _bd.Protocols.FindAsync(new object[] { profile.protocolID! }, cancellationToken);
+
+            var doctorPatient = await _bd.PacientDoctor.FirstOrDefaultAsync(e => e.accountID == accountID, cancellationToken);
+
+            if (doctorPatient!.doctorID is null)
+            {
+                doctorDto = null;
+            }
+            else 
+            {  
+                var doctor = await _bd.Doctors.FindAsync(new object[] { doctorPatient.doctorID }, cancellationToken);
+
+                doctorDto.doctorID = doctor!.doctorID;
+                doctorDto.username = doctor!.username;
+            }
+
+            infoUser.protocolToFollow = protocol!.protocolToFollow;
+            infoUser.doctor = doctorDto;
+
             return infoUser;
         }
-
 
         public async Task<ProfileDto> UpdateAccountAsync(InfoAccountDto values, CancellationToken cancellationToken)
         {
@@ -123,6 +138,10 @@ namespace AppVidaSana.Services
             user.email = values.email;
 
             ValidationValuesDB.ValidationValues(user);
+
+            var doctorPatient = await _bd.PacientDoctor.FirstOrDefaultAsync(e => e.accountID == values.accountID, cancellationToken);
+
+            doctorPatient!.doctorID = values.doctor?.doctorID;
 
             if (!Save()) { throw new UnstoredValuesException(); }
 

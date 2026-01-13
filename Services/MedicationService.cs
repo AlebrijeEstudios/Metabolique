@@ -63,29 +63,18 @@ namespace AppVidaSana.Services
 
             _bd.PeriodsMedications.Add(period);
 
-            DaysConsumedOfMedications dayConsumed = new DaysConsumedOfMedications
-            {
-                periodID = period.periodID,
-                dateConsumed = values.initialFrec,
-                consumptionTimes = ""
-            };
-
-            ValidationValuesDB.ValidationValues(dayConsumed);
-
-            _bd.DaysConsumedOfMedications.Add(dayConsumed);
-
-            if (!Save()) { throw new UnstoredValuesException(); }
+            if (!Save()) throw new UnstoredValuesException();
 
             if (!(period.initialFrec <= values.dateActual && values.dateActual <= period.finalFrec))
             {
-                CreateTimes(dayConsumed.dayConsumedID, values.times);
+                CreateDayConsumedOfMedication(period, values);
 
                 return null;
             }
 
-            CreateTimes(dayConsumed.dayConsumedID, values.times);
+            var dayConsumedID = CreateDayConsumedOfMedication(period, values);
 
-            return await InfoMedicationAsync(medication, period, dayConsumed.dayConsumedID, values.dateActual, cancellationToken);
+            return await InfoMedicationAsync(medication, period, dayConsumedID, values.dateActual, cancellationToken);
         }
 
         public async Task<MedicationsAndValuesGraphicDto> GetMedicationsAsync(Guid accountID, DateOnly dateActual, CancellationToken cancellationToken)
@@ -225,16 +214,13 @@ namespace AppVidaSana.Services
             {
                 var dates = DatesInRange.GetDatesInRange(date.AddDays(1), period.finalFrec);
 
-                foreach (var newDate in dates)
+                var firstValidDate = dates.FirstOrDefault(d => !datesExcluded.Contains(d.ToString()));
+                if (firstValidDate != default)
                 {
-                    if (!datesExcluded.Contains(newDate.ToString()))
-                    {
-                        period.initialFrec = newDate;
-                        break;
-                    }
+                    period.initialFrec = firstValidDate;
+                    
+                    if (!Save()) { throw new UnstoredValuesException(); }
                 }
-
-                if (!Save()) { throw new UnstoredValuesException(); }
             }
         }
 
@@ -244,16 +230,13 @@ namespace AppVidaSana.Services
             {
                 var dates = DatesInRange.GetDatesInRange(period.initialFrec, date.AddDays(-1)).OrderDescending();
 
-                foreach (var newDate in dates)
+                var firstValidDate = dates.FirstOrDefault(d => !datesExcluded.Contains(d.ToString()));
+                if (firstValidDate != default)
                 {
-                    if (!datesExcluded.Contains(newDate.ToString()))
-                    {
-                        period.finalFrec = newDate;
-                        break;
-                    }
+                    period.finalFrec = firstValidDate;
+                    
+                    if (!Save()) { throw new UnstoredValuesException(); }
                 }
-
-                if (!Save()) { throw new UnstoredValuesException(); }
             }
         }
 
@@ -488,6 +471,37 @@ namespace AppVidaSana.Services
             return newMedication;
         }
 
+        private Guid CreateDayConsumedOfMedication(PeriodsMedications period, AddMedicationUseDto values) 
+        {
+            Guid dayConsumedID = Guid.Empty;
+            var dates = new List<DateOnly> { values.initialFrec };
+            if(period.initialFrec < values.dateActual && values.dateActual < period.finalFrec)
+                dates.Add(values.dateActual);
+            if (period.initialFrec != period.finalFrec)
+                dates.Add(values.finalFrec);
+
+            foreach (var date in dates)
+            {
+                var day = new DaysConsumedOfMedications
+                {
+                    periodID = period.periodID,
+                    dateConsumed = date,
+                    consumptionTimes = ""
+                };
+
+                ValidationValuesDB.ValidationValues(day);
+                _bd.DaysConsumedOfMedications.Add(day);
+
+                if (!Save()) throw new UnstoredValuesException();
+
+                CreateTimes(day.dayConsumedID, values.times);
+
+                dayConsumedID = day.dayConsumedID;
+            }
+
+            return dayConsumedID;
+        }
+
         private List<Times> CreateTimes(Guid dayConsumedID, string times)
         {
             List<Times> newTimes = new List<Times>();
@@ -566,7 +580,7 @@ namespace AppVidaSana.Services
             {
                 dates = DatesInRange.GetDatesInRange(values.initialFrec, period.initialFrec);
 
-                datesExcluded = UpdateDatesExcluded(datesExcluded ?? [], dates);
+                datesExcluded = UpdateDatesExcluded(datesExcluded, dates);
 
                 period.datesExcluded = string.Join(",", datesExcluded ?? []);
             }

@@ -12,6 +12,7 @@ using Azure.Communication.Email;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using AppVidaSana.Exceptions.Account_Profile.ValidationTimeoutException;
+using System.Text.RegularExpressions;
 
 namespace AppVidaSana.Services
 {
@@ -33,7 +34,8 @@ namespace AppVidaSana.Services
             Claim[] claims = new Claim[]
             {
                 new Claim(ClaimTypes.Name, account.username.ToString()),
-                new Claim(ClaimTypes.Email, account.email.ToString())
+                new Claim(ClaimTypes.Email, account.email.ToString()),
+                new Claim("typ", "password_reset")
             };
 
             DateTime durationToken = DateTime.UtcNow.AddMinutes(15);
@@ -68,15 +70,17 @@ namespace AppVidaSana.Services
 
         public async Task<bool> ResetPasswordAsync(ResetPasswordDto values, CancellationToken cancellationToken)
         {
-            var principal = GeneratorTokens.GetPrincipalFromExpiredToken(values.token, KeyTokenEnv.GetKeyTokenEnv());
+            var principal = GeneratorTokens.GetPrincipalFromToken(values.token, KeyTokenEnv.GetKeyTokenEnv());
 
             var usernameClaimType = principal.FindFirst(ClaimTypes.Name)?.Value;
 
             var emailClaimType = principal.FindFirst(ClaimTypes.Email)?.Value;
 
-            if (values.email != emailClaimType) { throw new ComparedEmailException(); }
-
             if (values.password != values.confirmPassword) { throw new ComparedPasswordException(); }
+
+            var purpose = principal.FindFirst("typ")?.Value;
+            if (purpose != "password_reset")
+                throw new UnstoredValuesException();
 
             List<string?> errors = new List<string?>();
 
@@ -95,7 +99,7 @@ namespace AppVidaSana.Services
             if (errors.Count > 0) { throw new ValuesInvalidException(errors); }
 
             var account = await _bd.Accounts.FirstOrDefaultAsync(u => u.username == usernameClaimType
-                                                                 && u.email == values.email, cancellationToken);
+                                                                 && u.email == emailClaimType, cancellationToken);
 
             if (account is null) { return false; }
 
@@ -123,17 +127,24 @@ namespace AppVidaSana.Services
 
         private static string verifyPassword(string password)
         {
-            if (password.Length < 8)
+            try
             {
-                return "La contraseña debe tener al menos 8 caracteres.";
-            }
+                if (password.Length < 8)
+                {
+                    return "La contraseña debe tener al menos 8 caracteres.";
+                }
 
-            if (!RegexPatterns.RegexPatterns.Passwordregex.IsMatch(password))
+                if (!RegexPatterns.RegexPatterns.Passwordregex.IsMatch(password))
+                {
+                    return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico.";
+                }
+
+                return "";
+            }
+            catch (RegexMatchTimeoutException)
             {
-                return "La contraseña debe contener al menos un número, una letra minúscula o letra mayúscula y un carácter alfanumérico.";
+                throw new PasswordValidationTimeoutException();
             }
-
-            return "";
         }
     }
 }

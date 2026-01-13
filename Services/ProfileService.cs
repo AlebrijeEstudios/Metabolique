@@ -20,9 +20,21 @@ namespace AppVidaSana.Services
             _CaloriesService = CaloriesService;
         }
 
-        public void CreateProfile(Guid accountID, AccountDto values)
+        public async Task CreateProfileAsync(Guid accountID, AccountDto values, CancellationToken cancellationToken)
         {
             var today = DateOnly.FromDateTime(DateTime.Now);
+
+            var protocol = await _bd.Protocols.FirstOrDefaultAsync(e => e.protocolToFollow == values.protocolToFollow, cancellationToken);
+
+            if (protocol is null) {
+
+                protocol = new Protocols
+                {
+                    protocolToFollow = values.protocolToFollow
+                };
+
+                _bd.Protocols.Add(protocol);
+            }
 
             Profiles profile = new Profiles
             {
@@ -31,7 +43,7 @@ namespace AppVidaSana.Services
                 sex = values.sex,
                 stature = values.stature,
                 weight = values.weight,
-                protocolToFollow = values.protocolToFollow,
+                protocolID= protocol.protocolID,
                 uiemID = values.uiemID
             };
 
@@ -52,20 +64,32 @@ namespace AppVidaSana.Services
 
             var profile = await _bd.Profiles.FirstOrDefaultAsync(e => e.accountID == values.accountID, cancellationToken);
 
+            var protocol = await _bd.Protocols.FirstOrDefaultAsync(e => e.protocolToFollow == values.protocolToFollow, cancellationToken);
+
+            if (protocol is null)
+            {
+                protocol = new Protocols
+                {
+                    protocolToFollow = values.protocolToFollow
+                };
+
+                _bd.Protocols.Add(protocol);
+            }
+
             if (profile is null) { throw new UserNotFoundException(); }
 
             profile.sex = values.sex;
             profile.birthDate = values.birthDate;
             profile.stature = values.stature;
             profile.weight = values.weight;
-            profile.protocolToFollow = values.protocolToFollow;
+            profile.protocolID = protocol.protocolID;
             profile.uiemID = values.uiemID;
 
             ValidationValuesDB.ValidationValues(profile);
 
             if (!Save()) { throw new UnstoredValuesException(); }
 
-            var userKcal = await _CaloriesService.UpdateUserCaloriesAsync(profile, cancellationToken);
+            await _CaloriesService.UpdateUserCaloriesAsync(profile, cancellationToken);
 
             await _CaloriesService.CaloriesRequiredPerDaysAsync(values.accountID, today, cancellationToken);
 

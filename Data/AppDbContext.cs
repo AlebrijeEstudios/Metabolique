@@ -22,6 +22,7 @@ namespace AppVidaSana.Data
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Roles> Roles { get; set; }
         public DbSet<Profiles> Profiles { get; set; }
+        public DbSet<Protocols> Protocols { get; set; }
         public DbSet<UserFeeds> UserFeeds { get; set; }
         public DbSet<SaucerPictures> SaucerPictures { get; set; }
         public DbSet<DailyMeals> DailyMeals { get; set; }
@@ -64,6 +65,12 @@ namespace AppVidaSana.Data
                 .WithOne(profile => profile.account)
                 .HasForeignKey<Profiles>(profile => profile.accountID)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Protocols>()
+                .HasMany(p => p.profiles)
+                .WithOne(profile => profile.protocol)
+                .HasForeignKey(profile => profile.protocolID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PacientDoctor>()
                 .HasOne(a => a.account)

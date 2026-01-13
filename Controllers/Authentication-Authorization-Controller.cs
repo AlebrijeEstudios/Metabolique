@@ -5,17 +5,22 @@ using AppVidaSana.Models.Dtos.Account_Profile_Dtos;
 using AppVidaSana.Models.Dtos.Reset_Password_Dtos;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Authenticator;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 using AppVidaSana.Services.IServices;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers
 {
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - Auth")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/auth")]
     [RequestTimeout("CustomPolicy")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
     public class AuthenticationAuthorizationController : ControllerBase
     {
         private readonly IAuthenticationAuthorization _AuthService;
@@ -29,16 +34,13 @@ namespace AppVidaSana.Controllers
         /// This controller performs the login.
         /// </summary>
         /// <response code="200">The start of the session was successful.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message that you were unable to log in.</response>  
-        /// <response code="500">Returns a message indicating internal server errors.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        /// <response code="401">Returns a message that you were unable to log in.</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [InternalServerErrorApiResponse]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("login")]
         [HttpPost("login")]
         [Produces("application/json")]
         public async Task<IActionResult> LoginAccountAsync([FromBody] LoginDto login)
@@ -87,16 +89,13 @@ namespace AppVidaSana.Controllers
         /// This controller generates new tokens.
         /// </summary>
         /// <response code="200">The tokens were successfully generated.</response>
-        /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="401">Returns a message indicating the refresh token has expired.</response>  
-        /// <response code="500">Returns a message indicating internal server errors.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
+        /// <response code="401">Returns a message indicating the refresh token has expired.</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [InternalServerErrorApiResponse]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("refresh")]
         [HttpPost("refresh-token")]
         [Produces("application/json")]
         public async Task<IActionResult> RefreshTokenAsync([FromBody] TokensDto values)
@@ -146,11 +145,11 @@ namespace AppVidaSana.Controllers
         /// </summary>
         /// <response code="200">The closing session was a success.</response>
         /// <response code="400">Returns a message that the requested action could not be performed.</response>
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LogoutResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ExceptionMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
         [HttpDelete("logout/{accountID:guid}")]
         [Produces("application/json")]
         public async Task<IActionResult> LogoutAccountAsync(Guid accountID)

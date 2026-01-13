@@ -1,35 +1,34 @@
 ﻿using AppVidaSana.Data;
-using AppVidaSana.Exceptions;
 using AppVidaSana.Models;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos;
+using AppVidaSana.Models.Dtos.Doctor_Dtos;
 using AppVidaSana.Services.IServices.IAdminWeb;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace AppVidaSana.Services.AdminWeb
 {
-    public class AWPatientsService :IAWPatients
+    public class AWPatientsService : IAWPatients
     {
         private readonly AppDbContext _bd;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AWPatientsService(AppDbContext bd, IHttpContextAccessor httpContextAccessor)
+        public AWPatientsService(AppDbContext bd)
         {
             _bd = bd;
-            _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<List<AllPatientsDto>> GetPatientsAsync(PatientFilterDto filter, int page, CancellationToken cancellationToken)
+        public async Task<List<AllPatientsDto>> GetPatientsAsync(FilterAdminDto filter, int page, CancellationToken cancellationToken)
         {
-            var role = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
+            var profiles = await GetQueryPatientsAsync(filter, page, false, 0, cancellationToken);
 
-            if (role is null) { throw new UnstoredValuesException(); }
-
-            if (role == "Admin")
+            var accountProfileDTOs = profiles.Select(profile =>
             {
-                var profiles = await GetQueryPatientsAsync(filter, page, false, 0, cancellationToken);
+                var accountID = profile.account!.accountID;
 
-                var accountProfileDTOs = profiles.Select(profile => new AllPatientsDto
+                var patientDoctor = profile.account!.pacientDoctor?
+                                    .FirstOrDefault(pd => pd.accountID == accountID);
+
+                return new AllPatientsDto
                 {
                     accountID = profile.accountID,
                     uiemID = profile.uiemID,
@@ -39,93 +38,63 @@ namespace AppVidaSana.Services.AdminWeb
                     sex = profile.sex,
                     stature = profile.stature,
                     weight = profile.weight,
-                    protocolToFollow = profile.protocolToFollow
+                    protocolToFollow = profile.protocol!.protocolToFollow,
+                    doctor = new DoctorDto
+                    {
+                        doctorID = patientDoctor?.doctor?.doctorID ?? Guid.Parse("00000000-0000-0000-0000-000000000000"),
+                        username = patientDoctor?.doctor?.username ?? "Sin doctor asignado."
+                    }
+                };
 
-                }).ToList();
+            }).ToList();
 
-                return accountProfileDTOs;
-            }
-
-            return [];
+            return accountProfileDTOs;
         }
 
-        public async Task<byte[]> ExportPatientsAsync(PatientFilterDto? filter, CancellationToken cancellationToken) 
+        public async Task<byte[]> ExportPatientsAsync(FilterAdminDto? filter, CancellationToken cancellationToken)
         {
             int currentPage = 0;
+            List<Profiles> profiles;
 
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+
+            await streamWriter.WriteLineAsync("AccountID,UiemID,UserName,Email,BirthDate,Sex,Stature,Weight,ProtocolToFollow");
+
+            do
             {
-                await streamWriter.WriteLineAsync("AccountID,UiemID,UserName,Email,BirthDate,Sex,Stature,Weight,ProtocolToFollow");
+                profiles = await GetQueryPatientsAsync(filter, 0, true, currentPage, cancellationToken);
 
-                while (currentPage >= 0)
+                foreach (var p in profiles)
                 {
-                    var profiles = await GetQueryPatientsAsync(filter, 0, true, currentPage, cancellationToken);
+                    var csvLine = $"{p.accountID},{p.uiemID ?? "N/A"},{p.account!.username},{p.account!.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocol!.protocolToFollow}";
 
-                    if (profiles.Count == 0)
-                    {
-                        currentPage = -1;
-                    }
-                    else 
-                    { 
-                        foreach (var p in profiles)
-                        {
-                            var csvLine = $"{p.accountID},{p.uiemID ?? "N/A"},{p.account!.username},{p.account!.email},{p.birthDate},{p.sex},{p.stature},{p.weight},{p.protocolToFollow}";
-
-                            await streamWriter.WriteLineAsync(csvLine);
-                        }
-
-                        currentPage++;
-                    }
+                    await streamWriter.WriteLineAsync(csvLine);
                 }
 
-                await streamWriter.FlushAsync(cancellationToken);
+                currentPage++;
 
-                return memoryStream.ToArray();
-            }
+            } while (profiles.Count > 0);
+
+            await streamWriter.FlushAsync(cancellationToken);
+
+            return memoryStream.ToArray();
         }
 
-        private async Task<List<Profiles>> GetQueryPatientsAsync(PatientFilterDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
+        private async Task<List<Profiles>> GetQueryPatientsAsync(FilterAdminDto? filter, int page, bool export, int currentPage, CancellationToken cancellationToken)
         {
-            List<Profiles> patients = new List<Profiles>();
+            List<Profiles> patients;
 
             var query = _bd.Profiles
                            .Include(f => f.account)
+                           .Include(f => f.account!.pacientDoctor)
+                                .ThenInclude(pd => pd.doctor)
+                           .Include(f => f.protocol)
                            .AsQueryable();
 
             if (filter != null)
             {
-                query = query.Where(p => _bd.PacientDoctor
-                                        .Where(pd => pd.doctorID == filter.doctorID)
-                                        .Select(pd => pd.accountID)
-                                        .Contains(p.account!.accountID));
-
-                if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
-                    query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
-
-                if (!string.IsNullOrWhiteSpace(filter.username))
-                    query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
-
-                if (!string.IsNullOrWhiteSpace(filter.uiemID))
-                    query = query.Where(f => _bd.Profiles
-                                    .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
-
-                if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
-                    query = query.Where(f => _bd.Profiles
-                                    .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
-
-                if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
-                    query = query.Where(f => _bd.Profiles
-                                    .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
-
-                if (!string.IsNullOrWhiteSpace(filter.sex))
-                    query = query.Where(f => _bd.Profiles
-                                    .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
-
-                if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
-                    query = query.Where(f => _bd.Profiles
-                                    .Any(p => p.accountID == f.account!.accountID && p.protocolToFollow == filter.protocolToFollow));
-
+                query = FilterPatientsByPatient(query, filter);
             }
 
             if (!export)
@@ -135,7 +104,8 @@ namespace AppVidaSana.Services.AdminWeb
                             .Take(10)
                             .ToListAsync(cancellationToken);
             }
-            else { 
+            else
+            {
                 patients = await query
                             .Skip(currentPage * 1000)
                             .Take(1000)
@@ -143,6 +113,53 @@ namespace AppVidaSana.Services.AdminWeb
             }
 
             return patients;
+        }
+
+        private IQueryable<Profiles> FilterPatientsByPatient(IQueryable<Profiles> query, FilterAdminDto filter)
+        {
+            if (!string.IsNullOrWhiteSpace(filter.doctorID.ToString()) && filter.doctorID.ToString() != "00000000-0000-0000-0000-000000000000")
+            {
+                query = query.Where(p => _bd.PacientDoctor
+                                    .Where(pd => pd.doctorID == filter.doctorID)
+                                    .Select(pd => pd.accountID)
+                                    .Contains(p.account!.accountID));
+            }
+
+            if (filter.doctorID == Guid.Empty)
+            {
+                query = query.Where(p => _bd.PacientDoctor
+                                    .Where(pd => pd.doctorID == null)
+                                    .Select(pd => pd.accountID)
+                                    .Contains(p.account!.accountID));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.accountID.ToString()))
+                query = query.Where(f => f.account!.accountID.ToString().Contains(filter.accountID.ToString() ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter.username))
+                query = query.Where(f => f.account!.username.Contains(filter.username ?? ""));
+
+            if (!string.IsNullOrWhiteSpace(filter.uiemID))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.uiemID == filter.uiemID));
+
+            if (!string.IsNullOrWhiteSpace(filter.month.ToString()))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Month == filter.month));
+
+            if (!string.IsNullOrWhiteSpace(filter.year.ToString()))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.birthDate.Year == filter.year));
+
+            if (!string.IsNullOrWhiteSpace(filter.sex))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.sex == filter.sex));
+
+            if (!string.IsNullOrWhiteSpace(filter.protocolToFollow))
+                query = query.Where(f => _bd.Profiles
+                                .Any(p => p.accountID == f.account!.accountID && p.protocol!.protocolToFollow == filter.protocolToFollow));
+
+            return query;
         }
     }
 }

@@ -10,5 +10,15 @@ namespace AppVidaSana.KeyToken
                    Environment.GetEnvironmentVariable("TOKEN_Replacement") ??
                    throw new NullTokenException();
         }
+
+        public static string GetTokenIssuerEnv()
+        {
+            return Environment.GetEnvironmentVariable("TOKEN_ISSUER")!;
+        }
+
+        public static string GetTokenAudienceEnv()
+        {
+            return Environment.GetEnvironmentVariable("TOKEN_AUDIENCE")!;
+        }
     }
 }

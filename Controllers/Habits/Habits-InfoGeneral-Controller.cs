@@ -1,16 +1,20 @@
 ﻿using AppVidaSana.Api;
 using AppVidaSana.ProducesResponseType;
 using AppVidaSana.ProducesResponseType.Habits;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
 using AppVidaSana.Services.IServices.IHabits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AppVidaSana.Controllers.Habits
 {
     [Authorize]
     [EnableCors("RulesCORS")]
     [ApiController]
+    [Tags("App - HabitsInfoGeneral")]
+    [ApiExplorerSettings(GroupName = "app")]
     [Route("api/habits")]
     public class HabitsInfoGeneralController : ControllerBase
     {
@@ -36,12 +40,11 @@ namespace AppVidaSana.Controllers.Habits
         ///     
         /// </remarks>
         /// <response code="200">Returns all the information from the Habits section for a given day and the hours of sleep for the last 7 days.</response>
-        /// <response code="401">Returns a message indicating that the token has expired.</response> 
-        /// <response code="503">Returns a message indicating that the response timeout has passed.</response>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ReturnHabitsInfo))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ExceptionExpiredTokenMessage))]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable, Type = typeof(RequestTimeoutExceptionMessage))]
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
         [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetHabitsInfoGeneralAsync([FromQuery] Guid accountID, [FromQuery] DateOnly date)

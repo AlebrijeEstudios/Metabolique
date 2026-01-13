@@ -1,0 +1,204 @@
+﻿using AppVidaSana.Api;
+using AppVidaSana.ProducesResponseType;
+using AppVidaSana.Services.IServices.IAdminWeb;
+using Microsoft.AspNetCore.Mvc;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Doctor_AWDtos;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http.Timeouts;
+using AppVidaSana.Exceptions;
+using AppVidaSana.Exceptions.Account_Profile;
+using AppVidaSana.ProducesResponseType.AdminWeb.Doctor;
+using Microsoft.AspNetCore.RateLimiting;
+using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using AppVidaSana.ProducesResponseType.ResponseOperationsFilters.ApiResponsesAttribute;
+
+namespace AppVidaSana.Controllers.AdminWeb
+{
+    [Authorize(Roles = "Admin")]
+    [EnableCors("RulesCORS")]
+    [ApiController]
+    [Tags("Admin - Doctors")]
+    [ApiExplorerSettings(GroupName = "admin")]
+    [Route("api/admin/doctors")]
+    [RequestTimeout("CustomPolicy")]
+    public class AdminDoctorController : ControllerBase
+    {
+        private readonly IAWDoctors _DoctorService;
+
+        public AdminDoctorController(IAWDoctors DoctorsService)
+        {
+            _DoctorService = DoctorsService;
+        }
+
+        /// <summary>
+        /// This controller obtains all doctor accounts.
+        /// </summary>
+        /// <response code="200">Returns account information if found.</response>
+        [CommonApiResponse]
+        [UnauthorizedApiResponse]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetDoctorsResponse))]
+        [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("read-only")]
+        [HttpGet]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetDoctorsAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        {
+            var doctors = await _DoctorService.GetDoctorsAsync(filter, page, HttpContext.RequestAborted);
+
+            GetDoctorsResponse response = new GetDoctorsResponse
+            {
+                doctors = doctors
+            };
+
+            return StatusCode(StatusCodes.Status200OK, new { message = response.message, doctors = response.doctors });
+        }
+
+        /// <summary>
+        /// This controller creates the doctor's account.
+        /// </summary>
+        /// <response code="201">Returns a token to validate in the app.</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
+        [ConflictApiResponse]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AddUpdateDoctorsResponse))]
+        [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
+        [HttpPost]
+        [Produces("application/json")]
+        public async Task<IActionResult> CreateDoctorAsync([FromBody] AWDoctorDto values)
+        {
+            try
+            {
+                var doctor = await _DoctorService.CreateDoctorAsync(values, HttpContext.RequestAborted);
+
+                AddUpdateDoctorsResponse response = new AddUpdateDoctorsResponse
+                {
+                    doctor = doctor
+                };
+
+                return StatusCode(StatusCodes.Status201Created, new { message = response.message, doctor = response.doctor });
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (NoRoleAssignmentException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (ValuesInvalidException ex)
+            {
+                ExceptionListMessages response = new ExceptionListMessages
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+            }
+            catch (ErrorDatabaseException ex)
+            {
+                ExceptionListMessages response = new ExceptionListMessages
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+            }
+        }
+
+        /// <summary>
+        /// This driver updates the doctor's account.
+        /// </summary>
+        /// <response code="200">Returns a message that the update has been successful.</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
+        [ConflictApiResponse]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AddUpdateDoctorsResponse))]
+        [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
+        [HttpPut]
+        [Produces("application/json")]
+        public async Task<IActionResult> UpdateDoctorAsync([FromBody] AllDoctorsDto values)
+        {
+            try
+            {
+                var doctor = await _DoctorService.UpdateDoctorAsync(values, HttpContext.RequestAborted);
+
+                AddUpdateDoctorsResponse response = new AddUpdateDoctorsResponse
+                {
+                    doctor = doctor
+                };
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, doctor = response.doctor });
+
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (ErrorDatabaseException ex)
+            {
+                ExceptionListMessages response = new ExceptionListMessages
+                {
+                    status = ex.Errors
+                };
+
+                return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
+            }
+        }
+
+        /// <summary>
+        /// This driver deletes the doctor's account.
+        /// </summary>
+        /// <response code="200">Returns a message that the elimination has been successful.</response>
+        [CommonApiResponse]
+        [BadRequestApiResponse]
+        [UnauthorizedApiResponse]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseMessage))]
+        [ApiKeyAuthorizationFilter]
+        [EnableRateLimiting("write")]
+        [HttpDelete("{doctorID:guid}")]
+        [Produces("application/json")]
+        public async Task<IActionResult> DeleteDoctorAsync(Guid doctorID)
+        {
+            try
+            {
+                var message = await _DoctorService.DeleteDoctorAsync(doctorID, HttpContext.RequestAborted);
+
+                ResponseMessage response = new ResponseMessage
+                {
+                    status = message
+                };
+
+                return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
+            }
+            catch (UnstoredValuesException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+        }
+    }
+}

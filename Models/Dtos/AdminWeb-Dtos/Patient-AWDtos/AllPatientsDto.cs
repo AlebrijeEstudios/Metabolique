@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AppVidaSana.Models.Dtos.Doctor_Dtos;
+using Newtonsoft.Json;
 
 namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos
 {
@@ -18,8 +19,10 @@ namespace AppVidaSana.Models.Dtos.AdminWeb_Dtos.Patient_AWDtos
 
         [JsonRequired] public float weight { get; set; }
 
-        [JsonRequired] public string protocolToFollow { get; set; } = null!;
+        public string? protocolToFollow { get; set; } 
 
         public string? uiemID { get; set; }
+
+        public DoctorDto? doctor { get; set; }
     }
 }
