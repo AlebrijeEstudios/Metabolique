@@ -49,7 +49,8 @@ namespace AppVidaSana.Services.AdminWeb
             {
                 new Claim(ClaimTypes.Name, account.username.ToString()),
                 new Claim(ClaimTypes.Email, account.email.ToString()),
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Role, role),
+                new Claim("typ", "access")
             };
 
             DateTime durationToken = DateTime.UtcNow.AddDays(1);
