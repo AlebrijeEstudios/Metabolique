@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.Text;
 using AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using System.Security.Claims;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -31,9 +32,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("drink")]
-        public async Task<IActionResult> ProxyHabitDrinkAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitDrinkAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -50,9 +59,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPatch("drink/edit")]
-        public async Task<IActionResult> ProxyEditHabitDrinkAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid drinkHabitID, [FromBody] JsonPatchDocument values)
+        public async Task<IActionResult> ProxyEditHabitDrinkAsync([FromQuery] Guid drinkHabitID, [FromBody] JsonPatchDocument values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/habits-drink?drinkHabitID={drinkHabitID}";
 
@@ -70,9 +79,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("drugs")]
-        public async Task<IActionResult> ProxyHabitDrugsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitDrugsAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -89,9 +106,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPatch("drugs/edit")]
-        public async Task<IActionResult> ProxyEditHabitDrugsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid drugsHabitID, [FromBody] JsonPatchDocument values)
+        public async Task<IActionResult> ProxyEditHabitDrugsAsync([FromQuery] Guid drugsHabitID, [FromBody] JsonPatchDocument values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/habits-drugs?drugsHabitID={drugsHabitID}";
 
@@ -109,9 +126,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("sleep")]
-        public async Task<IActionResult> ProxyHabitSleepAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyHabitSleepAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -128,9 +153,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPatch("sleep/edit")]
-        public async Task<IActionResult> ProxyEditHabitSleepAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid sleepHabitID, [FromBody] JsonPatchDocument values)
+        public async Task<IActionResult> ProxyEditHabitSleepAsync([FromQuery] Guid sleepHabitID, [FromBody] JsonPatchDocument values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/habits-sleep?sleepHabitID={sleepHabitID}";
 
@@ -148,9 +173,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("mfu-habit")]
-        public async Task<IActionResult> ProxyMFUsHabitsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyMFUsHabitsAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -167,9 +200,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPut("mfu-habit/edit")]
-        public async Task<IActionResult> ProxyEditMFUsHabitsAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateResponsesHabitsDto values)
+        public async Task<IActionResult> ProxyEditMFUsHabitsAsync([FromBody] UpdateResponsesHabitsDto values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/monthly-habits-monitoring";
             var dtoToSend = new

@@ -103,7 +103,8 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
             });
         }
 
-        public static HttpClient ConfigureHttpClient(this ControllerBase controller, IHttpClientFactory clientFactory, string authorization)
+        
+        public static HttpClient ConfigureHttpClient(this ControllerBase controller, IHttpClientFactory clientFactory)
         {
             var client = clientFactory.CreateClient();
 
@@ -114,14 +115,15 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper
                 client.DefaultRequestHeaders.Add(apiKeyHeader, apiKeyValue);
             }
 
-            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
+            var token = controller.Request.Cookies["accessToken"];
+            if (!string.IsNullOrEmpty(token))
             {
-                var token = headerValue.Parameter;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(bearerScheme, token);
             }
 
             return client;
         }
+
 
         public static async Task<IActionResult> HandleExportRequestAsync(this ControllerBase controller, HttpClient client, string url, string queryString)
         {

@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.Text;
 using AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using System.Security.Claims;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -32,9 +33,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet]
-        public async Task<IActionResult> ProxyFeedingsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyFeedingsAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -51,9 +60,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPut("edit")]
-        public async Task<IActionResult> ProxyEditFeedingAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateFeedingDto values)
+        public async Task<IActionResult> ProxyEditFeedingAsync([FromBody] UpdateFeedingDto values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/feeding";
             var dtoToSend = new
@@ -82,9 +91,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpDelete("delete")]
-        public async Task<IActionResult> ProxyDeleteFeedingAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid userFeedID)
+        public async Task<IActionResult> ProxyDeleteFeedingAsync([FromQuery] Guid userFeedID)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/feeding/{userFeedID}";
 
@@ -92,9 +101,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("foods")]
-        public async Task<IActionResult> ProxyFoodsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyFoodsAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -111,9 +128,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("mfu-feeding")]
-        public async Task<IActionResult> ProxyMFUsFeedingAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyMFUsFeedingAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -130,9 +155,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPut("mfu-feeding/edit")]
-        public async Task<IActionResult> ProxyEditMFUsFeedingAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateAnswersMFUsFoodDto values)
+        public async Task<IActionResult> ProxyEditMFUsFeedingAsync([FromBody] UpdateAnswersMFUsFoodDto values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/monthly-food-monitoring";
 
@@ -140,9 +165,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("calories-needed-per-user")]
-        public async Task<IActionResult> ProxyUserCaloriesAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyUserCaloriesAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -159,9 +192,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("calories-consumed-per-day")]
-        public async Task<IActionResult> ProxyCaloriesConsumedPerUserAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyCaloriesConsumedPerUserAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -178,9 +219,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("calories-required-per-days")]
-        public async Task<IActionResult> ProxyCaloriesRequiredPerDaysAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyCaloriesRequiredPerDaysAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
