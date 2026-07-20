@@ -4,6 +4,7 @@ using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -26,9 +27,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet]
-        public async Task<IActionResult> ProxyPatientsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyPatientsAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -45,9 +54,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPut("edit")]
-        public async Task<IActionResult> ProxyEditPatientAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] InfoAccountDto values)
+        public async Task<IActionResult> ProxyEditPatientAsync([FromBody] InfoAccountDto values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/accounts";
 
@@ -55,9 +64,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpDelete("delete")]
-        public async Task<IActionResult> ProxyDeletePatientAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid accountID)
+        public async Task<IActionResult> ProxyDeletePatientAsync([FromQuery] Guid accountID)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/accounts/{accountID}";
 

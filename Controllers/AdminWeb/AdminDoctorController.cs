@@ -163,6 +163,15 @@ namespace AppVidaSana.Controllers.AdminWeb
 
                 return StatusCode(StatusCodes.Status409Conflict, new { message = response.message, status = response.status });
             }
+            catch (SelfActionNotAllowedException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
         }
 
         /// <summary>
@@ -191,6 +200,15 @@ namespace AppVidaSana.Controllers.AdminWeb
                 return StatusCode(StatusCodes.Status200OK, new { message = response.message, status = response.status });
             }
             catch (UnstoredValuesException ex)
+            {
+                ExceptionMessage response = new ExceptionMessage
+                {
+                    status = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status400BadRequest, new { message = response.message, status = response.status });
+            }
+            catch (SelfActionNotAllowedException ex)
             {
                 ExceptionMessage response = new ExceptionMessage
                 {

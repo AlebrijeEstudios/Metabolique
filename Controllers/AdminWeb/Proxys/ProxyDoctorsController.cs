@@ -4,6 +4,7 @@ using AppVidaSana.Models.Dtos.AdminWeb_Dtos.Doctor_AWDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -26,9 +27,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("all")]
-        public async Task<IActionResult> ProxyListDoctorsAsync([FromHeader(Name = headerToken)] string authorization)
+        public async Task<IActionResult> ProxyListDoctorsAsync()
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var response = await client.GetAsync($"https://{api}/api/doctors");
 
@@ -36,9 +37,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet]
-        public async Task<IActionResult> ProxyDoctorsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyDoctorsAsync([FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var queryParams = this.BuildQueryParameters(filter, null, page);
             var queryString = string.Join("&", queryParams);
@@ -49,9 +58,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPost]
-        public async Task<IActionResult> ProxyCreateDoctorAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] AWDoctorDto values)
+        public async Task<IActionResult> ProxyCreateDoctorAsync([FromBody] AWDoctorDto values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/admin/doctors";
 
@@ -59,9 +68,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPut("edit")]
-        public async Task<IActionResult> ProxyEditDoctorAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] AllDoctorsDto values)
+        public async Task<IActionResult> ProxyEditDoctorAsync([FromBody] AllDoctorsDto values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/admin/doctors";
 
@@ -69,9 +78,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpDelete("delete")]
-        public async Task<IActionResult> ProxyDeleteDoctorAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid doctorID)
+        public async Task<IActionResult> ProxyDeleteDoctorAsync([FromQuery] Guid doctorID)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/admin/doctors/{doctorID}";
 

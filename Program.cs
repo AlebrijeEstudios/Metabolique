@@ -56,6 +56,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(adminWeb!)
               .AllowAnyMethod()
               .AllowAnyHeader()
+              .AllowCredentials()
               .WithExposedHeaders("Content-Disposition");
     });
 });
@@ -202,6 +203,15 @@ builder.Services.AddAuthentication(options =>
     };
     options.Events = new JwtBearerEvents
     {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.ContainsKey("accessToken"))
+            {
+                context.Token = context.Request.Cookies["accessToken"];
+            }
+            return Task.CompletedTask;
+        },
+
         OnAuthenticationFailed = context =>
         {
             if (context.Exception is SecurityTokenExpiredException) { throw new TokenExpiredException(); }
@@ -261,6 +271,7 @@ app.Use(async (context, next) =>
 });
 
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseRequestTimeouts();
@@ -268,8 +279,14 @@ app.UseCors("RulesCORS");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllers();
+
+app.MapFallbackToFile("index.html");
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapControllers();
 await app.RunAsync();
