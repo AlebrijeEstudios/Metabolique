@@ -19,10 +19,12 @@ namespace AppVidaSana.Services.AdminWeb
     {
         private readonly AppDbContext _bd;
         private static readonly Random random = new();
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AWDoctorService(AppDbContext bd)
+        public AWDoctorService(AppDbContext bd, IHttpContextAccessor httpContextAccessor)
         {
             _bd = bd;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<AllDoctorsDto> CreateDoctorAsync(AWDoctorDto values, CancellationToken cancellationToken)
@@ -97,6 +99,15 @@ namespace AppVidaSana.Services.AdminWeb
 
             if (doctorToUpdate is null) { throw new UnstoredValuesException(); }
 
+            var currentDoctorID = Guid.Parse(_httpContextAccessor.HttpContext!.User.FindFirst("doctorID")!.Value);
+            var currentRole = await _bd.Roles.FirstOrDefaultAsync(e => e.roleID == doctorToUpdate.roleID, cancellationToken);
+
+            if (values.doctorID == currentDoctorID && values.role != currentRole?.role)
+            {
+                throw new SelfActionNotAllowedException("No puedes cambiar tu propio rol.");
+            }
+
+
             var role = await _bd.Roles.FirstOrDefaultAsync(e => e.role == values.role, cancellationToken);
 
             doctorToUpdate.username = values.username;
@@ -120,6 +131,13 @@ namespace AppVidaSana.Services.AdminWeb
 
         public async Task<string> DeleteDoctorAsync(Guid doctorID, CancellationToken cancellationToken)
         {
+            var currentDoctorID = Guid.Parse(_httpContextAccessor.HttpContext!.User.FindFirst("doctorID")!.Value);
+
+            if (doctorID == currentDoctorID)
+            {
+                throw new SelfActionNotAllowedException("No puedes eliminarte a ti mismo.");
+            }
+
             var patientDoctorToDelete = await _bd.PacientDoctor.Where(e => e.doctorID == doctorID).ToListAsync(cancellationToken);
 
             _bd.PacientDoctor.RemoveRange(patientDoctorToDelete);

@@ -50,10 +50,11 @@ namespace AppVidaSana.Services.AdminWeb
                 new Claim(ClaimTypes.Name, account.username.ToString()),
                 new Claim(ClaimTypes.Email, account.email.ToString()),
                 new Claim(ClaimTypes.Role, role),
+                new Claim("doctorID", account.doctorID.ToString()),
                 new Claim("typ", "access")
             };
 
-            DateTime durationToken = DateTime.UtcNow.AddDays(1);
+            DateTime durationToken = DateTime.UtcNow.AddHours(2);
 
             var accessToken = GeneratorTokens.Tokens(KeyTokenEnv.GetKeyTokenEnv(), claims, durationToken);
 

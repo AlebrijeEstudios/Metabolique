@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Text;
 using AppVidaSana.Controllers.AdminWeb.Proxys.HttpResponseHelper;
 using AppVidaSana.Models.Dtos.AdminWeb_Dtos;
+using System.Security.Claims;
 
 namespace AppVidaSana.Controllers.AdminWeb.Proxys
 {
@@ -33,9 +34,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet]
-        public async Task<IActionResult> ProxyInfoMedicationsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyInfoMedicationsAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -52,9 +61,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPut("edit")]
-        public async Task<IActionResult> ProxyEditMedicationAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateMedicationUseDto values)
+        public async Task<IActionResult> ProxyEditMedicationAsync([FromBody] UpdateMedicationUseDto values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/medication";
             var dtoToSend = new
@@ -90,9 +99,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpDelete("delete")]
-        public async Task<IActionResult> ProxyDeleteMedicationAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid periodID, [FromQuery] DateOnly date)
+        public async Task<IActionResult> ProxyDeleteMedicationAsync([FromQuery] Guid periodID, [FromQuery] DateOnly date)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/medication?periodID={periodID}&date={date.ToString(formatDate, CultureInfo.InvariantCulture)}";
 
@@ -100,9 +109,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("side-effects")]
-        public async Task<IActionResult> ProxySideEffectsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxySideEffectsAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -119,9 +136,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPut("side-effects/edit")]
-        public async Task<IActionResult> ProxyEditSideEffectsAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] SideEffectsListDto values)
+        public async Task<IActionResult> ProxyEditSideEffectsAsync([FromBody] SideEffectsListDto values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/medication/side-effects";
 
@@ -147,9 +164,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpDelete("side-effects/delete")]
-        public async Task<IActionResult> ProxyDeleteSideEffectsAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] Guid sideEffectID)
+        public async Task<IActionResult> ProxyDeleteSideEffectsAsync([FromQuery] Guid sideEffectID)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/medication/side-effects?sideEffectID={sideEffectID}";
 
@@ -157,9 +174,17 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpGet("mfu-medication")]
-        public async Task<IActionResult> ProxyMFUsMedicationAsync([FromHeader(Name = headerToken)] string authorization, [FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
+        public async Task<IActionResult> ProxyMFUsMedicationAsync([FromQuery] string? typeExport, [FromQuery] FilterAdminDto filter, [FromQuery] int page)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var currentDoctorID = User.FindFirst("doctorID")?.Value;
+
+            if (currentRole != "Admin")
+            {
+                filter.doctorID = Guid.Parse(currentDoctorID!);
+            }
+
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             if (!string.IsNullOrEmpty(typeExport))
             {
@@ -176,9 +201,9 @@ namespace AppVidaSana.Controllers.AdminWeb.Proxys
         }
 
         [HttpPut("mfu-medication/edit")]
-        public async Task<IActionResult> ProxyEditMFUsMedicationAsync([FromHeader(Name = headerToken)] string authorization, [FromBody] UpdateResponsesMedicationsDto values)
+        public async Task<IActionResult> ProxyEditMFUsMedicationAsync([FromBody] UpdateResponsesMedicationsDto values)
         {
-            var client = this.ConfigureHttpClient(_clientFactory, authorization);
+            var client = this.ConfigureHttpClient(_clientFactory);
 
             var url = $"https://{api}/api/monthly-medications-monitoring";
 
