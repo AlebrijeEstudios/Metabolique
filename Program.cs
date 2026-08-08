@@ -142,7 +142,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddHttpClient();
 
-builder.Services.AddAutoMapper(typeof(Mapper));
+builder.Services.AddAutoMapper(cfg => { }, typeof(Mapper).Assembly);
 
 builder.Services.AddEndpointsApiExplorer();
 
