@@ -21,7 +21,7 @@ namespace AppVidaSana.Services
         private readonly AppDbContext _bd;
         private readonly IMapper _mapper;
         private readonly ICalories _CaloriesService;
-        private const string ContainerName = "storageimages";
+        private readonly string _containerName;
         private readonly BlobServiceClient _blobServiceClient;
 
         public FeedingService(AppDbContext bd, IMapper mapper, ICalories CaloriesService, BlobServiceClient blobServiceClient)
@@ -30,6 +30,7 @@ namespace AppVidaSana.Services
             _mapper = mapper;
             _CaloriesService = CaloriesService;
             _blobServiceClient = blobServiceClient;
+            _containerName = Environment.GetEnvironmentVariable("BLOB_CONTAINER_NAME");
         }
 
         public async Task<UserFeedsDto> GetFeedingAsync(Guid userFeedID, CancellationToken cancellationToken)
@@ -485,12 +486,12 @@ namespace AppVidaSana.Services
             var blobUri = new Uri(saucerPictureUrl!.saucerPictureUrl);
             var blobName = Path.GetFileName(blobUri.LocalPath);
 
-            var blobClient = _blobServiceClient.GetBlobContainerClient(ContainerName)
+            var blobClient = _blobServiceClient.GetBlobContainerClient(_containerName)
                                                .GetBlobClient(blobName);
 
             var sasBuilder = new BlobSasBuilder
             {
-                BlobContainerName = ContainerName,
+                BlobContainerName = _containerName,
                 BlobName = blobName,
                 Resource = "b",
                 ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(1)
@@ -589,7 +590,7 @@ namespace AppVidaSana.Services
 
         private BlobContainerClient GetContainerClient()
         {
-            BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+            BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
             containerClient.CreateIfNotExists();
 
             return containerClient;

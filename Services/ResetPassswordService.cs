@@ -45,16 +45,18 @@ namespace AppVidaSana.Services
             return accessToken;
         }
 
-        public async void SendEmailAsync(string email, string resetLink)
+        public async Task SendEmailAsync(string email, string resetLink)
         {
             List<string?> errors = new List<string?>();
 
             try
             {
                 EmailClient emailClient = new EmailClient(Environment.GetEnvironmentVariable("EMAIL_API"));
+                string emailSenderAddress = Environment.GetEnvironmentVariable("EMAIL_SENDER_ADDRESS");
+
                 await emailClient.SendAsync(
                     WaitUntil.Completed,
-                    senderAddress: "DoNotReply@6895ce04-ff2e-4cd1-b2fa-4544b971a71e.azurecomm.net",
+                    senderAddress: emailSenderAddress,
                     recipientAddress: email,
                     subject: "Password Reset",
                     htmlContent: $"<html><body><h2>Restablecimiento de contraseña</h2><p>Hola,</p><p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.</p><p>Por favor, haz clic en el siguiente enlace para restablecer tu contraseña:</p><p><a href=\"{resetLink}\">Click aquí para restablecer tu contraseña</a></p><p>Si no solicitaste este cambio, por favor ignora este correo.</p><p>Gracias,</p><p>Tu equipo de soporte</p></body></html>",
@@ -102,7 +104,7 @@ namespace AppVidaSana.Services
                                                                  && u.email == emailClaimType, cancellationToken);
 
             if (account is null) { return false; }
-
+            
             account.password = BCrypt.Net.BCrypt.HashPassword(values.confirmPassword);
 
             ValidationValuesDB.ValidationValues(account);
