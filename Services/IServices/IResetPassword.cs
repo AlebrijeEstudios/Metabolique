@@ -8,7 +8,7 @@ namespace AppVidaSana.Services.IServices
 
         Task<bool> ResetPasswordAsync(ResetPasswordDto values, CancellationToken cancellationToken);
 
-        void SendEmailAsync(string email, string resetLink);
+        Task SendEmailAsync(string email, string resetLink);
 
         bool Save();
     }
